@@ -8,13 +8,16 @@
         <general-data xmlns="http://www.netbeans.org/ns/freeform-project/2">
             <!-- Do not use Project Properties customizer when editing this file manually. -->
             <name>jpf-bfs</name>
-
             <properties>
                 <property-file>${user.home}/.jpf/site.properties</property-file>
                 <property-file>${jpf-core}/jpf.properties</property-file>
             </properties>
-
             <folders>
+                <source-folder>
+                    <label>jpf-bfs</label>
+                    <location>.</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
                 <source-folder>
                     <label>src/main</label>
                     <type>java</type>
@@ -52,7 +55,6 @@
                     <encoding>UTF-8</encoding>
                 </source-folder>
             </folders>
-
             <ide-actions>
                 <action name="build">
                     <target>build</target>
@@ -176,7 +178,6 @@
                     </context>
                 </action>
             </ide-actions>
-
             <view>
                 <items>
                     <source-folder style="packages">
@@ -184,12 +185,12 @@
                         <location>src/main</location>
                     </source-folder>
                     <source-folder style="packages">
-                        <label>src/peers</label>
-                        <location>src/peers</location>
-                    </source-folder>
-                    <source-folder style="packages">
                         <label>src/classes</label>
                         <location>src/classes</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>src/peers</label>
+                        <location>src/peers</location>
                     </source-folder>
                     <source-folder style="packages">
                         <label>src/annotations</label>
@@ -216,11 +217,10 @@
             </view>
             <subprojects/>
         </general-data>
-
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src/main</package-root>
-                <classpath mode="compile">build/main;${jpf-core.native_classpath}</classpath>
+                <classpath mode="compile">build/main:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/annotations:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/classes:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/main:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/peers</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
@@ -245,7 +245,6 @@
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
-
         <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
             <module name="org-netbeans-modules-editor-indent">
                 <node name="CodeStyle">
@@ -266,6 +265,7 @@
                     </node>
                 </node>
             </module>
+            <module name="org-netbeans-modules-projectimport-eclipse-core"/>
         </preferences>
     </configuration>
 </project>
