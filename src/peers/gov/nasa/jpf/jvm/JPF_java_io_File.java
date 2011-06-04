@@ -137,17 +137,6 @@ public class JPF_java_io_File {
     return getFile(env,objref).canWrite();
   }
 
-  public static boolean createNewFile____Z(MJIEnv env, int objref) {
-    File fileToCreate = getFile(env, objref);
-    try {
-      return fileToCreate.createNewFile();
-
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
-      return false;
-    }
-  }
-
   public static int list_____3Ljava_lang_String_2(MJIEnv env, int objref){
 	  File f=getFile(env,objref);
     if (f.isDirectory()){

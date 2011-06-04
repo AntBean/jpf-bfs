@@ -64,7 +64,7 @@ public class File
 
   public File(String filename) {
 
-    System.out.println("I am in proger's class");
+    System.out.println("File(String)");
 
     if (filename == null){
       throw new NullPointerException();
@@ -154,7 +154,7 @@ public class File
   }
 
   public boolean canRead() { 
-    System.out.println("At proger's canRead() ");
+    System.out.println("File.canRead()");
     getFileInfo();
     
     return false;
@@ -163,6 +163,7 @@ public class File
   public native boolean canWrite();
 
   public boolean exists() {
+    System.out.println("File.exists()");
     getFileInfo();
 
     if (fileInfo != null) {
@@ -177,9 +178,24 @@ public class File
   public boolean isHidden() { return false; }
   public long lastModified() { return -1L; }
   public long length() { return -1; }
-  public native boolean createNewFile() throws java.io.IOException;
+
+
+  public boolean createNewFile() throws java.io.IOException {
+    System.out.println("File.createNewFile()");
+    getFileInfo();
+
+    if (fileInfo == null || !fileInfo.exists()) {
+      System.out.println("File " + filename + " created");
+      FileInfo.createFI(null, filename);
+
+      return true;
+    }
+
+    return false;
+  }
 
   public boolean delete() {
+    System.out.println("File.delete()");
     getFileInfo();
 
     if (fileInfo != null) {

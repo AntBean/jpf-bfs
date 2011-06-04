@@ -42,6 +42,10 @@ public class FileState {
     return isDir;
   }
 
+  public void setIsDir(boolean isDir) {
+    this.isDir = isDir;
+  }
+
   public int getOpenCnt() {
     return openCnt;
   }
@@ -69,4 +73,6 @@ public class FileState {
 
     return result;
   }
+
+
 }

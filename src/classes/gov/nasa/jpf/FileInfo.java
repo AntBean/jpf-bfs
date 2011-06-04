@@ -32,6 +32,14 @@ public class FileInfo {
   private String cannonicalPath;
   private FileState fileState;
 
+  private FileInfo(String filename, boolean isDir) {
+    cannonicalPath = filename;
+    
+    fileState = new FileState();
+    fileState.setIsDir(isDir);
+    fileState.setIsExists(true);
+  }
+
 
   public boolean delete() {
 
@@ -64,6 +72,11 @@ public class FileInfo {
   }
 
   private static native FileInfo createNewFileInfo(String fileName);
+
+  public static void createFI(Object object, String filename) {
+    FileInfo fi = new FileInfo(filename, true);
+    fileInfos.add(fi);
+  }
 
   private static FileInfo getFileInfoByCannonicalPath(String fileName) {
 

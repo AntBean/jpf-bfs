@@ -22,6 +22,8 @@ import gov.nasa.jpf.jvm.Verify;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
+import java.io.IOException;
+import java.nio.channels.FileLock;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,13 +57,24 @@ public class FileTest extends TestJPF {
       File file = new File("fileSandbox/parent/child");
 
       Verify.getBoolean();
-      assert file.exists() == true;
+      assert file.exists() : "File file/Sandbox/parent/child should exists before deletion";
 
-      assert file.delete() == true;
+      assert file.delete() : "File.delete() on existing file should return true";
 
-      assert file.exists() == false;
+      assert !file.exists() : "After a deletion of file File.exists() should return false";
     }
+  }
 
+  @Test
+  public void testBacktrackableFileCreation() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child/file");
+
+      Verify.getBoolean();
+      assert !file.exists() : "File.exists() should return false if file doesn't exist";
+      assert file.createNewFile() : "File.create() should return true";
+      assert file.exists() : "File.exists() should return true on a created file";
+    }
   }
 
 }
