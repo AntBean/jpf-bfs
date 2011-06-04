@@ -32,7 +32,7 @@ public class FileState {
 
   private String nativeFSFileName;
 
-  private State state;
+  private boolean isExist;
 
   public long getLength() {
     return length;
@@ -50,12 +50,12 @@ public class FileState {
     return nativeFSFileName;
   }
 
-  public State getState() {
-    return state;
+  public boolean isExists() {
+    return isExist;
   }
 
-  public void setState(State state) {
-    this.state = state;
+  public void setIsExists(boolean exist) {
+    this.isExist = exist;
   }
 
   @Override
@@ -63,7 +63,7 @@ public class FileState {
     String result;
     result = "length = " + length;
     result += "; isDir = " + isDir;
-    result += "; state = " + state;
+    result += "; exists = " + isExist;
     result += "; openCnt = " + openCnt;
     result += "; nativeFSName = " + nativeFSFileName;
 

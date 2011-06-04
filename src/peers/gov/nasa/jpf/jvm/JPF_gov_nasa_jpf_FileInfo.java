@@ -41,6 +41,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       int fsRef = env.newObject("gov.nasa.jpf.FileState");
       env.setLongField(fsRef, "length", file.length());
       env.setBooleanField(fsRef, "isDir", file.isDirectory());
+      env.setBooleanField(fsRef, "isExist", true);
       env.setIntField(fsRef, "openCnt", 0);
       env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
 

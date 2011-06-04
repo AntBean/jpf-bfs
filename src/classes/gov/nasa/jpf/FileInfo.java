@@ -35,8 +35,8 @@ public class FileInfo {
 
   public boolean delete() {
 
-    if (fileState.getState() == State.EXISTS) {
-      fileState.setState(State.DELETED);
+    if (fileState.isExists()) {
+      fileState.setIsExists(false);
 
       return true;
     }
@@ -45,7 +45,7 @@ public class FileInfo {
   }
 
   public boolean exists() {
-    return fileState.getState() == State.EXISTS;
+    return fileState.isExists();
   }
 
   public static FileInfo getFileInfo(String filename) {
@@ -56,8 +56,7 @@ public class FileInfo {
     }
 
     fi = createNewFileInfo(filename);
-    if (fi != null) {
-      fi.fileState.setState(State.EXISTS);
+    if (fi != null) {      
       fileInfos.add(fi);
     }
 
