@@ -46,6 +46,10 @@ public class FileInfo {
     if (fileState.isExists()) {
       fileState.setIsExists(false);
 
+      for (FileInfo child : fileState.getChilds()) {
+        child.delete();
+      }
+
       return true;
     }
 
@@ -57,21 +61,50 @@ public class FileInfo {
   }
 
   public static FileInfo getFileInfo(String filename) {
-    FileInfo fi = getFileInfoByCannonicalPath(filename);
+    System.out.println("Request for " + filename + " FileInfo");
+    FileInfo newFI = getFileInfoByCannonicalPath(filename);
 
-    if (fi != null) {
-      return fi;
+    if (newFI != null) {
+      System.out.println("Found in FileInfo DS");
+      return newFI;
     }
 
-    fi = createNewFileInfo(filename);
-    if (fi != null) {      
-      fileInfos.add(fi);
-    }
+    newFI = createNewFileInfo(filename);
+    if (newFI != null) {
+      System.out.println("Found in native FS");
+      newFI.fileState.setChilds(new ArrayList<FileInfo>());
 
-    return fi;
+      String parentCP = getParentCP(filename);
+      for (FileInfo potentialParent : fileInfos) {
+        if (potentialParent.cannonicalPath.equals(parentCP)) {
+          System.out.println("Found parent " + potentialParent.cannonicalPath + " for " + newFI.cannonicalPath);
+
+          potentialParent.fileState.addChild(newFI);
+          break;
+        }
+      }
+
+      for (FileInfo potentialChild : fileInfos) {
+        String potentialChildParentCP = getParentCP(potentialChild.cannonicalPath);
+
+        if (newFI.cannonicalPath.equals(potentialChildParentCP)) {
+          System.out.println("Found child " + potentialChild.cannonicalPath + " for " + newFI.cannonicalPath);
+          newFI.fileState.addChild(potentialChild);
+        }
+      }
+
+      fileInfos.add(newFI);
+    }
+    else {
+      System.out.println("Found no FileInfo");
+    }
+    
+    return newFI;
   }
 
   private static native FileInfo createNewFileInfo(String fileName);
+
+  private static native String getParentCP(String filename);
 
   public static void createFI(Object object, String filename) {
     FileInfo fi = new FileInfo(filename, true);
@@ -88,6 +121,8 @@ public class FileInfo {
 
     return null;
   }
+
+
 
   @Override
   public String toString() {

@@ -19,6 +19,8 @@
 
 package gov.nasa.jpf;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Ivan Mushketik
@@ -33,6 +35,8 @@ public class FileState {
   private String nativeFSFileName;
 
   private boolean isExist;
+
+  private ArrayList<FileInfo> childs = new ArrayList<FileInfo>();
 
   public long getLength() {
     return length;
@@ -62,6 +66,18 @@ public class FileState {
     this.isExist = exist;
   }
 
+  public void addChild(FileInfo child) {
+    childs.add(child);
+  }
+
+  public ArrayList<FileInfo> getChilds() {
+    return childs;
+  }
+
+  void setChilds(ArrayList<FileInfo> childs) {
+    this.childs = childs;
+  }
+
   @Override
   public String toString() {
     String result;
@@ -73,6 +89,5 @@ public class FileState {
 
     return result;
   }
-
 
 }

@@ -23,7 +23,6 @@ import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
 import java.io.IOException;
-import java.nio.channels.FileLock;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,4 +76,19 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testRemoveParentDir() {
+    if (verifyNoPropertyViolation()) {
+
+      File parent = new File("fileSandbox/parent");
+      File child = new File("fileSandbox/parent/child");
+
+      assert parent.exists() : "File.exists() should return true for existing files";
+      assert child.exists() : "File.exists() should return true for existing files";
+
+      assert parent.delete() : "File.delete() on existing file should return true";
+      assert !parent.exists() : "File.exists() should return false for deleted files";
+      assert !child.exists() : "File.exists() should return false for deleted files";
+    }
+  }
 }

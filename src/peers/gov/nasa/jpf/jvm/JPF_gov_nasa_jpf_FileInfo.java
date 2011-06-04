@@ -51,4 +51,11 @@ public class JPF_gov_nasa_jpf_FileInfo {
     }
     return MJIEnv.NULL;
   }
+
+  public static int getParentCP__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int clsRef, int fileNameRef) {
+    String fileName = env.getStringObject(fileNameRef);
+    File file = new File(fileName);
+
+    return env.newString(file.getParent());
+  }
 }
