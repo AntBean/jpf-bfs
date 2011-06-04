@@ -17,8 +17,9 @@
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 
-package gov.nasa.jpf.jvm;
+package gov.nasa.jpf.bfs;
 
+import gov.nasa.jpf.jvm.MJIEnv;
 import java.io.File;
 
 /**

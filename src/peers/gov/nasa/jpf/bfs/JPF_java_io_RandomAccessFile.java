@@ -16,8 +16,11 @@
 // THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
-package gov.nasa.jpf.jvm;
+package gov.nasa.jpf.bfs;
 
+import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.jvm.bytecode.Instruction;
 
 import java.util.HashMap;

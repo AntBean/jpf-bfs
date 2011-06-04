@@ -1,4 +1,6 @@
-package gov.nasa.jpf.jvm;
+package gov.nasa.jpf.bfs;
+
+import gov.nasa.jpf.jvm.MJIEnv;
 
 public class JPF_java_io_ObjectOutputStream {
 

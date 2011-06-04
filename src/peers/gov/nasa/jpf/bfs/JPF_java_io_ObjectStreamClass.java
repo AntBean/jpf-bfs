@@ -16,7 +16,14 @@
 // THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
-package gov.nasa.jpf.jvm;
+package gov.nasa.jpf.bfs;
+
+import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.jvm.ElementInfo;
+import gov.nasa.jpf.jvm.FieldInfo;
+import gov.nasa.jpf.jvm.JPF_java_lang_Class;
+import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.MethodInfo;
 
 public class JPF_java_io_ObjectStreamClass {
   public static void initNative____V (MJIEnv env, int clsObjRef) {
@@ -25,14 +32,14 @@ public class JPF_java_io_ObjectStreamClass {
   
   // why is this here??
   public static boolean hasStaticInitializer__Ljava_lang_Class_2__Z (MJIEnv env, int objRef, int clsRef){
-    ClassInfo ci = JPF_java_lang_Class.getReferredClassInfo(env, clsRef);
+    ClassInfo ci = env.getReferredClassInfo(clsRef);
     MethodInfo mi = ci.getMethod("<clinit>()V", false);          
     return (mi != null);
   }
 
   // just a little accelerator
   public static int getDeclaredSUID__Ljava_lang_Class_2__Ljava_lang_Long_2 (MJIEnv env, int objRef, int clsRef){
-    ClassInfo ci = JPF_java_lang_Class.getReferredClassInfo(env, clsRef);
+    ClassInfo ci = env.getReferredClassInfo(clsRef);
     FieldInfo fi = ci.getDeclaredStaticField("serialVersionUID");
     if (fi != null){
       ElementInfo ei = ci.getStaticElementInfo();
