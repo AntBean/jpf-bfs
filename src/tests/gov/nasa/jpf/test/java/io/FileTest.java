@@ -69,7 +69,9 @@ public class FileTest extends TestJPF {
 
       Verify.getBoolean();
       assertFalse("File.exists() should return false if file doesn't exist", file.exists());
+
       assertTrue("File.create() should return true", file.createNewFile());
+      assertTrue("File.isFile() should return true on a file", file.isFile());
       assertTrue("File.exists() should return true on a created file", file.exists());
     }
   }
@@ -87,6 +89,20 @@ public class FileTest extends TestJPF {
       assertTrue("File.delete() on existing file should return true", parent.delete());
       assertFalse("File.exists() should return false for deleted files", parent.exists());
       assertFalse("File.exists() should return false for deleted files", child.exists());
+    }
+  }
+
+  @Test
+  public void testBacktrackableMkDir() {
+    if (verifyNoPropertyViolation()) {
+      File parent1 = new File("fileSandbox/parent1");
+
+      Verify.getBoolean();
+      assertFalse("File.exists() should return false if directory not exists", parent1.exists());
+      assertTrue("File.mkdir() should return true when directory is created", parent1.mkdir());
+
+      assertTrue("File.isDirectory() should return true when called on a directory", parent1.isDirectory());
+      assertTrue("File.exist() should return true when called on an existing directory", parent1.exists());
     }
   }
 }

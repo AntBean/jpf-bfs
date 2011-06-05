@@ -47,16 +47,16 @@ public class File
   private FileInfo fileInfo;
 
   private FileInfo getFileInfo() {
+    System.out.println("getFileInfo()");
     if (fileInfo == null) {
       fileInfo = FileInfo.getFileInfo(filename);
     }
-
-    System.out.println("getFileInfo()");
+    
     if (fileInfo == null) {
-      System.out.println("null");
+      System.out.println("Returned FileInfo - null");
     }
     else {
-      System.out.println(fileInfo);
+      System.out.println("Returned FileInfo - " + fileInfo);
     }
 
     return fileInfo;
@@ -173,8 +173,28 @@ public class File
     return false;
   }
 
-  public boolean isDirectory() { return false; }
-  public boolean isFile() { return false; }
+  public boolean isDirectory() { 
+    System.out.println("File.isDirectory()");
+    getFileInfo();
+    
+    if (fileInfo != null && fileInfo.exists()) {
+      return fileInfo.getFileState().isDir();
+    }
+    
+    return false;
+  }
+
+  public boolean isFile() {
+    System.out.println("File.isFile()");
+    getFileInfo();
+
+    if (fileInfo != null && fileInfo.exists()) {
+      return !fileInfo.getFileState().isDir();
+    }
+
+    return false;
+  }
+
   public boolean isHidden() { return false; }
   public long lastModified() { return -1L; }
   public long length() { return -1; }
@@ -182,16 +202,8 @@ public class File
 
   public boolean createNewFile() throws java.io.IOException {
     System.out.println("File.createNewFile()");
-    getFileInfo();
-
-    if (fileInfo == null || !fileInfo.exists()) {
-      System.out.println("File " + filename + " created");
-      FileInfo.createFI(null, filename);
-
-      return true;
-    }
-
-    return false;
+    
+    return FileInfo.createNewFile(filename);
   }
 
   public boolean delete() {
@@ -212,7 +224,12 @@ public class File
   public File[] listFiles()  { return null; }
   public File[] listFiles(FilenameFilter fnf)  { return null; }
   public File[] listFiles(FileFilter ff)  { return null; }
-  public boolean mkdir()  { return false; }
+
+  public boolean mkdir() {
+    System.out.println("File.mkdir()");
+    return FileInfo.mkdir(filename);
+  }
+  
   public boolean mkdirs() { return false; }
   public boolean renameTo(File f)  { return false; }
   public boolean setLastModified(long t)  { return false; }

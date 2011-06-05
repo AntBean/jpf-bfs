@@ -29,6 +29,9 @@ public class FileInfo {
 
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
 
+
+
+
   private String cannonicalPath;
   private FileState fileState;
 
@@ -56,6 +59,10 @@ public class FileInfo {
     return false;
   }
 
+  public FileState getFileState() {
+    return fileState;
+  }
+
   public boolean exists() {
     return fileState.isExists();
   }
@@ -74,26 +81,7 @@ public class FileInfo {
       System.out.println("Found in native FS");
       newFI.fileState.setChilds(new ArrayList<FileInfo>());
 
-      String parentCP = getParentCP(filename);
-      for (FileInfo potentialParent : fileInfos) {
-        if (potentialParent.cannonicalPath.equals(parentCP)) {
-          System.out.println("Found parent " + potentialParent.cannonicalPath + " for " + newFI.cannonicalPath);
-
-          potentialParent.fileState.addChild(newFI);
-          break;
-        }
-      }
-
-      for (FileInfo potentialChild : fileInfos) {
-        String potentialChildParentCP = getParentCP(potentialChild.cannonicalPath);
-
-        if (newFI.cannonicalPath.equals(potentialChildParentCP)) {
-          System.out.println("Found child " + potentialChild.cannonicalPath + " for " + newFI.cannonicalPath);
-          newFI.fileState.addChild(potentialChild);
-        }
-      }
-
-      fileInfos.add(newFI);
+      addNewFI(newFI);
     }
     else {
       System.out.println("Found no FileInfo");
@@ -101,14 +89,86 @@ public class FileInfo {
     
     return newFI;
   }
+  
+  private static void addNewFI(FileInfo newFI) {
+    String parentCP = getParentCP(newFI.cannonicalPath);
+
+    for (FileInfo potentialParent : fileInfos) {
+      if (potentialParent.cannonicalPath.equals(parentCP)) {
+        System.out.println("Found parent " + potentialParent.cannonicalPath + " for " + newFI.cannonicalPath);
+
+        potentialParent.fileState.addChild(newFI);
+        break;
+      }
+    }
+
+    for (FileInfo potentialChild : fileInfos) {
+      String potentialChildParentCP = getParentCP(potentialChild.cannonicalPath);
+
+      if (newFI.cannonicalPath.equals(potentialChildParentCP)) {
+        System.out.println("Found child " + potentialChild.cannonicalPath + " for " + newFI.cannonicalPath);
+        newFI.fileState.addChild(potentialChild);
+      }
+    }
+
+    fileInfos.add(newFI);
+  }
+
+  public static boolean createNewFile(String filename) {
+    System.out.println("Attempt to create new FileInfo for a file " + filename);
+
+    FileInfo fi = getFileInfo(filename);
+
+    if (fi == null || !fi.fileState.isExists()) {
+      String parentCP = getParentCP(filename);
+      FileInfo parentFI = getFileInfo(parentCP);
+
+      if (parentFI != null && parentFI.fileState.isExists()) {
+        if (fi == null) {
+          fi = new FileInfo(filename, false);
+        }
+
+        fi.fileState.setIsDir(false);
+
+        addNewFI(fi);
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   private static native FileInfo createNewFileInfo(String fileName);
 
   private static native String getParentCP(String filename);
 
-  public static void createFI(Object object, String filename) {
+  public static void createNewFileFI(String filename) {
     FileInfo fi = new FileInfo(filename, true);
     fileInfos.add(fi);
+  }
+  
+  public static boolean mkdir(String filename) {
+    System.out.println("Attempt to create new FileInfo for a dir " + filename);
+
+    FileInfo fi = getFileInfo(filename);
+
+    if (fi == null || !fi.fileState.isExists()) {
+      String parentCP = getParentCP(filename);
+      FileInfo parentFI = getFileInfo(parentCP);
+
+      if (parentFI != null && parentFI.fileState.isExists()) {
+        if (fi == null) {
+          fi = new FileInfo(filename, true);
+        }
+
+        fi.fileState.setIsDir(true);
+
+        addNewFI(fi);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static FileInfo getFileInfoByCannonicalPath(String fileName) {
@@ -122,8 +182,6 @@ public class FileInfo {
     return null;
   }
 
-
-
   @Override
   public String toString() {
     String result = "CP: " + cannonicalPath + "; ";
@@ -133,5 +191,4 @@ public class FileInfo {
     return result;
 
   }
-
 }

@@ -31,7 +31,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
     
     String fileName = env.getStringObject(fileNameRef);
 
-    System.out.println("New FileInfo to create" + fileName);
+    System.out.println("Searching for info for " + fileName + " on native FS");
     File file = new File(fileName);
 
     if (file.exists()) {

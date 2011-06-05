@@ -122,14 +122,6 @@ public class JPF_java_io_File {
   public static boolean isAbsolute____Z (MJIEnv env, int objref) {
     return getFile(env, objref).isAbsolute();
   }
-
-  public static boolean isDirectory____Z (MJIEnv env, int objref) {
-    return getFile(env,objref).isDirectory();
-  }
-
-  public static boolean isFile____Z (MJIEnv env, int objref) {
-    return getFile(env,objref).isFile();
-  }
   
   public static long length____J (MJIEnv env, int objref) {
     return getFile(env,objref).length();
