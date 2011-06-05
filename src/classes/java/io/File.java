@@ -159,7 +159,24 @@ public class File
   public boolean canRead() { 
     System.out.println("File.canRead()");
     getFileInfo();
-    
+
+    if (fileInfo != null) {
+      return fileInfo.getFileState().isReadable();
+    }
+
+    return false;
+  }
+
+  public boolean setReadable(boolean readable) {
+    System.out.println("File.setReadable()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      fileInfo.getFileState().setIsReadable(readable);
+
+      return true;
+    }
+
     return false;
   }
 

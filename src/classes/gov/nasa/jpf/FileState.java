@@ -40,6 +40,10 @@ public class FileState {
 
   private FileInfo parent;
 
+  boolean isReadable;
+  boolean isExecutable;
+  boolean isWritable;
+
   public long getLength() {
     return length;
   }
@@ -78,6 +82,30 @@ public class FileState {
 
   void setChilds(ArrayList<FileInfo> childs) {
     this.childs = childs;
+  }
+
+  public boolean isReadable() {
+    return isReadable;
+  }
+
+  public void setIsReadable(boolean isReadable) {
+    this.isReadable = isReadable;
+  }
+
+  public boolean isWritable() {
+    return isWritable;
+  }
+
+  public void setIsWritable(boolean isWritable) {
+    this.isWritable = isWritable;
+  }
+
+  public boolean isExecutable() {
+    return isExecutable;
+  }
+
+  public void setIsExecutable(boolean isExecutable) {
+    this.isExecutable = isExecutable;
   }
 
   @Override

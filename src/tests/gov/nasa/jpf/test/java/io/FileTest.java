@@ -200,12 +200,36 @@ public class FileTest extends TestJPF {
       File child = new File("child");
 
       Verify.getBoolean();
-      assertFalse(file.exists());
-      assertTrue(file.createNewFile());
+      assertFalse("File.exists() should return false when file doesn't exist", file.exists());
+      assertTrue("File.create() should return true when file is created.", file.createNewFile());
 
-      assertTrue(sandbox.delete());
-
-      assertTrue(!sandbox.exists() && !parent.exists() && !child.exists() && !file.exists());
+      assertTrue("File.delete() should return true when directory is deleted", sandbox.delete());
+      assertTrue("File.delete() should delete all it's children recursively",
+              !sandbox.exists() && !parent.exists() && !child.exists() && !file.exists());
     }
   }
+
+  @Test
+  public void testBacktrackableReadableFlagSetting() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child");
+
+      Verify.getBoolean();
+      assertTrue("File.canRead() should return true if file can be read", file.canRead());
+      assertTrue("File.setReadable() should return true when called for existing file", file.setReadable(false));
+
+      assertFalse("File.canRead() should return false if file's read flag set to false", file.canRead());
+    }
+  }
+
+  @Test
+  public void testChangeReadableForNonExistingFile() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/DoesntExist");
+
+      assertFalse("File.setReadable() should return false when called for a file that doesn't exist",
+              file.setReadable(true));
+    }
+  }
+
 }

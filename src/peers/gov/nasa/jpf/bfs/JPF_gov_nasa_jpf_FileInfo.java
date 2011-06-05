@@ -46,6 +46,10 @@ public class JPF_gov_nasa_jpf_FileInfo {
       env.setIntField(fsRef, "openCnt", 0);
       env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
 
+      env.setBooleanField(fsRef, "isReadable", file.canRead());
+      env.setBooleanField(fsRef, "isWritable", file.canWrite());
+      env.setBooleanField(fsRef, "isExecutable", file.canExecute());
+
       env.setReferenceField(fiRef, "fileState", fsRef);
 
       return fiRef;
