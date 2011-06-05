@@ -190,4 +190,22 @@ public class FileTest extends TestJPF {
       }
     }
   }
+
+  @Test
+  public void testRecursiveDeletion() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child/file");
+      File sandbox = new File("fileSandbox");
+      File parent = new File("parent");
+      File child = new File("child");
+
+      Verify.getBoolean();
+      assertFalse(file.exists());
+      assertTrue(file.createNewFile());
+
+      assertTrue(sandbox.delete());
+
+      assertTrue(!sandbox.exists() && !parent.exists() && !child.exists() && !file.exists());
+    }
+  }
 }

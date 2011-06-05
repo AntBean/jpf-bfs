@@ -38,6 +38,8 @@ public class FileState {
 
   private ArrayList<FileInfo> childs = new ArrayList<FileInfo>();
 
+  private FileInfo parent;
+
   public long getLength() {
     return length;
   }

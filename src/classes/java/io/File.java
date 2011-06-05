@@ -43,13 +43,14 @@ public class File
 
   int id; // link to the real File object
   private String filename;
+  private String cannonicalPath;
 
   private FileInfo fileInfo;
 
   private FileInfo getFileInfo() {
     System.out.println("getFileInfo()");
     if (fileInfo == null) {
-      fileInfo = FileInfo.getFileInfo(filename);
+      fileInfo = FileInfo.getFileInfo(cannonicalPath);
     }
     
     if (fileInfo == null) {
@@ -70,56 +71,58 @@ public class File
       throw new NullPointerException();
     }
     
-    this.filename = filename;
+    cannonicalPath = getCannonicalPath(filename);
   }
 
+  private static native String getCannonicalPath(String filename);
+
   public File (String parent, String child) {
-  	filename = parent + separator + child;
+  	cannonicalPath = parent + separator + child;
   }
   
   public File (File parent, String child) {
-    filename = parent.filename + separator + child;
+    cannonicalPath = parent.cannonicalPath + separator + child;
   }
   
   public File(java.net.URI uri) { throw new UnsupportedOperationException(); }
   
   public String getName() {
-    int idx = filename.lastIndexOf(separatorChar);
+    int idx = cannonicalPath.lastIndexOf(separatorChar);
     if (idx >= 0){
-      return filename.substring(idx+1);
+      return cannonicalPath.substring(idx+1);
     } else {
-      return filename;
+      return cannonicalPath;
     }
   }
 
   public String getParent() {
-    int idx = filename.lastIndexOf(separatorChar);
+    int idx = cannonicalPath.lastIndexOf(separatorChar);
     if (idx >= 0){
-      return filename.substring(0,idx);
+      return cannonicalPath.substring(0,idx);
     } else {
       return null;
     }
   }
   
   public int compareTo(File that) {
-    return this.filename.compareTo(that.filename);
+    return this.cannonicalPath.compareTo(that.cannonicalPath);
   }
   
   public boolean equals(Object o) {
     if (o instanceof File){
       File otherFile = (File) o;
-      return filename.equals(otherFile.filename);
+      return cannonicalPath.equals(otherFile.cannonicalPath);
     } else {
       return false;
     }
   }
   
   public int hashCode() {
-    return filename.hashCode();
+    return cannonicalPath.hashCode();
   }
   
   public String toString()  {
-    return filename;
+    return cannonicalPath;
   }
   
   
@@ -203,7 +206,7 @@ public class File
   public boolean createNewFile() throws java.io.IOException {
     System.out.println("File.createNewFile()");
     
-    return FileInfo.createNewFile(filename);
+    return FileInfo.createNewFile(cannonicalPath);
   }
 
   public boolean delete() {
@@ -227,7 +230,7 @@ public class File
 
   public boolean mkdir() {
     System.out.println("File.mkdir()");
-    return FileInfo.mkdir(filename);
+    return FileInfo.mkdir(cannonicalPath);
   }
   
   public boolean mkdirs() { return false; }

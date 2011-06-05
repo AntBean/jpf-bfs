@@ -28,10 +28,6 @@ import java.util.ArrayList;
 public class FileInfo {
 
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
-
-
-
-
   private String cannonicalPath;
   private FileState fileState;
 
@@ -91,8 +87,19 @@ public class FileInfo {
   }
   
   private static void addNewFI(FileInfo newFI) {
-    String parentCP = getParentCP(newFI.cannonicalPath);
+    String cp = newFI.cannonicalPath;
 
+    while ((cp = getParentCP(cp))  != null) {
+      FileInfo parentFI = getFileInfo(cp);
+
+      if (!parentFI.fileState.isExists()) {
+        System.out.println(parentFI.cannonicalPath + " was deleted, so " + newFI.cannonicalPath + " is deleted too");
+        newFI.fileState.setIsExists(false);
+        break;
+      }
+    }
+
+    String parentCP = getParentCP(newFI.cannonicalPath);
     for (FileInfo potentialParent : fileInfos) {
       if (potentialParent.cannonicalPath.equals(parentCP)) {
         System.out.println("Found parent " + potentialParent.cannonicalPath + " for " + newFI.cannonicalPath);

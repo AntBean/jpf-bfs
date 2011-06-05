@@ -52,17 +52,27 @@ public class JPF_java_io_File {
     return new File(fname);
   }
 
-  static int createJPFFile(MJIEnv env, File file) {
+  static int createJPFFile(MJIEnv env, File file) throws IOException {
     int newFileRef = env.newObject("java.io.File");
     ElementInfo fileEI = env.getElementInfo(newFileRef);
 
     int fileNameRef = env.newString(file.getPath());
+    int cannonicalPathRef = env.newString(file.getCanonicalPath());
+
     fileEI.setReferenceField("filename", fileNameRef);
+    fileEI.setReferenceField("cannonicalPath", cannonicalPathRef);
 
     return newFileRef;
   }
 
-  public static int getParentFile____Ljava_io_File_2(MJIEnv env, int objref) {
+  public static int getCannonicalPath__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int objref, int fileNameRef) throws IOException {
+    String fileName = env.getStringObject(fileNameRef);
+    File file = new File(fileName);
+
+    return env.newString(file.getCanonicalPath());
+  }
+
+  public static int getParentFile____Ljava_io_File_2(MJIEnv env, int objref) throws IOException {
     File thisFile = getFile(env, objref);
     File parent = thisFile.getParentFile();
 
@@ -74,7 +84,7 @@ public class JPF_java_io_File {
     return env.newString(pn);
   }
 
-  public static int getAbsoluteFile____Ljava_io_File_2 (MJIEnv env, int objref) {
+  public static int getAbsoluteFile____Ljava_io_File_2 (MJIEnv env, int objref) throws IOException {
     File absoluteFile = getFile(env, objref).getAbsoluteFile();
     return createJPFFile(env, absoluteFile);
   }
@@ -141,7 +151,7 @@ public class JPF_java_io_File {
     }
   }
 
-  public static int listRoots_____3Ljava_io_File_2(MJIEnv env, int classRef) {
+  public static int listRoots_____3Ljava_io_File_2(MJIEnv env, int classRef) throws IOException {
     File[] roots = File.listRoots();
     int rootResultRef = env.newObjectArray("java.io.File", roots.length);
     ElementInfo rootsEI = env.getElementInfo(rootResultRef);
