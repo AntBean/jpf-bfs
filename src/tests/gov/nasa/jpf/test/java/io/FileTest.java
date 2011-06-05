@@ -98,11 +98,84 @@ public class FileTest extends TestJPF {
       File parent1 = new File("fileSandbox/parent1");
 
       Verify.getBoolean();
-      assertFalse("File.exists() should return false if directory not exists", parent1.exists());
-      assertTrue("File.mkdir() should return true when directory is created", parent1.mkdir());
+      assertFalse("File.exists() should return false if a directory not exists", parent1.exists());
+      assertTrue("File.mkdir() should return true when a directory is created", parent1.mkdir());
 
       assertTrue("File.isDirectory() should return true when called on a directory", parent1.isDirectory());
       assertTrue("File.exist() should return true when called on an existing directory", parent1.exists());
+    }
+  }
+
+  @Test
+  public void testDeleteCreateDirWithCreatedFiles() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent1 = new File("fileSandbox/parent1");
+      File child1 = new File("fileSandbox/parent1/child1");
+
+      Verify.getBoolean();
+      assertFalse("File.exists() should return false if a directory not exists", parent1.exists());
+      assertFalse("File.exists() should return false if a file not exists", child1.exists());
+
+      assertTrue("File.mkdir() should return true when a directory is created", parent1.mkdir());
+      assertTrue("File.createNewFile() should return true when a file is created", child1.createNewFile());
+
+      assertTrue("File.exists() should return true if a directory exists", parent1.exists());
+      assertTrue("File.exists() should return true if a file exists", child1.exists());
+
+      assertTrue("File.delete() should return true when a directory exists", parent1.delete());
+
+      assertFalse("File.exists() should return false if a directory not exists", parent1.exists());
+      assertFalse("File.exists() should return false if a file not exists", child1.exists());
+    }
+  }
+
+  @Test
+  public void testCreateFileInNotExistingDirectory() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File child1 = new File("fileSandbox/parent1/child1");
+
+      assertFalse("File.createNewFile() should return false if file's parent doesn't exist", child1.createNewFile());
+      assertFalse("File.exists() should return false if file wasn't created", child1.exists());
+    }
+  }
+
+  @Test
+  public void testCreateFileInDeletedDirectory() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File file = new File("fileSandbox/parent/file");
+
+      Verify.getBoolean();
+      assertTrue("File.delete() should return true when a directory exists", parent.delete());
+
+      assertFalse("File.create() should return false if file's parent dir was deleted", file.createNewFile());
+      assertFalse("File.exists() should return false if file wasn't created", file.exists());
+
+    }
+  }
+
+  @Test
+  public void testCreateDirectoryInNotExistingDirectory() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File child1 = new File("fileSandbox/parent1/child1");
+
+      assertFalse("File.mkdir() should return false if file's parent doesn't exist", child1.mkdir());
+      assertFalse("File.exists() should return false if directory wasn't created", child1.exists());
+    }
+  }
+
+  @Test
+  public void testCreateDirectoryInDeletedDirectory() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File dir = new File("fileSandbox/parent/dir");
+
+      Verify.getBoolean();
+      assertTrue("File.delete() should return true when a directory exists", parent.delete());
+
+      assertFalse("File.create() should return false if dir's parent dir was deleted", dir.mkdir());
+      assertFalse("File.exists() should return false if directory wasn't created", dir.exists());
+
     }
   }
 }
