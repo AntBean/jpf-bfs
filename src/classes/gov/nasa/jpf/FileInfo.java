@@ -46,7 +46,7 @@ public class FileInfo {
 
   public boolean delete() {
 
-    if (fileState.isExists()) {
+    if (fileState.isExists() && !isFSRoot(cannonicalPath)) {
       fileState.setIsExists(false);
 
       for (FileInfo child : fileState.getChilds()) {
@@ -181,6 +181,8 @@ public class FileInfo {
 
     return null;
   }
+
+  private static native boolean isFSRoot(String fileName);
 
   @Override
   public String toString() {

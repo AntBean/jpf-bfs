@@ -178,4 +178,16 @@ public class FileTest extends TestJPF {
 
     }
   }
+
+  @Test
+  public void testFSRootCantBeDeleted() {
+    if (verifyNoPropertyViolation()) {
+      File[] roots = File.listRoots();
+
+      for (File root : roots) {
+        assertFalse("File.delete() on FS root should return false", root.delete());
+        assertTrue("FS root can't be deleted", root.exists());
+      }
+    }
+  }
 }

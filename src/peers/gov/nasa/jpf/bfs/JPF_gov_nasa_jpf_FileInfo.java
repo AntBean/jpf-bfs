@@ -59,4 +59,11 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
     return env.newString(file.getParent());
   }
+
+  public static boolean isFSRoot__Ljava_lang_String_2__Z(MJIEnv env, int clsRef, int fileNameRef) {
+    String fileName = env.getStringObject(fileNameRef);
+    File file = new File(fileName);
+
+    return file.getParent() == null;
+  }
 }
