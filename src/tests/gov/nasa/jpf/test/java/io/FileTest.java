@@ -56,11 +56,9 @@ public class FileTest extends TestJPF {
       File file = new File("fileSandbox/parent/child");
 
       Verify.getBoolean();
-      assert file.exists() : "File file/Sandbox/parent/child should exists before deletion";
-
-      assert file.delete() : "File.delete() on existing file should return true";
-
-      assert !file.exists() : "After a deletion of file File.exists() should return false";
+      assertTrue("File file/Sandbox/parent/child should exists before deletion", file.exists());
+      assertTrue("File.delete() on existing file should return true", file.delete());
+      assertFalse( "After a deletion of file File.exists() should return false", file.exists());
     }
   }
 
@@ -70,9 +68,9 @@ public class FileTest extends TestJPF {
       File file = new File("fileSandbox/parent/child/file");
 
       Verify.getBoolean();
-      assert !file.exists() : "File.exists() should return false if file doesn't exist";
-      assert file.createNewFile() : "File.create() should return true";
-      assert file.exists() : "File.exists() should return true on a created file";
+      assertFalse("File.exists() should return false if file doesn't exist", file.exists());
+      assertTrue("File.create() should return true", file.createNewFile());
+      assertTrue("File.exists() should return true on a created file", file.exists());
     }
   }
 
@@ -83,12 +81,12 @@ public class FileTest extends TestJPF {
       File parent = new File("fileSandbox/parent");
       File child = new File("fileSandbox/parent/child");
 
-      assert parent.exists() : "File.exists() should return true for existing files";
-      assert child.exists() : "File.exists() should return true for existing files";
+      assertTrue("File.exists() should return true for existing files", parent.exists());
+      assertTrue("File.exists() should return true for existing files", child.exists());
 
-      assert parent.delete() : "File.delete() on existing file should return true";
-      assert !parent.exists() : "File.exists() should return false for deleted files";
-      assert !child.exists() : "File.exists() should return false for deleted files";
+      assertTrue("File.delete() on existing file should return true", parent.delete());
+      assertFalse("File.exists() should return false for deleted files", parent.exists());
+      assertFalse("File.exists() should return false for deleted files", child.exists());
     }
   }
 }
