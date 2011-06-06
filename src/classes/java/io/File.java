@@ -161,7 +161,7 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      return fileInfo.getFileState().isReadable();
+      return fileInfo.getFileState().isReadableForSUT();
     }
 
     return false;
@@ -172,7 +172,7 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      fileInfo.getFileState().setIsReadable(readable);
+      fileInfo.getFileState().setReadableForSUT(readable);
 
       return true;
     }
@@ -180,7 +180,16 @@ public class File
     return false;
   }
 
-  public native boolean canWrite();
+  public boolean canWrite() {
+    System.out.println("File.canWrite()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      return fileInfo.getFileState().isWritableForSUT();
+    }
+
+    return false;
+  }
 
   public boolean exists() {
     System.out.println("File.exists()");

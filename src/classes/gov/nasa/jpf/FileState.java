@@ -40,9 +40,18 @@ public class FileState {
 
   private FileInfo parent;
 
-  boolean isReadable;
-  boolean isExecutable;
-  boolean isWritable;
+  private byte sutRights;
+
+  private byte ownerRights;
+
+  private byte groupRights;
+
+  private byte allRights;
+
+
+  private static final byte READ_FLAG = 4;
+  private static final byte WRITE_FLAG = 2;
+  private static final byte EXECUTE_FLAG = 1;
 
   public long getLength() {
     return length;
@@ -84,28 +93,160 @@ public class FileState {
     this.childs = childs;
   }
 
-  public boolean isReadable() {
-    return isReadable;
+  public boolean isReadableForSUT() {
+    return (sutRights & READ_FLAG) > 0;
   }
 
-  public void setIsReadable(boolean isReadable) {
-    this.isReadable = isReadable;
+  public void setReadableForSUT(boolean readableForSUT) {
+    if (readableForSUT) {
+      sutRights |= READ_FLAG;
+    }
+    else {
+      sutRights &= (~READ_FLAG);
+    }
   }
 
-  public boolean isWritable() {
-    return isWritable;
+  public boolean isWritableForSUT() {
+    return (sutRights & WRITE_FLAG) > 0;
   }
 
-  public void setIsWritable(boolean isWritable) {
-    this.isWritable = isWritable;
+  public void setWritableForSUT(boolean writableForSUT) {
+    if (writableForSUT) {
+      sutRights |= WRITE_FLAG;
+    }
+    else {
+      sutRights &= (~WRITE_FLAG);
+    }
   }
 
-  public boolean isExecutable() {
-    return isExecutable;
+  public boolean isExecutableForSUT() {
+    return (sutRights & EXECUTE_FLAG) > 0;
   }
 
-  public void setIsExecutable(boolean isExecutable) {
-    this.isExecutable = isExecutable;
+  public void setExecutableForSUT(boolean executableForSUT) {
+    if (executableForSUT) {
+      sutRights |= EXECUTE_FLAG;
+    }
+    else {
+      sutRights &= (~EXECUTE_FLAG);
+    }
+  }
+
+  public boolean isReadableForOwner() {
+    return (ownerRights & READ_FLAG) > 0;
+  }
+
+  public void setReadableForOwner(boolean readableForOwner) {
+    if (readableForOwner) {
+      ownerRights |= READ_FLAG;
+    }
+    else {
+      ownerRights &= (~READ_FLAG);
+    }
+  }
+
+  public boolean isWritableForOwner() {
+    return (ownerRights & WRITE_FLAG) > 0;
+  }
+
+  public void setWritableForOwner(boolean writableForOwner) {
+    if (writableForOwner) {
+      ownerRights |= WRITE_FLAG;
+    }
+    else {
+      ownerRights &= (~WRITE_FLAG);
+    }
+  }
+
+  public boolean isExecutableForOwner() {
+    return (ownerRights & EXECUTE_FLAG) > 0;
+  }
+
+  public void setExecutableForOwner(boolean executableForOwner) {
+    if (executableForOwner) {
+      ownerRights |= EXECUTE_FLAG;
+    }
+    else {
+      ownerRights &= (~EXECUTE_FLAG);
+    }
+  }
+
+  public boolean isReadableForGroup() {
+    return (groupRights & READ_FLAG) > 0;
+  }
+
+  public void setReadableForGroup(boolean readableForGroup) {
+    if (readableForGroup) {
+      groupRights |= READ_FLAG;
+    }
+    else {
+      groupRights &= (~READ_FLAG);
+    }
+  }
+
+  public boolean isWritableForGroup() {
+    return (groupRights & WRITE_FLAG) > 0;
+  }
+
+  public void setWritableForGroup(boolean writableForGroup) {
+    if (writableForGroup) {
+      groupRights |= WRITE_FLAG;
+    }
+    else {
+      groupRights &= (~WRITE_FLAG);
+    }
+  }
+
+  public boolean isExecutableForGroup() {
+    return (groupRights & EXECUTE_FLAG) > 0;
+  }
+
+  public void setExecutableForGroup(boolean executableForGroup) {
+    if (executableForGroup) {
+      groupRights |= EXECUTE_FLAG;
+    }
+    else {
+      groupRights &= (~EXECUTE_FLAG);
+    }
+  }
+
+  public boolean isReadableForAll() {
+    return (allRights & READ_FLAG) > 0;
+  }
+
+  public void setReadableForAll(boolean readableForAll) {
+    if (readableForAll) {
+      allRights |= READ_FLAG;
+    }
+    else {
+      allRights &= (~READ_FLAG);
+    }
+  }
+
+  public boolean isWritableForAll() {
+    return (allRights & WRITE_FLAG) > 0;
+  }
+
+  public void setWritableForAll(boolean writableForAll) {
+    if (writableForAll) {
+      allRights |= WRITE_FLAG;
+    }
+    else {
+      allRights &= (~WRITE_FLAG);
+    }
+  }
+
+  public boolean isExecutableForAll() {
+    return (allRights & EXECUTE_FLAG) > 0;
+  }
+
+  public void setExecutableForAll(boolean executableForAll) {
+    if (executableForAll) {
+      allRights |= EXECUTE_FLAG;
+    }
+    else {
+      allRights &= (~EXECUTE_FLAG);
+    }
   }
 
   @Override
@@ -116,8 +257,9 @@ public class FileState {
     result += "; exists = " + isExist;
     result += "; openCnt = " + openCnt;
     result += "; nativeFSName = " + nativeFSFileName;
+    result += "; rights = " + ownerRights + "" + groupRights + "" + allRights;
+    result += "; SUT rights = " + sutRights;
 
     return result;
   }
-
 }

@@ -46,9 +46,13 @@ public class JPF_gov_nasa_jpf_FileInfo {
       env.setIntField(fsRef, "openCnt", 0);
       env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
 
-      env.setBooleanField(fsRef, "isReadable", file.canRead());
-      env.setBooleanField(fsRef, "isWritable", file.canWrite());
-      env.setBooleanField(fsRef, "isExecutable", file.canExecute());
+      byte sutRWX = 0;
+
+      sutRWX = (byte) ((file.canRead()) ? (sutRWX | 1) : sutRWX); sutRWX <<= 1;
+      sutRWX = (byte) ((file.canWrite()) ? (sutRWX | 1) : sutRWX); sutRWX <<= 1;
+      sutRWX = (byte) ((file.canExecute()) ? (sutRWX | 1) : sutRWX);
+
+      env.setByteField(fsRef, "sutRights", sutRWX);
 
       env.setReferenceField(fiRef, "fileState", fsRef);
 
