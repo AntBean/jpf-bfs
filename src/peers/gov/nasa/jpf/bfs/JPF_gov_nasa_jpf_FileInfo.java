@@ -74,4 +74,12 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
     return file.getParent() == null;
   }
+
+  public static int childNamesList__Ljava_lang_String_2___3Ljava_lang_String_2(MJIEnv env, int clsRef, int cpRef) {
+    String cp = env.getStringObject(cpRef);
+
+    File dir = new File(cp);
+    String[] childs = dir.list();
+    return env.newStringArray(childs);
+  }
 }

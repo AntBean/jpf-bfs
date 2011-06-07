@@ -248,7 +248,18 @@ public class File
 
 
   public void deleteOnExit() {}
-  public String[] list()  { return null; }
+  
+  public String[] list()  {
+    System.out.println("File.list()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      return fileInfo.list();
+    }
+
+    return null;
+  }
+
   public String[] list(FilenameFilter fnf)  { return null; }
   public File[] listFiles()  { return null; }
   public File[] listFiles(FilenameFilter fnf)  { return null; }

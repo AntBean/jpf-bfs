@@ -42,7 +42,7 @@ public class FileInfo {
 
   public boolean delete() {
 
-    if (fileState.isExists() && !isFSRoot(cannonicalPath)) {
+    if (fileState.exists() && !isFSRoot(cannonicalPath)) {
       fileState.setIsExists(false);
 
       for (FileInfo child : fileState.getChilds()) {
@@ -60,7 +60,66 @@ public class FileInfo {
   }
 
   public boolean exists() {
-    return fileState.isExists();
+    return fileState.exists();
+  }
+
+  public String[] list() {
+    System.out.println("FileInfo.list()");
+
+    if (fileState.isDir() && fileState.exists()) {
+      String[] nativeFSChilds = {};
+
+      if (fileState.getNativeFSFileName() != null) {
+        nativeFSChilds = childNamesList(fileState.getNativeFSFileName());
+      }
+
+      System.out.println("Native FS childs: ");
+      for (String childName : nativeFSChilds) {
+        System.out.print(childName + ", ");
+      }
+      System.out.println(";");
+
+      int existsChilds = 0;
+      for (FileInfo child : fileState.getChilds()) {
+        if (child.fileState.exists()) {
+          existsChilds++;
+          System.out.println("Found new existing child " + child.cannonicalPath);
+        }
+        else {
+          System.out.println("Found new deleted child " + child.cannonicalPath);
+        }
+      }
+
+      String[] currentChilds;
+      
+      if (existsChilds > 0) {
+        currentChilds = new String[nativeFSChilds.length + existsChilds];
+
+        System.arraycopy(nativeFSChilds, 0, currentChilds, 0, nativeFSChilds.length);
+
+        int currentChildPos = nativeFSChilds.length;
+        int parentNameLength = cannonicalPath.length();
+        for (FileInfo child : fileState.getChilds()) {
+          if (child.fileState.exists()) {
+            currentChilds[currentChildPos] = child.cannonicalPath.substring(parentNameLength + 1);
+            currentChildPos++;
+          }
+        }
+      }
+      else {
+        currentChilds = nativeFSChilds;
+      }
+
+      System.out.println("Current childs: ");
+      for (String childName : currentChilds) {
+        System.out.print(childName + ", ");
+      }
+      System.out.println(";");
+
+      return currentChilds;
+    }
+
+    return null;
   }
 
   public static FileInfo getFileInfo(String filename) {
@@ -89,10 +148,10 @@ public class FileInfo {
   private static void addNewFI(FileInfo newFI) {
     String cp = newFI.cannonicalPath;
 
-    while ((cp = getParentCP(cp))  != null) {
+    while ((cp = getParentCP(cp)) != null) {
       FileInfo parentFI = getFileInfo(cp);
 
-      if (!parentFI.fileState.isExists()) {
+      if (!parentFI.fileState.exists()) {
         System.out.println(parentFI.cannonicalPath + " was deleted, so " + newFI.cannonicalPath + " is deleted too");
         newFI.fileState.setIsExists(false);
         break;
@@ -126,11 +185,11 @@ public class FileInfo {
 
     FileInfo fi = getFileInfo(filename);
 
-    if (fi == null || !fi.fileState.isExists()) {
+    if (fi == null || !fi.fileState.exists()) {
       String parentCP = getParentCP(filename);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.isExists()) {
+      if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
           fi = new FileInfo(filename, false);
         }
@@ -159,11 +218,11 @@ public class FileInfo {
 
     FileInfo fi = getFileInfo(filename);
 
-    if (fi == null || !fi.fileState.isExists()) {
+    if (fi == null || !fi.fileState.exists()) {
       String parentCP = getParentCP(filename);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.isExists()) {
+      if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
           fi = new FileInfo(filename, true);
         }
@@ -190,6 +249,8 @@ public class FileInfo {
   }
 
   private static native boolean isFSRoot(String fileName);
+
+  private static native String[] childNamesList(String cp);
 
   @Override
   public String toString() {

@@ -141,16 +141,6 @@ public class JPF_java_io_File {
     return getFile(env,objref).canWrite();
   }
 
-  public static int list_____3Ljava_lang_String_2(MJIEnv env, int objref){
-	  File f=getFile(env,objref);
-    if (f.isDirectory()){
-      String[] farr=f.list();
-      return env.newStringArray(farr);
-    } else {
-      return MJIEnv.NULL;
-    }
-  }
-
   public static int listRoots_____3Ljava_io_File_2(MJIEnv env, int classRef) throws IOException {
     File[] roots = File.listRoots();
     int rootResultRef = env.newObjectArray("java.io.File", roots.length);

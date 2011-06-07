@@ -73,7 +73,7 @@ public class FileState {
     return nativeFSFileName;
   }
 
-  public boolean isExists() {
+  public boolean exists() {
     return isExist;
   }
 

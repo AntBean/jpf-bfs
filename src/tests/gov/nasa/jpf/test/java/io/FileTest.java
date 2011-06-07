@@ -232,4 +232,50 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testBacktrackableListChild() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+
+      Verify.getBoolean();
+      String[] beforeFileCreation = {"child"};
+      assertSameStrings(beforeFileCreation, parent.list());
+
+      new File("fileSandbox/parent/file1").createNewFile();
+      new File("fileSandbox/parent/file2").createNewFile();
+
+      String[] afterFileCreation = {"file1", "file2", "child"};
+      assertSameStrings(afterFileCreation, parent.list());
+    }
+  }
+
+  @Test
+  public void testListChildsOfNotExistingDirectory() {
+    if (verifyNoPropertyViolation()) {
+
+      File notExists = new File("IDontExist");
+
+      assertTrue("File.list() should return null for a directory that doesn't exist",
+                 notExists.list() == null);
+
+    }
+  }
+
+  private void assertSameStrings(String[] expected, String[] result) {
+
+    assertEquals(expected.length, expected.length);
+
+    for (String e : expected) {
+      boolean found = false;
+
+      for (String r : result) {
+        if (r.equals(e)) {
+          found = true;
+          break;
+        }
+      }
+      assertTrue("String " + e + " wasn't found in result array", found);
+    }
+  }
+
 }
