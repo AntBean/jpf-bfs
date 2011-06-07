@@ -22,6 +22,8 @@ import gov.nasa.jpf.jvm.Verify;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -252,12 +254,36 @@ public class FileTest extends TestJPF {
   @Test
   public void testListChildsOfNotExistingDirectory() {
     if (verifyNoPropertyViolation()) {
-
       File notExists = new File("IDontExist");
 
       assertTrue("File.list() should return null for a directory that doesn't exist",
                  notExists.list() == null);
 
+    }
+  }
+
+  static class FF implements FilenameFilter {
+    public boolean accept(File file, String filename) {
+      if (filename.charAt(0) == 'f') {
+        return true;
+      }
+
+      return false;
+    }
+  }
+
+  @Test
+  public void testListChildsWithFilter() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox");
+
+      new File("fileSandbox/file1").createNewFile();
+      new File("fileSandbox/file2").createNewFile();
+      new File("fileSandbox/otherFile").createNewFile();
+
+      String[] expectedChilds = {"file1", "file2"};
+
+      assertSameStrings(expectedChilds, parent.list(new FF()));
     }
   }
 

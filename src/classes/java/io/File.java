@@ -260,7 +260,36 @@ public class File
     return null;
   }
 
-  public String[] list(FilenameFilter fnf)  { return null; }
+  public String[] list(FilenameFilter filter)  {
+    System.out.println("File.list(FilenameFilter)");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      String[] childs = fileInfo.list();
+
+      int shift = 0;
+
+      for (int i = 0 ; i < childs.length; i++) {
+        if (!filter.accept(this, childs[i])) {
+          shift++;
+        }
+        else {
+          if (shift != 0) {
+            childs[i - shift] = childs[i];
+          }
+        }
+      }
+
+      String[] filteredChilds = new String[childs.length - shift];
+
+      System.arraycopy(childs, 0, filteredChilds, 0, childs.length - shift);
+
+      return childs;
+    }
+
+    return null;
+  }
+  
   public File[] listFiles()  { return null; }
   public File[] listFiles(FilenameFilter fnf)  { return null; }
   public File[] listFiles(FileFilter ff)  { return null; }
