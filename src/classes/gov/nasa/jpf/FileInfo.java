@@ -63,6 +63,14 @@ public class FileInfo {
     return fileState.exists();
   }
 
+  /**
+   * This method returns array of child dirs and files of a file represented by
+   * current file info in a current state.
+   * Because java.io.File.list() returns list of names of files in a specified dir,
+   * this methods returns names of files.
+   * @return if file represented by a FileInfo is a directory, it returns an array
+   * of names of files in this directory. Otherwise it returns null.
+   */
   public String[] list() {
     System.out.println("FileInfo.list()");
 

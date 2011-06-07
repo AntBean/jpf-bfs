@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -252,7 +253,7 @@ public class FileTest extends TestJPF {
   }
 
   @Test
-  public void testListChildsOfNotExistingDirectory() {
+  public void testListChildrenOfNotExistingDirectory() {
     if (verifyNoPropertyViolation()) {
       File notExists = new File("IDontExist");
 
@@ -262,6 +263,21 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testListChildrenWithOfFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      String[] children = file.list();
+      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children == null);
+    }
+  }
+
+  /**
+   * Filename filter that accepts only files with name that starts with 'f'.
+   */
   static class FF implements FilenameFilter {
     public boolean accept(File file, String filename) {
       if (filename.charAt(0) == 'f') {
@@ -273,7 +289,7 @@ public class FileTest extends TestJPF {
   }
 
   @Test
-  public void testListChildsWithFilter() throws IOException {
+  public void testListChildrenWithFilter() throws IOException {
     if (verifyNoPropertyViolation()) {
       File parent = new File("fileSandbox");
 
@@ -287,21 +303,197 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testListChildrenWithFilterOfFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      String[] children = file.list(new FF());
+      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children == null);
+    }
+  }
+
+  /**
+   * File.listFiles() returns File objects whose File.getPath() returns
+   * canonical path of a file.
+   * @throws IOException
+   */
+  @Test
+  public void testListChildrenFiles() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File curDir = new File(".");
+      String currentDir = curDir.getCanonicalPath();
+
+      Verify.getBoolean();
+      File dir = new File("fileSandbox");
+      String[] beforeCreation = {currentDir + "/fileSandbox/parent"};
+
+      String[] result = getPathFromFilesArray(dir.listFiles());
+      assertSameStrings(beforeCreation, result);
+
+      new File("fileSandbox/file1").createNewFile();
+      new File("fileSandbox/file2").createNewFile();
+
+      String[] afterCreation = {
+        currentDir + "/fileSandbox/parent",
+        currentDir + "/fileSandbox/file1",
+        currentDir + "/fileSandbox/file2",
+      };
+
+      result = getPathFromFilesArray(dir.listFiles());
+      assertSameStrings(afterCreation, result);
+    }
+  }
+
+  @Test
+  public void testListChildrenFilesOfFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      File[] children = file.listFiles();
+      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children == null);
+    }
+  }
+
+  @Test
+  public void testListChildrenFilesWithFilenameFilter() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File curDir = new File(".");
+      String currentDir = curDir.getCanonicalPath();
+
+      new File("fileSandbox/file1").createNewFile();
+      new File("fileSandbox/file2").createNewFile();
+      new File("fileSandbox/otherFile").createNewFile();
+
+      String[] expected = {
+        currentDir + "/fileSandbox/file1",
+        currentDir + "/fileSandbox/file2",
+      };
+
+      File sandbox = new File("fileSandbox");
+      String[] result = getPathFromFilesArray(sandbox.listFiles(new FF()));
+
+      assertSameStrings(expected, result);
+    }
+  }
+
+  @Test
+  public void testListChildrenFilesWithFilenameFilterOfFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      File[] children = file.listFiles(new FF());
+      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children == null);
+    }
+  }
+
+  /**
+   * FileFilter that accepts file with a name that ends with 'a'
+   */
+  private static class FileF implements FileFilter {
+
+    public boolean accept(File file) {
+      String fileName = file.getPath();
+      return fileName.charAt(fileName.length() - 1) == 'a';
+    }
+  }
+
+  @Test
+  public void testListChildrenFilesWithFileFilter() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File curDir = new File(".");
+      String currentDir = curDir.getCanonicalPath();
+
+      new File("fileSandbox/file1a").createNewFile();
+      new File("fileSandbox/file2a").createNewFile();
+      new File("fileSandbox/otherFile").createNewFile();
+
+       String[] expected = {
+        currentDir + "/fileSandbox/file1a",
+        currentDir + "/fileSandbox/file2a",
+      };
+
+      File sandbox = new File("fileSandbox");
+      String[] result = getPathFromFilesArray(sandbox.listFiles(new FileF()));
+
+      assertSameStrings(expected, result);
+    }
+  }
+
+  @Test
+  public void testListChildrenFilesWithFileFilterOfFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      File[] children = file.listFiles(new FileF());
+      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
+              children == null);
+    }
+  }
+
+  private String[] getPathFromFilesArray(File[] listFiles) {
+    String[] result = new String[listFiles.length];
+
+    for (int i = 0; i < result.length; i++) {
+      result[i] = listFiles[i].getPath();
+    }
+
+    return result;
+  }
+
+  /**
+   * Assert that two arrays contains same string. Order of elements in each
+   * array doesn't matter.
+   * @param expected - array of expected values
+   * @param result - array of values to check
+   */
   private void assertSameStrings(String[] expected, String[] result) {
 
-    assertEquals(expected.length, expected.length);
+    assertEquals("Arrays should have same length", expected.length, expected.length);
 
-    for (String e : expected) {
-      boolean found = false;
+    HashMap<String, Integer> expectedHash = new HashMap<String, Integer>();
+    HashMap<String, Integer> resultHash = new HashMap<String, Integer>();
 
-      for (String r : result) {
-        if (r.equals(e)) {
-          found = true;
-          break;
-        }
+
+    for (String exp : expected) {
+      Integer val = expectedHash.get(exp);
+      if (val == null) {
+        expectedHash.put(exp, 1);
       }
-      assertTrue("String " + e + " wasn't found in result array", found);
+      else {
+        expectedHash.put(exp, val + 1);
+      }
     }
+
+    for (String res : result) {
+      Integer val = resultHash.get(res);
+      if (val == null) {
+        resultHash.put(res, 1);
+      }
+      else {
+        resultHash.put(res, val + 1);
+      }
+    }
+
+    assertEquals("Arrays should contain same number of elements. Expected " +
+                 expectedHash.keySet() + " but received " + resultHash.keySet(),
+                 expectedHash.keySet().size(), resultHash.keySet().size());
+
+    for (String key : expectedHash.keySet()) {
+      Integer expValue = expectedHash.get(key);
+      Integer resValue = resultHash.get(key);
+
+      assertEquals("Expected value " + key + " " + expValue + " times but received " + resValue + " times", 
+                   expValue, resValue);
+    }
+
   }
 
 }

@@ -78,7 +78,9 @@ public class File
   private static native String getCannonicalPath(String filename);
 
   public File (String parent, String child) {
-  	cannonicalPath = parent + separator + child;
+  	filename = parent + separator + child;
+
+    cannonicalPath = getCannonicalPath(filename);
   }
   
   public File (File parent, String child) {
@@ -106,30 +108,31 @@ public class File
   }
   
   public int compareTo(File that) {
-    return this.cannonicalPath.compareTo(that.cannonicalPath);
+    return this.filename.compareTo(that.filename);
   }
   
   public boolean equals(Object o) {
     if (o instanceof File){
       File otherFile = (File) o;
-      return cannonicalPath.equals(otherFile.cannonicalPath);
+      return filename.equals(otherFile.filename);
     } else {
       return false;
     }
   }
   
   public int hashCode() {
-    return cannonicalPath.hashCode();
+    return filename.hashCode();
   }
   
   public String toString()  {
-    return cannonicalPath;
+    return filename;
   }
   
   
   //--- native peer intercepted (hopefully)
   
   int getPrefixLength() { return 0; }
+
   public native File getParentFile();
   
   public String getPath() {
@@ -306,32 +309,108 @@ public class File
     if (fileInfo != null) {
       String[] childs = fileInfo.list();
 
-      int shift = 0;
+      if (childs != null) {
+        int shift = 0;
 
-      for (int i = 0 ; i < childs.length; i++) {
-        if (!filter.accept(this, childs[i])) {
-          shift++;
-        }
-        else {
-          if (shift != 0) {
-            childs[i - shift] = childs[i];
+        for (int i = 0; i < childs.length; i++) {
+          if (!filter.accept(this, childs[i])) {
+            shift++;
+          } else {
+            if (shift != 0) {
+              childs[i - shift] = childs[i];
+            }
           }
         }
+
+        String[] filteredChilds = new String[childs.length - shift];
+
+        System.arraycopy(childs, 0, filteredChilds, 0, childs.length - shift);
+
+        return filteredChilds;
       }
 
-      String[] filteredChilds = new String[childs.length - shift];
-
-      System.arraycopy(childs, 0, filteredChilds, 0, childs.length - shift);
-
-      return childs;
+      return null;
     }
 
     return null;
   }
   
-  public File[] listFiles()  { return null; }
-  public File[] listFiles(FilenameFilter fnf)  { return null; }
-  public File[] listFiles(FileFilter ff)  { return null; }
+  public File[] listFiles()  {
+    System.out.println("File.listFiles()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      String[] childs = fileInfo.list();
+      if (childs != null) {
+        File[] result = new File[childs.length];
+
+        for (int i = 0; i < childs.length; i++) {
+          result[i] = new File(cannonicalPath, childs[i]);
+        }
+
+        return result;
+      }
+
+      return null;
+    }
+
+    return null;
+  }
+  public File[] listFiles(FilenameFilter filter) {
+    System.out.println("File.listFiles(FilenameFilter)");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      String[] childs = list(filter);
+
+      if (childs != null) {
+        File[] result = new File[childs.length];
+
+        for (int i = 0; i < childs.length; i++) {
+          result[i] = new File(cannonicalPath, childs[i]);
+        }
+
+        return result;
+      }
+
+      return null;
+    }
+
+    return null;
+  }
+  
+  public File[] listFiles(FileFilter filter) {
+    System.out.println("File.listFiles(FilenameFilter)");
+    getFileInfo();
+    
+    if (fileInfo != null) {
+      File[] children = listFiles();
+      
+      if (children != null) {
+        int shift = 0;
+
+        for (int i = 0; i < children.length; i++) {
+          if (!filter.accept(children[i])) {
+            shift++;
+          } else {
+            if (shift != 0) {
+              children[i - shift] = children[i];
+            }
+          }
+        }
+
+        File[] filteredChildren = new File[children.length - shift];
+
+        System.arraycopy(children, 0, filteredChildren, 0, children.length - shift);
+
+        return filteredChildren;
+      }
+      
+      return null;
+    }
+    
+    return null;
+  }
 
   public boolean mkdir() {
     System.out.println("File.mkdir()");
