@@ -71,6 +71,7 @@ public class File
       throw new NullPointerException();
     }
     
+    this.filename = filename;
     cannonicalPath = getCannonicalPath(filename);
   }
 
@@ -191,6 +192,43 @@ public class File
     return false;
   }
 
+  public boolean setWritable(boolean writable) {
+    System.out.println("File.setReadable()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      fileInfo.getFileState().setWritableForSUT(writable);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  public boolean canExecute() {
+    System.out.println("File.canWrite()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      return fileInfo.getFileState().isExecutableForSUT();
+    }
+
+    return false;
+  }
+
+  public boolean setExecutable(boolean executable) {
+    System.out.println("File.setReadable()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      fileInfo.getFileState().setExecutableForSUT(executable);
+
+      return true;
+    }
+
+    return false;
+  }
+
   public boolean exists() {
     System.out.println("File.exists()");
     getFileInfo();
@@ -224,7 +262,8 @@ public class File
     return false;
   }
 
-  public boolean isHidden() { return false; }
+  public native boolean isHidden();
+  
   public long lastModified() { return -1L; }
   public long length() { return -1; }
 
