@@ -484,6 +484,17 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testGetName() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox");
+      assertEquals("fileSandbox", file.getName());
+
+      File dir = new File("fileSandbox/parent");
+      assertEquals("parent", dir.getName());
+    }
+  }
+
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 
