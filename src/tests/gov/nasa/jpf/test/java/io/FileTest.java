@@ -438,6 +438,30 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testGetParent() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File curDir = new File(".");
+      File notExists = new File("IDontExist/MeToo");
+
+      assertEquals("File.getParent() should return filename of the file without last path element",
+                   notExists.getParent(), "IDontExist");
+
+      File parentFile = notExists.getParentFile();
+      assertEquals("File.getParentFile() should return file with filename that equals to File.getParent()",
+                   parentFile.getPath(), "IDontExist");
+      assertEquals("File.getParentFile() should return file with complete cannonical path from FS root",
+                   curDir.getCanonicalPath() + "/IDontExist", parentFile.getCanonicalPath());
+
+      File notExists2 = new File("ISimplyDontExist");
+
+      assertNull("If a filename consist of one path element, File.getParent() should return null",
+                 notExists2.getParent());
+      assertNull("If a filename consist of one path element, File.getParentFile() should return null",
+                 notExists2.getParentFile());
+    }
+  }
+
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

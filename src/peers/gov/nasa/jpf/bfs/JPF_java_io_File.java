@@ -71,13 +71,6 @@ public class JPF_java_io_File {
 
     return env.newString(file.getCanonicalPath());
   }
-
-  public static int getParentFile____Ljava_io_File_2(MJIEnv env, int objref) throws IOException {
-    File thisFile = getFile(env, objref);
-    File parent = thisFile.getParentFile();
-
-    return createJPFFile(env, parent);
-  }
   
   public static int getAbsolutePath____Ljava_lang_String_2 (MJIEnv env, int objref) {
     String pn = getFile(env,objref).getAbsolutePath();

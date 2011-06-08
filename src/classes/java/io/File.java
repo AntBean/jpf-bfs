@@ -26,13 +26,9 @@ import java.net.URL;
 
 
 /**
- * MJI model class for java.io.File
+ * MJI model class for backtrackable java.io.File.
  *
- * NOTE - a number of methods are only stubbed out here to make Eclipse compile
- * JPF code that uses java.io.File (there is no way to tell Eclipse to exclude the
- * model classes from ths build-path)
- *
- * @author Owen O'Malley
+ * @author Ivan Mushketik
  */
 public class File
 {
@@ -99,13 +95,24 @@ public class File
   }
 
   public String getParent() {
-    int idx = cannonicalPath.lastIndexOf(separatorChar);
+    int idx = filename.lastIndexOf(separatorChar);
     if (idx >= 0){
-      return cannonicalPath.substring(0,idx);
+      return filename.substring(0,idx);
     } else {
       return null;
     }
   }
+
+  public File getParentFile() {
+    String parentFileName = getParent();
+
+    if (parentFileName != null) {
+      return new File(parentFileName);
+    }
+
+    return null;
+  }
+
   
   public int compareTo(File that) {
     return this.filename.compareTo(that.filename);
@@ -132,8 +139,6 @@ public class File
   //--- native peer intercepted (hopefully)
   
   int getPrefixLength() { return 0; }
-
-  public native File getParentFile();
   
   public String getPath() {
     return filename;
