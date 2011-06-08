@@ -430,7 +430,13 @@ public class File
   public boolean setReadOnly()  { return false; }
   
   public static native File[] listRoots();
-  
+
+  public native long getFreeSpace();
+
+  public native long getTotalSpace();
+
+  public native long getUsableSpace();
+
   public static File createTempFile(String prefix, String suffix, File dir) throws IOException  {
     if (prefix == null){
       throw new NullPointerException();

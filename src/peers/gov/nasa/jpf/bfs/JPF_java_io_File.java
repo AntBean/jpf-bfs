@@ -150,5 +150,16 @@ public class JPF_java_io_File {
 
     return rootResultRef;
   }
-  // <2do> ..and lots more
+
+  public static long getFreeSpace____J(MJIEnv env, int objRef) {
+    return getFile(env, objRef).getFreeSpace();
+  }
+
+  public static long getTotalSpace____J(MJIEnv env, int objRef) {
+    return getFile(env, objRef).getTotalSpace();
+  }
+
+  public static long getUsableSpace____J(MJIEnv env, int objRef) {
+    return getFile(env, objRef).getUsableSpace();
+  }
 }
