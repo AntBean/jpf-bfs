@@ -275,7 +275,15 @@ public class File
   public native boolean isHidden();
   
   public long lastModified() { return -1L; }
-  public long length() { return -1; }
+  public long length() {
+    System.out.println("File.length()");
+
+    if (fileInfo != null) {
+      return fileInfo.getFileState().getLength();
+    }
+
+    return 0;
+  }
 
 
   public boolean createNewFile() throws java.io.IOException {

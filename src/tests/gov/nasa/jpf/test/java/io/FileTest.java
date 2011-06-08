@@ -495,6 +495,15 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testGetLengthOfNotExistingFile() {
+    if (verifyNoPropertyViolation()) {
+      File dontExist = new File("IDontExist");
+
+      assertEquals("File.length() should return 0 for files/dirs that don't exist", 0, dontExist.length());
+    }
+  }
+
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

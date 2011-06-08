@@ -129,10 +129,6 @@ public class JPF_java_io_File {
   public static boolean isHidden____Z (MJIEnv env, int objref) {
     return getFile(env, objref).isHidden();
   }
-  
-  public static long length____J (MJIEnv env, int objref) {
-    return getFile(env,objref).length();
-  }
 
   public static boolean canWrite____Z (MJIEnv env, int objref) {
     return getFile(env,objref).canWrite();
