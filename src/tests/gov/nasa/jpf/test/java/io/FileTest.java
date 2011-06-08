@@ -257,8 +257,8 @@ public class FileTest extends TestJPF {
     if (verifyNoPropertyViolation()) {
       File notExists = new File("IDontExist");
 
-      assertTrue("File.list() should return null for a directory that doesn't exist",
-                 notExists.list() == null);
+      assertNull("File.list() should return null for a directory that doesn't exist",
+                 notExists.list());
 
     }
   }
@@ -270,8 +270,8 @@ public class FileTest extends TestJPF {
       file.createNewFile();
 
       String[] children = file.list();
-      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
-                 children == null);
+      assertNull("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children);
     }
   }
 
@@ -310,8 +310,8 @@ public class FileTest extends TestJPF {
       file.createNewFile();
 
       String[] children = file.list(new FF());
-      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
-                 children == null);
+      assertNull("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children);
     }
   }
 
@@ -354,8 +354,8 @@ public class FileTest extends TestJPF {
       file.createNewFile();
 
       File[] children = file.listFiles();
-      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
-                 children == null);
+      assertNull("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children);
     }
   }
 
@@ -388,8 +388,8 @@ public class FileTest extends TestJPF {
       file.createNewFile();
 
       File[] children = file.listFiles(new FF());
-      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
-                 children == null);
+      assertNull("File.listFiles(FilenameFilter) should return null when called for a file",
+                 children);
     }
   }
 
@@ -433,8 +433,8 @@ public class FileTest extends TestJPF {
       file.createNewFile();
 
       File[] children = file.listFiles(new FileF());
-      assertTrue("File.listFiles(FilenameFilter) should return null when called for a file",
-              children == null);
+      assertNull("File.listFiles(FilenameFilter) should return null when called for a file",
+              children);
     }
   }
 
@@ -459,6 +459,28 @@ public class FileTest extends TestJPF {
                  notExists2.getParent());
       assertNull("If a filename consist of one path element, File.getParentFile() should return null",
                  notExists2.getParentFile());
+    }
+  }
+
+  @Test
+  public void testGetCannonicalPath() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File sandbox = new File("fileSandbox");
+      File curDir = new File(".");
+
+      String expectedPath = curDir.getCanonicalPath() + "/fileSandbox";
+      assertEquals(expectedPath, sandbox.getCanonicalPath());
+    }
+  }
+
+  @Test
+  public void testGetCannonicalFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File sandbox = new File("fileSandbox");
+      File curDir = new File(".");
+
+      String expectedPath = curDir.getCanonicalPath() + "/fileSandbox";
+      assertEquals(sandbox.getCanonicalFile().getPath(), expectedPath);
     }
   }
 
