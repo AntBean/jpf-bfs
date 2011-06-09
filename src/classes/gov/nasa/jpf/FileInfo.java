@@ -20,6 +20,8 @@
 package gov.nasa.jpf;
 
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  *
@@ -256,6 +258,43 @@ public class FileInfo {
     return null;
   }
 
+  /**
+   * Create new temporary file.
+   * @param tempDir - canonical path of a directory to create file in.
+   * @param separatorChar - system's separator char.
+   * @param prefix - prefix of a new file
+   * @param suffix - suffix of a new file
+   * @return canonical path of a new file. If file can't be created returns null.
+   */
+  public static String createTempFile(String tempDir, char separatorChar, String prefix, String suffix) {
+    System.out.println("Creating tempFile in " + tempDir + "; with prefix '" + prefix + "' and suffix '" + suffix + "'");
+
+    FileInfo fi = getFileInfo(tempDir);
+
+    if (fi != null && fi.fileState.exists() && fi.fileState.isDir()) {
+      
+      Random rand = new Random();
+      while(true) {
+        // <2do> This should create new ChoiceGenerator. Maybe replace it with UUID?
+        String uuid = Long.toString(rand.nextLong());
+        String tempFileName = prefix + uuid + suffix;
+
+        String newFileCP = tempDir + separatorChar + tempFileName;
+
+        FileInfo newFileFI = getFileInfoByCannonicalPath(newFileCP);
+
+        // No file with such filename exists.
+        if (newFileFI == null) {
+          // Create new file
+          createNewFileFI(newFileCP);
+          return newFileCP;
+        }
+      }
+    }
+
+    return null;
+  }
+
   private static native boolean isFSRoot(String fileName);
 
   private static native String[] childNamesList(String cp);
@@ -265,8 +304,6 @@ public class FileInfo {
     String result = "CP: " + cannonicalPath + "; ";
     result += "FS: " + fileState;
 
-
     return result;
-
   }
 }

@@ -504,6 +504,56 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testCreateTempFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File sandbox = new File("fileSandbox");
+
+      File temp = File.createTempFile("prefix", "suffix", sandbox);
+      assertEquals("Cannonical path of temp dir's parent should be equal to cannonical path of a dir that was given to File.createTempFile()",
+                   sandbox.getCanonicalPath(), temp.getParentFile().getCanonicalPath());
+      String fileName = temp.getName();
+      assertTrue("Name of temp file should start with a prefix that was given to File.createTempFile()",
+                 fileName.startsWith("prefix"));
+      assertTrue("Name of temp file should end with a suffix that was given to File.createTempFile()", fileName.endsWith("suffix"));
+    }
+  }
+
+  @Test
+  public void testCreateTempFileInNotExistingDir() throws IOException {
+    if (verifyUnhandledException("java.io.IOException")) {
+      File dir = new File("someImaginaryDir");
+
+      // Attempt to create tempFile in a not existing directory
+      // should throw java.io.Exception
+      File.createTempFile("prefix", "suffix", dir);
+    }
+  }
+
+  @Test
+  public void testCreateTempFileInDeletedDirectory() throws IOException {
+    if (verifyUnhandledException("java.io.IOException")) {
+      File dir = new File("fileSandbox/parent");
+      dir.delete();
+
+      // Attempt to create tempFile in a deleted directory
+      // should throw java.io.Exception
+      File.createTempFile("prefix", "suffix", dir);
+    }
+  }
+
+  @Test
+  public void testCreateTempFileInAFile() throws IOException {
+    if (verifyUnhandledException("java.io.IOException")) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      // Attempt to create tempFile in a deleted directory
+      // should throw java.io.Exception
+      File.createTempFile("prefix", "suffix", file);
+    }
+  }
+
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

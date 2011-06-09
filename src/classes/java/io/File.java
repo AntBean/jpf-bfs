@@ -466,8 +466,15 @@ public class File
     } else {
       tmpDir = dir.getPath();
     }
-    
-    return new File(tmpDir + prefix + suffix);
+
+    String tmpDirCP = getCannonicalPath(tmpDir);
+    String tempFileName = FileInfo.createTempFile(tmpDirCP, separatorChar, prefix, suffix);
+
+    if (tempFileName != null) {
+      return new File(tempFileName);
+    }
+
+    throw new IOException("No such directory");
   }
   
   public static File createTempFile(String prefix, String suffix) throws IOException  {
