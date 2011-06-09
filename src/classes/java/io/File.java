@@ -432,7 +432,13 @@ public class File
     return FileInfo.mkdir(cannonicalPath);
   }
   
-  public boolean mkdirs() { return false; }
+  public boolean mkdirs() {
+    System.out.println("File.mkdirs()");
+
+    return FileInfo.mkdirs(cannonicalPath, true);
+  }
+
+
   public boolean renameTo(File f)  { return false; }
   public boolean setLastModified(long t)  { return false; }
   public boolean setReadOnly()  { return false; }

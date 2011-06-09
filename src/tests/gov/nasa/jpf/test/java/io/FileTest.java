@@ -110,6 +110,67 @@ public class FileTest extends TestJPF {
   }
 
   @Test
+  public void testBacktrackableMkdirs() {
+    if (verifyNoPropertyViolation()) {
+      File newDir = new File("fileSandbox/parent/child1/child2/child3");
+      File child1 = new File("fileSandbox/parent/child1");
+      File child2 = new File("fileSandbox/parent/child1/child2");
+
+      Verify.getBoolean();
+      assertTrue("None of new directories should exists in this state",
+                 !newDir.exists() && !child1.exists() && !child2.exists());
+
+      newDir.mkdirs();
+
+      assertTrue("All new directories should be created by File.mkdirs()",
+                 newDir.exists() && child1.exists() && child2.exists());
+    }
+  }
+
+  @Test
+  public void testMkdirsOfExistingDirectory() {
+    if (verifyNoPropertyViolation()) {
+      File sandbox = new File("fileSandbox");
+
+      assertFalse(sandbox.mkdirs());
+    }
+  }
+
+  @Test
+  public void testMkdirsWhenParentWasDeleted() {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+
+      parent.delete();
+
+      File child = new File("fileSandbox/parent/child");
+      File child1 = new File("fileSandbox/parent/child/child1");
+      File child2 = new File("fileSandbox/parent/child/child1/child2");
+
+      child2.mkdirs();
+
+      assertTrue("All child directories should be created by File.mkdirs()",
+                 parent.exists() && child.exists() && child1.exists() && child2.exists());
+    }
+  }
+
+  @Test
+  public void testMkdirsWhenParentIsAFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      File dir = new File("fileSandbox/file/dir1/dir2");
+      assertFalse("File.mkdirs() should return false if one of new dirs' parents is a file",
+                  dir.mkdirs());
+
+      assertTrue("", file.exists());
+      assertFalse("", new File("fileSandbox/file/dir1").exists());
+      assertFalse("", new File("fileSandbox/file/dir1/dir2").exists());
+    }
+  }
+
+  @Test
   public void testDeleteCreateDirWithCreatedFiles() throws IOException {
     if (verifyNoPropertyViolation()) {
       File parent1 = new File("fileSandbox/parent1");

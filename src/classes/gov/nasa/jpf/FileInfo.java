@@ -247,6 +247,59 @@ public class FileInfo {
     return false;
   }
 
+  /**
+   * Create all directories that needed to be created for a directory with
+   * given canonical path.
+   * @param canonicalPath - canonial path of a directory that should be created.
+   * @param firstCall - true if this call to this function is the first one, false
+   * otherwise.
+   * @return true if all directories were created, false otherwise.
+   */
+  public static boolean mkdirs(String canonicalPath, boolean firstCall) {
+    FileInfo fi = getFileInfo(canonicalPath);
+    System.out.println("FileInfo.mkdirs " + fi);
+    
+    // File not exists
+    if (fi == null) {
+      String parent = getParentCP(canonicalPath);
+      if (mkdirs(parent, false)) {
+        mkdir(canonicalPath);
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    // File was deleted
+    else if (!fi.fileState.exists()) {
+      String parent = getParentCP(canonicalPath);
+      if (mkdirs(parent, false)) {
+        fi.fileState.setIsExists(true);
+        fi.fileState.setChilds(new ArrayList<FileInfo>());
+
+        FileInfo parentFI = getFileInfoByCannonicalPath(parent);
+        parentFI.fileState.addChild(fi);
+
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    // FS object is a file
+    else if (!fi.fileState.isDir()) {
+      return false;
+    }
+    // File exists
+    else if (firstCall) {
+      // If File.mkdirs() is called to create existing directory it should return
+      // false
+      return false;
+    }
+
+    return true;
+  }
+  
   private static FileInfo getFileInfoByCannonicalPath(String fileName) {
 
     for (FileInfo fi : fileInfos) {
@@ -306,4 +359,5 @@ public class FileInfo {
 
     return result;
   }
+
 }
