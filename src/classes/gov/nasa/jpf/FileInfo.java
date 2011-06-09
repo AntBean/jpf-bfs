@@ -20,8 +20,8 @@
 package gov.nasa.jpf;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
-import java.util.UUID;
 
 /**
  *
@@ -68,10 +68,8 @@ public class FileInfo {
   /**
    * This method returns array of child dirs and files of a file represented by
    * current file info in a current state.
-   * Because java.io.File.list() returns list of names of files in a specified dir,
-   * this methods returns names of files.
    * @return if file represented by a FileInfo is a directory, it returns an array
-   * of names of files in this directory. Otherwise it returns null.
+   * of canonical paths of files in this directory. Otherwise it returns null.
    */
   public String[] list() {
     System.out.println("FileInfo.list()");
@@ -80,7 +78,7 @@ public class FileInfo {
       String[] nativeFSChilds = {};
 
       if (fileState.getNativeFSFileName() != null) {
-        nativeFSChilds = childNamesList(fileState.getNativeFSFileName());
+        nativeFSChilds = getChildsCPs(fileState.getNativeFSFileName());
       }
 
       System.out.println("Native FS childs: ");
@@ -89,10 +87,10 @@ public class FileInfo {
       }
       System.out.println(";");
 
-      int existsChilds = 0;
+      HashSet<String> set = new HashSet<String>();
       for (FileInfo child : fileState.getChilds()) {
         if (child.fileState.exists()) {
-          existsChilds++;
+          set.add(child.cannonicalPath);
           System.out.println("Found new existing child " + child.cannonicalPath);
         }
         else {
@@ -100,36 +98,73 @@ public class FileInfo {
         }
       }
 
-      String[] currentChilds;
-      
-      if (existsChilds > 0) {
-        currentChilds = new String[nativeFSChilds.length + existsChilds];
-
-        System.arraycopy(nativeFSChilds, 0, currentChilds, 0, nativeFSChilds.length);
-
-        int currentChildPos = nativeFSChilds.length;
-        int parentNameLength = cannonicalPath.length();
-        for (FileInfo child : fileState.getChilds()) {
-          if (child.fileState.exists()) {
-            currentChilds[currentChildPos] = child.cannonicalPath.substring(parentNameLength + 1);
-            currentChildPos++;
-          }
-        }
-      }
-      else {
-        currentChilds = nativeFSChilds;
+      for (String fsChild : nativeFSChilds) {
+        set.add(fsChild);
       }
 
       System.out.println("Current childs: ");
-      for (String childName : currentChilds) {
+      for (String childName : set) {
         System.out.print(childName + ", ");
       }
       System.out.println(";");
 
-      return currentChilds;
+      String[] currentChildren = new String[set.size()];
+      
+      return set.toArray(currentChildren);
     }
 
     return null;
+  }
+
+  /**
+   * Move a file represented by this FileInfo.
+   * @param destCannnonicalPath - new name of a file
+   * @return - true if file was moved successfully, false otherwise.
+   */
+  public boolean renameTo(String destCannnonicalPath) {
+    System.out.println("Renaming " + cannonicalPath + " to " + destCannnonicalPath);
+
+    // If file doesn't exist it can't be moved
+    if (fileState.exists()) {
+      FileInfo destFI = getFileInfo(destCannnonicalPath);
+      FileInfo destParentFI = getFileInfo(getParentCP(destCannnonicalPath));
+
+      // If file's parent doesn't exist or was deleted, file can't be moved
+      if (destParentFI != null && destParentFI.fileState.exists()) {
+        // State of file to move
+        FileState state = new FileState(fileState);
+
+        // Destanation file doesn't exist
+        if (destFI == null) {
+          FileInfo newFI = new FileInfo(destCannnonicalPath, state.isDir());
+          newFI.fileState = state;
+          addNewFI(newFI);
+
+        } else {
+          destFI.fileState = state;
+        }
+
+        // Move all child files
+        if (fileState.isDir()) {
+          String[] childs = list();
+          for (String child : childs) {
+            FileInfo childFI = getFileInfo(child);
+            if (childFI.exists()) {
+              String childCP = childFI.cannonicalPath;
+              String destChildCP = childCP.replace(cannonicalPath, destCannnonicalPath);
+
+              childFI.renameTo(destChildCP);
+            }
+          }
+        }
+
+        // Mark file that was renamed as deleted
+        this.delete();
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public static FileInfo getFileInfo(String filename) {
@@ -350,7 +385,7 @@ public class FileInfo {
 
   private static native boolean isFSRoot(String fileName);
 
-  private static native String[] childNamesList(String cp);
+  private static native String[] getChildsCPs(String cp);
 
   @Override
   public String toString() {
@@ -359,5 +394,7 @@ public class FileInfo {
 
     return result;
   }
+
+
 
 }

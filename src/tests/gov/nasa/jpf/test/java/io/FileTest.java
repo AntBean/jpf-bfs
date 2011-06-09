@@ -615,6 +615,90 @@ public class FileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testRenameFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      File dest = new File("fileSandbox/file1");
+
+      Verify.getBoolean();
+      assertTrue("New file should exist in this state", file.exists());
+      assertFalse("Destanation file shouldn't exist in this state", dest.exists());
+
+      assertTrue("File.renameTo() should return true if new file can be create", 
+                 file.renameTo(dest));
+
+      assertFalse("After file is renamed it shouldn't exist", file.exists());
+      assertTrue("Destanation file should exist after rename operation",
+                 dest.exists());
+    }
+  }
+
+  @Test
+  public void testRenameFileThatNotExist() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/IDontExist");
+      File dest = new File("fileSandbox/dest");
+
+      assertFalse("File.renameTo() should return false if source file doesn't exist",
+                  file.renameTo(dest));
+      assertFalse("Destanation file shouldn't exist after rename operation if source file doesn't exist",
+                  dest.exists());
+    }
+  }
+
+  @Test
+  public void testRenameDeletedFile() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/file");
+      file.createNewFile();
+
+      file.delete();
+
+      File dest = new File("fileSandbox/dest");
+      assertFalse("Deleted file can't be removed, so File.renameTo() should return false",
+                  file.renameTo(dest));
+    }
+  }
+
+  @Test
+  public void testRenameDirectory() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File child = new File("fileSandbox/parent/child");
+      File file1 = new File("fileSandbox/parent/child/file1");
+      File file2 = new File("fileSandbox/parent/child/file2");
+      File file3 = new File("fileSandbox/parent/file3");
+
+      file1.createNewFile();
+      file2.createNewFile();
+      file3.createNewFile();
+
+      File dest = new File("fileSandbox/dest");
+      File destChild = new File("fileSandbox/dest/child");
+      File destFile1 = new File("fileSandbox/dest/child/file1");
+      File destFile2 = new File("fileSandbox/dest/child/file2");
+      File destFile3 = new File("fileSandbox/dest/file3");
+
+      Verify.getBoolean();
+      assertTrue("Files to rename should exist befor renaming",
+                 parent.exists() && child.exists() && file1.exists() && file2.exists() && file3.exists());
+      assertFalse("Destanation files shouldn't exist before renaming",
+                  dest.exists() || destChild.exists() || destFile1.exists() ||
+                  destFile2.exists() || destFile3.exists());
+
+      assertTrue(parent.renameTo(dest));
+
+      assertFalse("Original files shouldn't exist after renaming",
+                  parent.exists() || child.exists() || file1.exists() || file2.exists() || file3.exists());
+      assertTrue("Destanation files should exist after renaming",
+                 dest.exists() && destChild.exists() && destFile1.exists() &&
+                 destFile2.exists() && destFile3.exists());
+    }
+  }
+
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

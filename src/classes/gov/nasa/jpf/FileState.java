@@ -53,6 +53,22 @@ public class FileState {
   private static final byte WRITE_FLAG = 2;
   private static final byte EXECUTE_FLAG = 1;
 
+  public FileState() { }
+
+  public FileState(FileState fs) {
+    length = fs.length;
+    isDir = fs.isDir;
+    openCnt = fs.openCnt;
+    nativeFSFileName = fs.nativeFSFileName;
+    isExist = fs.isExist;
+    // childs = new ArrayList<FileInfo>(fs.childs);
+    parent = fs.parent;
+    sutRights = fs.sutRights;
+    ownerRights = fs.ownerRights;
+    groupRights = fs.groupRights;
+    allRights = fs.allRights;
+  }
+
   public long getLength() {
     return length;
   }

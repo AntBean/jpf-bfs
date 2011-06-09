@@ -311,7 +311,17 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      return fileInfo.list();
+      String[] childsCP = fileInfo.list();
+
+      if (childsCP != null) {
+        String[] childsNames = new String[childsCP.length];
+
+        for (int i = 0; i < childsCP.length; i++) {
+          childsNames[i] = childsCP[i].substring(cannonicalPath.length() + 1);
+        }
+
+        return childsNames;
+      }
     }
 
     return null;
@@ -322,7 +332,7 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      String[] childs = fileInfo.list();
+      String[] childs = list();
 
       if (childs != null) {
         int shift = 0;
@@ -355,7 +365,7 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      String[] childs = fileInfo.list();
+      String[] childs = list();
       if (childs != null) {
         File[] result = new File[childs.length];
 
@@ -439,7 +449,17 @@ public class File
   }
 
 
-  public boolean renameTo(File f)  { return false; }
+  public boolean renameTo(File f)  { 
+    System.out.println("File.renameTo()");
+    getFileInfo();
+
+    if (fileInfo != null) {
+      return fileInfo.renameTo(f.cannonicalPath);
+    }
+
+    return false;
+  }
+  
   public boolean setLastModified(long t)  { return false; }
   public boolean setReadOnly()  { return false; }
   
