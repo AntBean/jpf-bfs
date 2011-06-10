@@ -48,10 +48,12 @@ public class FileState {
 
   private byte allRights;
 
+  private long lastModified;
 
   private static final byte READ_FLAG = 4;
   private static final byte WRITE_FLAG = 2;
   private static final byte EXECUTE_FLAG = 1;
+
 
   public FileState() { }
 
@@ -263,6 +265,14 @@ public class FileState {
     else {
       allRights &= (~EXECUTE_FLAG);
     }
+  }
+
+  public long getLastModified() {
+    return lastModified;
+  }
+
+  public void setLastModified(long time) {
+    lastModified = time;
   }
 
   @Override

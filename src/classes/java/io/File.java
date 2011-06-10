@@ -274,7 +274,6 @@ public class File
 
   public native boolean isHidden();
   
-  public long lastModified() { return -1L; }
   public long length() {
     System.out.println("File.length()");
 
@@ -284,7 +283,6 @@ public class File
 
     return 0;
   }
-
 
   public boolean createNewFile() throws java.io.IOException {
     System.out.println("File.createNewFile()");
@@ -302,7 +300,6 @@ public class File
 
     return false;
   }
-
 
   public void deleteOnExit() {}
   
@@ -459,8 +456,29 @@ public class File
 
     return false;
   }
+
+  public long lastModified() {
+    System.out.println("File.setLastModified()");
+
+    if (fileInfo != null && fileInfo.exists()) {
+      return fileInfo.getFileState().getLastModified();
+    }
+
+    return -1;
+  }
   
-  public boolean setLastModified(long t)  { return false; }
+  public boolean setLastModified(long time)  {
+    System.out.println("File.setLastModified()");
+
+    if (fileInfo != null && fileInfo.exists()) {
+      fileInfo.getFileState().setLastModified(time);
+
+      return true;
+    }
+
+    return false;
+  }
+
   public boolean setReadOnly()  { return false; }
   
   public static native File[] listRoots();
