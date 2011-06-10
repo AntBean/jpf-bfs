@@ -22,32 +22,31 @@ package gov.nasa.jpf;
 import java.util.ArrayList;
 
 /**
- *
+ * This class stores state of a file in BFS
  * @author Ivan Mushketik
  */
 public class FileState {
+  // Length of a file
   private long length;
-
+  // True if this is a directory, false otherwise
   private boolean isDir;
-
+  // nO - nC; nO - number of open() operations nC - number of close() operations
   private int openCnt;
-
+  // File/directory that represents this file/directory content on a native FS
   private String nativeFSFileName;
-
+  // True if file/directory exists
   private boolean isExist;
-
-  private ArrayList<FileInfo> childs = new ArrayList<FileInfo>();
-
-  private FileInfo parent;
-
+  // Children of this file
+  private ArrayList<FileInfo> children = new ArrayList<FileInfo>();
+  // Rights of SUT on this file
   private byte sutRights;
-
+  // Rights of file's owner on this file
   private byte ownerRights;
-
+  // Rights of file's group on this file
   private byte groupRights;
-
+  // Rights of other on this file
   private byte allRights;
-
+  // Time of last modification
   private long lastModified;
 
   private static final byte READ_FLAG = 4;
@@ -63,52 +62,99 @@ public class FileState {
     openCnt = fs.openCnt;
     nativeFSFileName = fs.nativeFSFileName;
     isExist = fs.isExist;
-    // childs = new ArrayList<FileInfo>(fs.childs);
-    parent = fs.parent;
     sutRights = fs.sutRights;
     ownerRights = fs.ownerRights;
     groupRights = fs.groupRights;
     allRights = fs.allRights;
   }
 
+  /**
+   * Get file's length
+   * @return file's length
+   */
   public long getLength() {
     return length;
   }
 
+  /**
+   * Check if this is a directory
+   * @return true if this is a directory, false otherwise
+   */
   public boolean isDir() {
     return isDir;
   }
 
+  /**
+   * Set if this is a directory
+   * @param isDir true if this is a directory now.
+   */
   public void setIsDir(boolean isDir) {
     this.isDir = isDir;
   }
 
+  /**
+   * Get number of open operations minus number of close operations
+   * @return
+   */
   public int getOpenCnt() {
     return openCnt;
   }
 
+  /**
+   * Get canonical path of a file that saves content of a file/directory before
+   * SUT run
+   * @return
+   */
   public String getNativeFSFileName() {
     return nativeFSFileName;
   }
 
+  /**
+   *
+   * @param path
+   */
+  public void setNativeFSFileName(String path) {
+    nativeFSFileName = path;
+  }
+
+  /**
+   * Check if file/directory exists
+   * @return true if file exists
+   */
   public boolean exists() {
     return isExist;
   }
 
+  /**
+   * Set if file exists
+   * @param exist - true if file exists
+   */
   public void setIsExists(boolean exist) {
     this.isExist = exist;
   }
 
+  /**
+   * Add child for this directory
+   * @param child - new child to add
+   */
   public void addChild(FileInfo child) {
-    childs.add(child);
+    children.add(child);
   }
 
-  public ArrayList<FileInfo> getChilds() {
-    return childs;
+  /**
+   * Get children of this directory
+   * @return
+   */
+  public ArrayList<FileInfo> getChildren() {
+    return children;
   }
 
-  void setChilds(ArrayList<FileInfo> childs) {
-    this.childs = childs;
+  /**
+   * Set children of this directory
+   * @param children
+   */
+  void setChildren(ArrayList<FileInfo> children) {
+    this.children = children;
   }
 
   public boolean isReadableForSUT() {
@@ -267,10 +313,18 @@ public class FileState {
     }
   }
 
+  /**
+   * Get time of last modification of a file/directory
+   * @return
+   */
   public long getLastModified() {
     return lastModified;
   }
 
+  /**
+   * Set time of last modification of a file/directory
+   * @param time
+   */
   public void setLastModified(long time) {
     lastModified = time;
   }
@@ -288,4 +342,6 @@ public class FileState {
 
     return result;
   }
+
+
 }

@@ -589,6 +589,8 @@ public class FileTest extends TestJPF {
       assertEquals("Cannonical path of temp dir's parent should be equal to cannonical path of a dir that was given to File.createTempFile()",
                    sandbox.getCanonicalPath(), temp.getParentFile().getCanonicalPath());
       String fileName = temp.getName();
+      
+      assertTrue("File.createTempFile() should create files, but not directories", temp.isFile());
       assertTrue("Name of temp file should start with a prefix that was given to File.createTempFile()",
                  fileName.startsWith("prefix"));
       assertTrue("Name of temp file should end with a suffix that was given to File.createTempFile()", fileName.endsWith("suffix"));

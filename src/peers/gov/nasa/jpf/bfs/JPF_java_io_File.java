@@ -60,12 +60,12 @@ public class JPF_java_io_File {
     int cannonicalPathRef = env.newString(file.getCanonicalPath());
 
     fileEI.setReferenceField("filename", fileNameRef);
-    fileEI.setReferenceField("cannonicalPath", cannonicalPathRef);
+    fileEI.setReferenceField("canonicalPath", cannonicalPathRef);
 
     return newFileRef;
   }
 
-  public static int getCannonicalPath__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int objref, int fileNameRef) throws IOException {
+  public static int getCanonicalPath__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int objref, int fileNameRef) throws IOException {
     String fileName = env.getStringObject(fileNameRef);
     File file = new File(fileName);
 

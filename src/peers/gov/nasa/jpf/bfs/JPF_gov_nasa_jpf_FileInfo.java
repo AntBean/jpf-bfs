@@ -37,7 +37,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
     if (file.exists()) {
       int fiRef = env.newObject("gov.nasa.jpf.FileInfo");
       int cpRef = env.newString(fileName);
-      env.setReferenceField(fiRef, "cannonicalPath", cpRef);
+      env.setReferenceField(fiRef, "canonicalPath", cpRef);
 
       int fsRef = env.newObject("gov.nasa.jpf.FileState");
       env.setLongField(fsRef, "length", file.length());
@@ -45,6 +45,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       env.setBooleanField(fsRef, "isExist", true);
       env.setIntField(fsRef, "openCnt", 0);
       env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
+      env.setLongField(fsRef, "lastModified", file.lastModified());
 
       byte sutRWX = 0;
 
@@ -61,7 +62,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
     return MJIEnv.NULL;
   }
 
-  public static int getParentCP__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int clsRef, int fileNameRef) {
+  public static int getParent__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int clsRef, int fileNameRef) {
     String fileName = env.getStringObject(fileNameRef);
     File file = new File(fileName);
 
@@ -75,7 +76,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
     return file.getParent() == null;
   }
 
-  public static int getChildsCPs__Ljava_lang_String_2___3Ljava_lang_String_2(MJIEnv env, int clsRef, int cpRef) {
+  public static int getChildrenCPs__Ljava_lang_String_2___3Ljava_lang_String_2(MJIEnv env, int clsRef, int cpRef) {
     String cp = env.getStringObject(cpRef);
 
     File dir = new File(cp);

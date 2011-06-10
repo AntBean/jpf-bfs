@@ -39,14 +39,14 @@ public class File
 
   int id; // link to the real File object
   private String filename;
-  private String cannonicalPath;
+  private String canonicalPath;
 
   private FileInfo fileInfo;
 
   private FileInfo getFileInfo() {
     System.out.println("getFileInfo()");
     if (fileInfo == null) {
-      fileInfo = FileInfo.getFileInfo(cannonicalPath);
+      fileInfo = FileInfo.getFileInfo(canonicalPath);
     }
     
     if (fileInfo == null) {
@@ -68,29 +68,29 @@ public class File
     }
     
     this.filename = filename;
-    cannonicalPath = getCannonicalPath(filename);
+    canonicalPath = getCanonicalPath(filename);
   }
 
-  private static native String getCannonicalPath(String filename);
+  private static native String getCanonicalPath(String filename);
 
   public File (String parent, String child) {
   	filename = parent + separator + child;
 
-    cannonicalPath = getCannonicalPath(filename);
+    canonicalPath = getCanonicalPath(filename);
   }
   
   public File (File parent, String child) {
-    cannonicalPath = parent.cannonicalPath + separator + child;
+    canonicalPath = parent.canonicalPath + separator + child;
   }
   
   public File(java.net.URI uri) { throw new UnsupportedOperationException(); }
   
   public String getName() {
-    int idx = cannonicalPath.lastIndexOf(separatorChar);
+    int idx = canonicalPath.lastIndexOf(separatorChar);
     if (idx >= 0){
-      return cannonicalPath.substring(idx+1);
+      return canonicalPath.substring(idx+1);
     } else {
-      return cannonicalPath;
+      return canonicalPath;
     }
   }
 
@@ -287,7 +287,7 @@ public class File
   public boolean createNewFile() throws java.io.IOException {
     System.out.println("File.createNewFile()");
     
-    return FileInfo.createNewFile(cannonicalPath);
+    return FileInfo.createNewFile(canonicalPath);
   }
 
   public boolean delete() {
@@ -314,7 +314,7 @@ public class File
         String[] childsNames = new String[childsCP.length];
 
         for (int i = 0; i < childsCP.length; i++) {
-          childsNames[i] = childsCP[i].substring(cannonicalPath.length() + 1);
+          childsNames[i] = childsCP[i].substring(canonicalPath.length() + 1);
         }
 
         return childsNames;
@@ -367,7 +367,7 @@ public class File
         File[] result = new File[childs.length];
 
         for (int i = 0; i < childs.length; i++) {
-          result[i] = new File(cannonicalPath, childs[i]);
+          result[i] = new File(canonicalPath, childs[i]);
         }
 
         return result;
@@ -389,7 +389,7 @@ public class File
         File[] result = new File[childs.length];
 
         for (int i = 0; i < childs.length; i++) {
-          result[i] = new File(cannonicalPath, childs[i]);
+          result[i] = new File(canonicalPath, childs[i]);
         }
 
         return result;
@@ -436,13 +436,13 @@ public class File
 
   public boolean mkdir() {
     System.out.println("File.mkdir()");
-    return FileInfo.mkdir(cannonicalPath);
+    return FileInfo.mkdir(canonicalPath);
   }
   
   public boolean mkdirs() {
     System.out.println("File.mkdirs()");
 
-    return FileInfo.mkdirs(cannonicalPath, true);
+    return FileInfo.mkdirs(canonicalPath, true);
   }
 
 
@@ -451,7 +451,7 @@ public class File
     getFileInfo();
 
     if (fileInfo != null) {
-      return fileInfo.renameTo(f.cannonicalPath);
+      return fileInfo.renameTo(f.canonicalPath);
     }
 
     return false;
@@ -511,7 +511,7 @@ public class File
       tmpDir = dir.getPath();
     }
 
-    String tmpDirCP = getCannonicalPath(tmpDir);
+    String tmpDirCP = getCanonicalPath(tmpDir);
     String tempFileName = FileInfo.createTempFile(tmpDirCP, separatorChar, prefix, suffix);
 
     if (tempFileName != null) {

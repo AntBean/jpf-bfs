@@ -24,30 +24,46 @@ import java.util.HashSet;
 import java.util.Random;
 
 /**
+ * FileInfo stores data about all created and deleted files in Backtrackable
+ * FileSystem (BFS).
+ * Real data about file state like last modified time, rights, lenghts is stored in
+ * a FileState class. This separation was made, because file can be renamed (moved)
+ * and File class should "see" that old file was deleted, but such files like
+ * FileXStream and RandomAccessFile should still be able to read/write to this file.
+ * This class also stores all FileInfos that was created during SUT work.
  *
+ * <2do> it's not optimized at. Some methods can be easily moved to a peer side.
  * @author Ivan Mushketik
  */
 public class FileInfo {
 
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
-  private String cannonicalPath;
+  // Canonical path of a file
+  private String canonicalPath;
+  // Current state of a file
   private FileState fileState;
 
+  // Create new file in BFS
   private FileInfo(String filename, boolean isDir) {
-    cannonicalPath = filename;
+    canonicalPath = filename;
     
     fileState = new FileState();
     fileState.setIsDir(isDir);
     fileState.setIsExists(true);
   }
 
-
+  /**
+   * Delete file/directory from BFS.
+   * @return true if operation successfully finished, false otherwise.
+   */
   public boolean delete() {
 
-    if (fileState.exists() && !isFSRoot(cannonicalPath)) {
+    // File can be deleted if it exists or it's not a file system root
+    if (fileState.exists() && !isFSRoot(canonicalPath)) {
       fileState.setIsExists(false);
 
-      for (FileInfo child : fileState.getChilds()) {
+      // Recursively delete all children
+      for (FileInfo child : fileState.getChildren()) {
         child.delete();
       }
 
@@ -57,10 +73,18 @@ public class FileInfo {
     return false;
   }
 
+  /**
+   * Get file state.
+   * @return FileState that stores data about file state.
+   */
   public FileState getFileState() {
     return fileState;
   }
 
+  /**
+   * Check if file exists.
+   * @return true if file exists, false otherwise.
+   */
   public boolean exists() {
     return fileState.exists();
   }
@@ -75,39 +99,39 @@ public class FileInfo {
     System.out.println("FileInfo.list()");
 
     if (fileState.isDir() && fileState.exists()) {
-      String[] nativeFSChilds = {};
+      String[] nativeFSChildren = {};
 
       // If directory existed on a filesystem before SUT run, we can read child files
       // that exist on a native FS
       if (fileState.getNativeFSFileName() != null) {
-        nativeFSChilds = getChildsCPs(fileState.getNativeFSFileName());
+        nativeFSChildren = getChildrenCPs(fileState.getNativeFSFileName());
       }
 
-      System.out.println("Native FS childs: ");
-      for (String childName : nativeFSChilds) {
+      System.out.println("Native FS children: ");
+      for (String childName : nativeFSChildren) {
         System.out.print(childName + ", ");
       }
       System.out.println(";");
 
       HashSet<String> set = new HashSet<String>();
 
-      for (String fsChild : nativeFSChilds) {
+      for (String fsChild : nativeFSChildren) {
         set.add(fsChild);
       }
 
-      // Add new childs to child's set remove childs that were deleted by SUT
-      for (FileInfo child : fileState.getChilds()) {
+      // Add new children to child's set remove children that were deleted by SUT
+      for (FileInfo child : fileState.getChildren()) {
         if (child.fileState.exists()) {
-          set.add(child.cannonicalPath);
-          System.out.println("Found new existing child " + child.cannonicalPath);
+          set.add(child.canonicalPath);
+          System.out.println("Found new existing child " + child.canonicalPath);
         }
         else {
-          set.remove(child.cannonicalPath);
-          System.out.println("Found new deleted child " + child.cannonicalPath);
+          set.remove(child.canonicalPath);
+          System.out.println("Found new deleted child " + child.canonicalPath);
         }
       }
 
-      System.out.println("Current childs: ");
+      System.out.println("Current children: ");
       for (String childName : set) {
         System.out.print(childName + ", ");
       }
@@ -123,16 +147,16 @@ public class FileInfo {
 
   /**
    * Move a file represented by this FileInfo.
-   * @param destCannnonicalPath - new name of a file
+   * @param destCanonicalPath - new name of a file
    * @return - true if file was moved successfully, false otherwise.
    */
-  public boolean renameTo(String destCannnonicalPath) {
-    System.out.println("Renaming " + cannonicalPath + " to " + destCannnonicalPath);
+  public boolean renameTo(String destCanonicalPath) {
+    System.out.println("Renaming " + canonicalPath + " to " + destCanonicalPath);
 
     // If file doesn't exist it can't be moved
     if (fileState.exists()) {
-      FileInfo destFI = getFileInfo(destCannnonicalPath);
-      FileInfo destParentFI = getFileInfo(getParentCP(destCannnonicalPath));
+      FileInfo destFI = getFileInfo(destCanonicalPath);
+      FileInfo destParentFI = getFileInfo(getParent(destCanonicalPath));
 
       // If file's parent doesn't exist or was deleted, file can't be moved
       if (destParentFI != null && destParentFI.fileState.exists()) {
@@ -141,7 +165,7 @@ public class FileInfo {
 
         // Destanation file doesn't exist
         if (destFI == null) {
-          FileInfo newFI = new FileInfo(destCannnonicalPath, state.isDir());
+          FileInfo newFI = new FileInfo(destCanonicalPath, state.isDir());
           newFI.fileState = state;
           addNewFI(newFI);
 
@@ -151,12 +175,12 @@ public class FileInfo {
 
         // Move all child files
         if (fileState.isDir()) {
-          String[] childs = list();
-          for (String child : childs) {
+          String[] children = list();
+          for (String child : children) {
             FileInfo childFI = getFileInfo(child);
             if (childFI.exists()) {
-              String childCP = childFI.cannonicalPath;
-              String destChildCP = childCP.replace(cannonicalPath, destCannnonicalPath);
+              String childCP = childFI.canonicalPath;
+              String destChildCP = childCP.replace(canonicalPath, destCanonicalPath);
 
               childFI.renameTo(destChildCP);
             }
@@ -172,19 +196,27 @@ public class FileInfo {
     return false;
   }
 
-  public static FileInfo getFileInfo(String filename) {
-    System.out.println("Request for " + filename + " FileInfo");
-    FileInfo newFI = getFileInfoByCannonicalPath(filename);
+  /**
+   * Get FileInfo with data about a file with specified canonical path. If FI was
+   * already created it will be returned, otherwise info about this file will be read
+   * from native FS.
+   * @param canonicaPath - canonical path of file
+   * @return FileInfo about a file if it was created during SUT run, or it exists on
+   * a native FS and wasn't deleted. Otherwise return null.
+   */
+  public static FileInfo getFileInfo(String canonicaPath) {
+    System.out.println("Request for " + canonicaPath + " FileInfo");
+    FileInfo newFI = getFileInfoByCanonicalPath(canonicaPath);
 
     if (newFI != null) {
       System.out.println("Found in FileInfo DS");
       return newFI;
     }
 
-    newFI = createNewFileInfo(filename);
+    newFI = createNewFileInfo(canonicaPath);
     if (newFI != null) {
       System.out.println("Found in native FS");
-      newFI.fileState.setChilds(new ArrayList<FileInfo>());
+      newFI.fileState.setChildren(new ArrayList<FileInfo>());
 
       addNewFI(newFI);
     }
@@ -194,35 +226,41 @@ public class FileInfo {
     
     return newFI;
   }
-  
-  private static void addNewFI(FileInfo newFI) {
-    String cp = newFI.cannonicalPath;
 
-    while ((cp = getParentCP(cp)) != null) {
+  /**
+   * Add new FileInfo
+   * @param newFI - FileInfo to add
+   */
+  private static void addNewFI(FileInfo newFI) {
+    String cp = newFI.canonicalPath;
+
+    while ((cp = getParent(cp)) != null) {
       FileInfo parentFI = getFileInfo(cp);
 
       if (!parentFI.fileState.exists()) {
-        System.out.println(parentFI.cannonicalPath + " was deleted, so " + newFI.cannonicalPath + " is deleted too");
+        System.out.println(parentFI.canonicalPath + " was deleted, so " + newFI.canonicalPath + " is deleted too");
         newFI.fileState.setIsExists(false);
         break;
       }
     }
 
-    String parentCP = getParentCP(newFI.cannonicalPath);
+    String parentCP = getParent(newFI.canonicalPath);
+    // Find this file's parent
     for (FileInfo potentialParent : fileInfos) {
-      if (potentialParent.cannonicalPath.equals(parentCP)) {
-        System.out.println("Found parent " + potentialParent.cannonicalPath + " for " + newFI.cannonicalPath);
+      if (potentialParent.canonicalPath.equals(parentCP)) {
+        System.out.println("Found parent " + potentialParent.canonicalPath + " for " + newFI.canonicalPath);
 
         potentialParent.fileState.addChild(newFI);
         break;
       }
     }
 
+    // Find this file's children
     for (FileInfo potentialChild : fileInfos) {
-      String potentialChildParentCP = getParentCP(potentialChild.cannonicalPath);
+      String potentialChildParentCP = getParent(potentialChild.canonicalPath);
 
-      if (newFI.cannonicalPath.equals(potentialChildParentCP)) {
-        System.out.println("Found child " + potentialChild.cannonicalPath + " for " + newFI.cannonicalPath);
+      if (newFI.canonicalPath.equals(potentialChildParentCP)) {
+        System.out.println("Found child " + potentialChild.canonicalPath + " for " + newFI.canonicalPath);
         newFI.fileState.addChild(potentialChild);
       }
     }
@@ -230,18 +268,23 @@ public class FileInfo {
     fileInfos.add(newFI);
   }
 
-  public static boolean createNewFile(String filename) {
-    System.out.println("Attempt to create new FileInfo for a file " + filename);
+  /**
+   * Create new file with a specified canonical path
+   * @param canonicalPath - canonical path of a new file
+   * @return true if file was created, false otherwise.
+   */
+  public static boolean createNewFile(String canonicalPath) {
+    System.out.println("Attempt to create new FileInfo for a file " + canonicalPath);
 
-    FileInfo fi = getFileInfo(filename);
+    FileInfo fi = getFileInfo(canonicalPath);
 
     if (fi == null || !fi.fileState.exists()) {
-      String parentCP = getParentCP(filename);
+      String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
       if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
-          fi = new FileInfo(filename, false);
+          fi = new FileInfo(canonicalPath, false);
         }
 
         fi.fileState.setIsDir(false);
@@ -254,27 +297,47 @@ public class FileInfo {
     return false;
   }
 
-  private static native FileInfo createNewFileInfo(String fileName);
+  /**
+   * Create FileInfo for a file with specified canonica path with data read from
+   * a file on a native file system.
+   * @param canonicalPath - canonical path of a file.
+   * @return FileInfo for a specified file if one exists, null otherwise.
+   */
+  private static native FileInfo createNewFileInfo(String canonicalPath);
 
-  private static native String getParentCP(String filename);
+  /**
+   * Get file name of a parent for a file with specified name of a file.
+   * @param filename
+   * @return file name of a parent or null.
+   */
+  private static native String getParent(String filename);
 
-  public static void createNewFileFI(String filename) {
-    FileInfo fi = new FileInfo(filename, true);
+  /**
+   *
+   * @param canonicalPath
+   */
+  private static void createNewFileFI(String canonicalPath) {
+    FileInfo fi = new FileInfo(canonicalPath, false);
     fileInfos.add(fi);
   }
-  
-  public static boolean mkdir(String filename) {
-    System.out.println("Attempt to create new FileInfo for a dir " + filename);
 
-    FileInfo fi = getFileInfo(filename);
+  /**
+   * Create a directory with specified canonical path.
+   * @param canonicalPath - canonical path of a directory to create.
+   * @return true if directory was created, false otherwise
+   */
+  public static boolean mkdir(String canonicalPath) {
+    System.out.println("Attempt to create new FileInfo for a dir " + canonicalPath);
+
+    FileInfo fi = getFileInfo(canonicalPath);
 
     if (fi == null || !fi.fileState.exists()) {
-      String parentCP = getParentCP(filename);
+      String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
       if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
-          fi = new FileInfo(filename, true);
+          fi = new FileInfo(canonicalPath, true);
         }
 
         fi.fileState.setIsDir(true);
@@ -301,37 +364,31 @@ public class FileInfo {
     
     // File not exists
     if (fi == null) {
-      String parent = getParentCP(canonicalPath);
+      String parent = getParent(canonicalPath);
       if (mkdirs(parent, false)) {
         mkdir(canonicalPath);
         return true;
-      }
-      else {
+      } else {
         return false;
       }
-    }
-    // File was deleted
-    else if (!fi.fileState.exists()) {
-      String parent = getParentCP(canonicalPath);
+    } else if (!fi.fileState.exists()) {
+      // File was deleted
+      String parent = getParent(canonicalPath);
       if (mkdirs(parent, false)) {
         fi.fileState.setIsExists(true);
-        fi.fileState.setChilds(new ArrayList<FileInfo>());
+        fi.fileState.setChildren(new ArrayList<FileInfo>());
 
-        FileInfo parentFI = getFileInfoByCannonicalPath(parent);
+        FileInfo parentFI = getFileInfoByCanonicalPath(parent);
         parentFI.fileState.addChild(fi);
 
         return true;
-      }
-      else {
+      } else {
         return false;
       }
-    }
-    // FS object is a file
-    else if (!fi.fileState.isDir()) {
+    } else if (!fi.fileState.isDir()) {
+      // FS object is a file
       return false;
-    }
-    // File exists
-    else if (firstCall) {
+    } else if (firstCall) {
       // If File.mkdirs() is called to create existing directory it should return
       // false
       return false;
@@ -339,11 +396,16 @@ public class FileInfo {
 
     return true;
   }
-  
-  private static FileInfo getFileInfoByCannonicalPath(String fileName) {
 
+  /**
+   * Find and get FileInfo for a file with specified canonical path.
+   * @param canonicalPath - canonical path of a directory
+   * @return FileInfo if one for a file with specified canonical path was created,
+   * null otherwise.
+   */
+  private static FileInfo getFileInfoByCanonicalPath(String canonicalPath) {
     for (FileInfo fi : fileInfos) {
-      if (fi.cannonicalPath.equals(fileName)) {
+      if (fi.canonicalPath.equals(canonicalPath)) {
         return fi;
       }
     }
@@ -374,7 +436,7 @@ public class FileInfo {
 
         String newFileCP = tempDir + separatorChar + tempFileName;
 
-        FileInfo newFileFI = getFileInfoByCannonicalPath(newFileCP);
+        FileInfo newFileFI = getFileInfoByCanonicalPath(newFileCP);
 
         // No file with such filename exists.
         if (newFileFI == null) {
@@ -388,13 +450,24 @@ public class FileInfo {
     return null;
   }
 
-  private static native boolean isFSRoot(String fileName);
+  /**
+   * Check if specified canonical path is a file system root on this system.
+   * @param canonicalPath - canonical path of a file.
+   * @return true if it's a file system's root, false otherwise.
+   */
+  private static native boolean isFSRoot(String canonicalPath);
 
-  private static native String[] getChildsCPs(String cp);
+  /**
+   * Get canonical paths of a file's children on a native FS
+   * @param canonicalPath - canonical path of a file
+   * @return array of canonical paths of file's children if file exists on native
+   * FS. If file doesn't exists return null.
+   */
+  private static native String[] getChildrenCPs(String canonicalPath);
 
   @Override
   public String toString() {
-    String result = "CP: " + cannonicalPath + "; ";
+    String result = "CP: " + canonicalPath + "; ";
     result += "FS: " + fileState;
 
     return result;
