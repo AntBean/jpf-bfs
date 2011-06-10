@@ -38,6 +38,8 @@ import java.util.Random;
 public class FileInfo {
 
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
+
+
   // Canonical path of a file
   private String canonicalPath;
   // Current state of a file
@@ -233,18 +235,21 @@ public class FileInfo {
    */
   private static void addNewFI(FileInfo newFI) {
     String cp = newFI.canonicalPath;
+    String parentCP = getParent(cp);
 
-    while ((cp = getParent(cp)) != null) {
-      FileInfo parentFI = getFileInfo(cp);
+    if (parentCP != null) {
+      FileInfo parentFI = getFileInfo(parentCP);
 
-      if (!parentFI.fileState.exists()) {
+      /**
+       * If parent doesn't exist or was deleted or removed current file should be
+       * marked as deleted.
+       */
+      if (parentFI == null || !parentFI.exists()) {
         System.out.println(parentFI.canonicalPath + " was deleted, so " + newFI.canonicalPath + " is deleted too");
         newFI.fileState.setIsExists(false);
-        break;
       }
     }
 
-    String parentCP = getParent(newFI.canonicalPath);
     // Find this file's parent
     for (FileInfo potentialParent : fileInfos) {
       if (potentialParent.canonicalPath.equals(parentCP)) {

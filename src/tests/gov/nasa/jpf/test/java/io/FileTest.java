@@ -66,6 +66,19 @@ public class FileTest extends TestJPF {
   }
 
   @Test
+  public void testIsFileExistsInDeletedAndCreatedDirectory() {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File child = new File("fileSandbox/parent/child");
+      assertTrue(parent.delete());
+      assertTrue(parent.mkdir());
+
+      assertFalse("If directory was deleted and recreated all it's children should be deleted",
+                  child.exists());
+    }
+  }
+
+  @Test
   public void testBacktrackableFileCreation() throws IOException {
     if (verifyNoPropertyViolation()) {
       File file = new File("fileSandbox/parent/child/file");
