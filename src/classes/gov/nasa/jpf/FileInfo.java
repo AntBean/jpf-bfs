@@ -77,6 +77,8 @@ public class FileInfo {
     if (fileState.isDir() && fileState.exists()) {
       String[] nativeFSChilds = {};
 
+      // If directory existed on a filesystem before SUT run, we can read child files
+      // that exist on a native FS
       if (fileState.getNativeFSFileName() != null) {
         nativeFSChilds = getChildsCPs(fileState.getNativeFSFileName());
       }
@@ -88,18 +90,21 @@ public class FileInfo {
       System.out.println(";");
 
       HashSet<String> set = new HashSet<String>();
+
+      for (String fsChild : nativeFSChilds) {
+        set.add(fsChild);
+      }
+
+      // Add new childs to child's set remove childs that were deleted by SUT
       for (FileInfo child : fileState.getChilds()) {
         if (child.fileState.exists()) {
           set.add(child.cannonicalPath);
           System.out.println("Found new existing child " + child.cannonicalPath);
         }
         else {
+          set.remove(child.cannonicalPath);
           System.out.println("Found new deleted child " + child.cannonicalPath);
         }
-      }
-
-      for (String fsChild : nativeFSChilds) {
-        set.add(fsChild);
       }
 
       System.out.println("Current childs: ");
@@ -108,11 +113,11 @@ public class FileInfo {
       }
       System.out.println(";");
 
-      String[] currentChildren = new String[set.size()];
-      
+      String[] currentChildren = new String[set.size()];      
       return set.toArray(currentChildren);
     }
 
+    // FileInfo represents not a directory, or doesn't exist
     return null;
   }
 

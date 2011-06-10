@@ -314,6 +314,21 @@ public class FileTest extends TestJPF {
   }
 
   @Test
+  public void testListChildsWhenOneOfThemWasDeleted() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File child = new File("fileSandbox/parent/child");
+      File child1 = new File("fileSandbox/parent/child1");
+
+      child1.createNewFile();
+      child.delete();
+
+      String[] expectedChilds = {"child1"};
+      assertSameStrings(expectedChilds, parent.list());
+    }
+  }
+
+  @Test
   public void testListChildrenOfNotExistingDirectory() {
     if (verifyNoPropertyViolation()) {
       File notExists = new File("IDontExist");
@@ -696,6 +711,30 @@ public class FileTest extends TestJPF {
       assertTrue("Destanation files should exist after renaming",
                  dest.exists() && destChild.exists() && destFile1.exists() &&
                  destFile2.exists() && destFile3.exists());
+    }
+  }
+
+  @Test
+  /**
+   * FileInfo.list() first reads childs of a directory from a native FS. This test
+   * checks that it doesn't do it when some dir was renamed.
+   */
+  public void testGetDirectoriesChildsAfterRenaming() throws IOException {
+    if (verifyNoPropertyViolation()) {
+      File newDir = new File("fileSandbox/newDir");
+      File child1 = new File("fileSandbox/newDir/child1");
+      File child2 = new File("fileSandbox/newDir/child2");
+
+      newDir.mkdir();
+      child1.createNewFile();
+      child2.createNewFile();
+
+      File parent = new File("fileSandbox/parent");
+
+      newDir.renameTo(parent);
+
+      String[] expectedChilds = {"child1", "child2"};
+      assertSameStrings(expectedChilds, parent.list());
     }
   }
 
