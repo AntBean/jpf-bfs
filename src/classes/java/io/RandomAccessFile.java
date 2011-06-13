@@ -18,70 +18,202 @@
 //
 package java.io;
 
+import gov.nasa.jpf.FileState;
+import java.nio.channels.FileChannel;
+
 /**
  * MJI model class for java.io.RandomAccessFile
  *
- * @author Owen O'Malley
+ * @author Ivan Mushketik
  */
-@SuppressWarnings("unused")
-public class RandomAccessFile {
-  public RandomAccessFile(File name, String permissions
-                         ) throws FileNotFoundException {
-    filename = name;
-    isOpen = true;
-    isReadOnly = "r".equals(permissions);
-    setDataMap();
-  }
+public class RandomAccessFile implements DataInput, DataOutput {
 
-  public void seek(long posn) throws IOException {
-    currentPosition = posn;
-  }
+  private boolean readOnly;
+  FileState fileState;
+  long filePointer;
 
-  public long length() throws IOException {
-    return currentLength;
-  }
+  public RandomAccessFile(File file, String mode) throws FileNotFoundException {
+    readOnly = parseMode(mode);
 
-  public native void setDataMap();
-  
-  public native void writeByte(int data) throws IOException;
+    try {
 
-  public native void write(byte[] data, int start, int len
-                          ) throws IOException;
+      if (!file.exists()) {
+        if (readOnly) {
+          throw new FileNotFoundException(file.getCanonicalPath() + "(No such file or directory)");
+        } else {
+          if (!file.createNewFile()) {
+            throw new FileNotFoundException(file.getCanonicalPath() + "(No such file or directory)");
+          }
+        }
+      }
 
+      fileState = file.getFileInfo().getFileState();
+      fileState.open();
 
-  public native void setLength(long len) throws IOException;
-
-  public native int read(byte[] data, int start, int len
-                         ) throws IOException;
-
-  public native byte readByte() throws IOException;
-
-  public void close() throws IOException {
-    isOpen = false;
-  }
-
-  private static class DataRepresentation {
-    DataRepresentation next;
-    long chunk_index;
-    int[] data;
-  }
-
-  private final static void printList(DataRepresentation node) {
-    DataRepresentation cur = node;
-    System.out.print("Chunks:");
-    while (cur != null) {
-      System.out.print(" " + cur.chunk_index);
-      cur = cur.next;
+    } catch (IOException ex) {
+      throw new FileNotFoundException(ex.getMessage());
     }
-    System.out.println();
+
   }
 
-  private static final int CHUNK_SIZE = 256;
-  private File filename;
-  private boolean isOpen;
-  private boolean isReadOnly;
-  private long currentLength;
-  private long currentPosition;
-  private DataRepresentation data_root = null;
+  public RandomAccessFile(String name, String mode) throws FileNotFoundException {
+    this(new File(name), mode);
+  }
+
+  private boolean parseMode(String mode) {
+    if (mode.equals("r")) {
+      return true;
+    }
+    if (mode.equals("rw") || mode.equals("rws") || mode.equals("rwd")) {
+      return false;
+    }
+
+    throw new IllegalArgumentException("Illegal mode \"" + mode +"\" must be one of \"r\", \"rw\", \"rws\", or \"rwd\"");
+  }
+
+  public FileChannel getChannel() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public FileDescriptor getFD() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public long getFilePointer() {
+    return filePointer;
+  }
+
+  public void close() {
+    fileState.close();
+  }
+
+  public long length () throws IOException {
+    return fileState.getLength();
+  }
+
+  public void seek (long pos) throws IOException {
+    filePointer = pos;    
+  }
+
+  public void setLength ( long newLength )throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void readFully(byte[] bytes) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void readFully(byte[] bytes, int i, int i1) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public int skipBytes(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public boolean readBoolean() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public byte readByte() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public int readUnsignedByte() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public short readShort() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public int readUnsignedShort() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public char readChar() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public int readInt() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public long readLong() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public float readFloat() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public double readDouble() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public String readLine() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public String readUTF() throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void write(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void write(byte[] bytes) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void write(byte[] bytes, int i, int i1) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeBoolean(boolean bln) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeByte(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeShort(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeChar(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeInt(int i) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeLong(long l) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeFloat(float f) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeDouble(double d) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeBytes(String string) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeChars(String string) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public void writeUTF(String string) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+  
 }
 

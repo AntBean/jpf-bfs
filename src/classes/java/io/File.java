@@ -43,7 +43,7 @@ public class File
 
   private FileInfo fileInfo;
 
-  private FileInfo getFileInfo() {
+  protected FileInfo getFileInfo() {
     System.out.println("getFileInfo()");
     if (fileInfo == null) {
       fileInfo = FileInfo.getFileInfo(canonicalPath);

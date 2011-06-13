@@ -329,6 +329,14 @@ public class FileState {
     lastModified = time;
   }
 
+  public void open() {
+    openCnt++;
+  }
+
+  public void close() {
+    openCnt--;
+  }
+
   @Override
   public String toString() {
     String result;
@@ -342,6 +350,8 @@ public class FileState {
 
     return result;
   }
+
+
 
 
 }
