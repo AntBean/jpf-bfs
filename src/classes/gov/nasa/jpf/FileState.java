@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 /**
  * This class stores state of a file in BFS
+ * <2do> Check SUT rights before writing/reading any data
+ * <2do> Set lasModified field with every read operation
  * @author Ivan Mushketik
  */
 public class FileState {
@@ -49,6 +51,8 @@ public class FileState {
   // Time of last modification
   private long lastModified;
 
+  private WriteChunk lastWriteChunk;
+
   private static final byte READ_FLAG = 4;
   private static final byte WRITE_FLAG = 2;
   private static final byte EXECUTE_FLAG = 1;
@@ -56,6 +60,7 @@ public class FileState {
 
   public FileState() { }
 
+  // <2do> add write chunks coping
   public FileState(FileState fs) {
     length = fs.length;
     isDir = fs.isDir;
@@ -74,6 +79,10 @@ public class FileState {
    */
   public long getLength() {
     return length;
+  }
+
+  public void setLength(long newLength) {
+    length = newLength;
   }
 
   /**
@@ -337,6 +346,26 @@ public class FileState {
     openCnt--;
   }
 
+  /**
+   * Write data to a BFS file.
+   * @param startPos - offset from the beginning of a file
+   * @param data - buffer with data
+   * @param offset - offset in a data buffer
+   * @param length - number of bytes to write
+   * @return number of bytes that was written
+   */
+  public native int write(long startPos, byte[] data, int offset, int length);
+
+  /**
+   * Read data from a BFS file
+   * @param startPos - offset from the beginning of a file
+   * @param data - buffer to read data
+   * @param offset - offset in a data buffer
+   * @param length - number of bytes to read
+   * @return number of bytes that was read
+   */
+  public native int read(long startPos, byte[] data, int offset, int length);
+
   @Override
   public String toString() {
     String result;
@@ -350,8 +379,4 @@ public class FileState {
 
     return result;
   }
-
-
-
-
 }

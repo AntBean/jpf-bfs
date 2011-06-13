@@ -85,44 +85,6 @@ public class JPF_java_io_RandomAccessFile {
     }
   }
 
-  /**
-   * This is a bit lame doing it this way, but it is easy.
-   */
-  public static void write___3BII__V (MJIEnv env, int this_ptr, int data_array,
-                           int start, int len) {
-    byte[] data_values = env.getByteArrayObject(data_array);
-    for(int i=start; i < len; ++i) {
-      writeByte__I__V(env, this_ptr, data_values[i]);
-    }
-  }
-
-  public static void setLength__J__V(MJIEnv env, int this_ptr, long len) {
-    long current_posn = env.getLongField(this_ptr, current_position);
-    long current_len = env.getLongField(this_ptr, current_length);
-    if (current_posn >= len && len < current_len) {
-      env.setLongField(this_ptr, current_position, len);
-    }
-    env.setLongField(this_ptr, current_length, len);
-    // update length in the mapped object if it exists
-    env.setLongField(getMapping(env,this_ptr), current_length, current_posn + 1);
-  }
-
-  public static int read___3BII__I (MJIEnv env, int this_ptr, int data_array,
-                         int start, int len) {
-    int i = 0;
-    long current_posn = env.getLongField(this_ptr, current_position);
-    long current_len = env.getLongField(this_ptr, current_length);
-    while (i < len && current_posn < current_len) {
-      env.setByteArrayElement(data_array, start + i, readByte____B(env, this_ptr));
-      i += 1;
-      current_posn += 1;
-    }
-    if (i == 0) {
-      return -1;
-    }
-    return i;
-  }
-
   public static byte readByte____B (MJIEnv env, int this_ptr) {
     long current_posn = env.getLongField(this_ptr, current_position);
     long current_len = env.getLongField(this_ptr, current_length);

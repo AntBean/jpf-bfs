@@ -41,6 +41,8 @@ public class FileTest extends TestJPF {
 
   @BeforeClass
   public static void setUpClass() throws Exception {
+    FileUtils.removeRecursively(new File("fileSandbox"));
+
     // Creating sandbox for java.io.File testing
     File subdirs = new File("fileSandbox/parent/child");
     if (!subdirs.mkdirs())

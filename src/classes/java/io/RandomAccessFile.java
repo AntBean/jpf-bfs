@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2006 United States Government as represented by the
+// Copyright (C) 2011 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
 // (NASA).  All Rights Reserved.
 // 
@@ -87,16 +87,30 @@ public class RandomAccessFile implements DataInput, DataOutput {
     fileState.close();
   }
 
-  public long length () throws IOException {
+  public long length() throws IOException {
     return fileState.getLength();
   }
 
-  public void seek (long pos) throws IOException {
+  public void seek(long pos) throws IOException {
     filePointer = pos;    
   }
 
-  public void setLength ( long newLength )throws IOException {
+  public void setLength(long newLength) throws IOException {
+    fileState.setLength(newLength);
+  }
+
+  public int read() throws IOException {
     throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public int read(byte [] b, int off, int len) throws IOException {
+    int read = fileState.read(filePointer, b, off, len);
+
+    return read;
+  }
+
+  public int read(byte [] bytes) throws IOException {
+    return read(bytes, 0, bytes.length);
   }
 
   public void readFully(byte[] bytes) throws IOException {
@@ -164,11 +178,12 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void write(byte[] bytes) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write(bytes, 0, bytes.length);
   }
 
-  public void write(byte[] bytes, int i, int i1) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public void write(byte[] bytes, int offset, int length) throws IOException {
+    int written = fileState.write(filePointer, bytes, offset, length);
+    filePointer += written;
   }
 
   public void writeBoolean(boolean bln) throws IOException {
