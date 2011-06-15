@@ -1,5 +1,5 @@
 //
-// Copyright  (C) 2006 United States Government as represented by the
+// Copyright  (C) 2011 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
 //  (NASA).  All Rights Reserved.
 // 
@@ -19,66 +19,78 @@
 
 package java.io;
 
+import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
 
 /**
  * a simple model to read data w/o dragging the file system content into
  * the JPF memory
  */
-public class FileInputStream extends InputStream {
-
-  FileDescriptor fd;
+public class FileInputStream extends InputStream implements Closeable {
   
-  public FileInputStream (String fname) throws FileNotFoundException {
-    try {
-      fd = new FileDescriptor(fname, FileDescriptor.FD_READ);
-    } catch (IOException iox){
-      throw new FileNotFoundException(fname);
-    }
+  private FileState fileState;
+  private long filePos;
+  
+  public FileInputStream (String fileName) throws FileNotFoundException {
+    this(new File(fileName));
   }
   
   public FileInputStream (File file) throws FileNotFoundException {
-    this( file.getAbsolutePath());
+    if (!file.exists()) {
+      throw new FileNotFoundException(file.getPath() + "(No such file or directory)");
+    }
+
+    fileState = file.getFileInfo().getFileState();
+    fileState.open();
   }
   
   public FileInputStream (FileDescriptor fd) {
-    this.fd = fd;
+    throw new RuntimeException("Not yet implemented");
+  }  
+
+  public int available () throws IOException {
+     return (int) (fileState.getLength() - filePos);
   }
-  
-  public int read(byte b[]) throws IOException {
-    return read(b,0,b.length);
+
+  public void close () throws IOException {
+    fileState.close();
   }
 
   public FileChannel getChannel() {
-    return null; // <2do> not yet supported
+    throw new RuntimeException("Not yet implemented");
   }
-  
-  //--- our native peer methods
-  
-  boolean open (String fname) {
-    // this sets the FileDescriptor from the peer side
-    return false;
+
+  public FileDescriptor getFD() {
+    throw new RuntimeException("Not yet implemented");
   }
   
   public int read() throws IOException {
-    return fd.read();
+    throw new RuntimeException("Not yet implemented");
   }
 
-  public int read(byte b[], int off, int len) throws IOException {
-    return fd.read(b,off,len);
-  }
-  
-  public long skip(long n) throws IOException {
-    return fd.skip(n);
+  public int read(byte buffer[]) throws IOException {
+    return read(buffer, 0, buffer.length);
   }
 
-  public int available () throws IOException {
-    return fd.available();
+  public int read(byte buffer[], int off, int len) throws IOException {
+    if (filePos < fileState.getLength()) {
+      int read = fileState.read(filePos, buffer, off, len);
+      filePos += read;
+
+      return read;
+    }
+
+    return -1;
   }
   
-  public void close () throws IOException {
-    fd.close();
+  public long skip(long shift) throws IOException {
+    if (shift + filePos > fileState.getLength()) {
+      filePos = fileState.getLength();
+
+    } else {
+      filePos = filePos + shift;
+    }
+
+    return shift;
   }
-  
-  
 }

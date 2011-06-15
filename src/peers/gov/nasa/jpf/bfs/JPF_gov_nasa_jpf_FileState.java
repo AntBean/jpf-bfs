@@ -76,6 +76,13 @@ public class JPF_gov_nasa_jpf_FileState {
     // Add new data chunk in a linked list
     addNewWriteChunk(env, thisPtr, startPos, length, cacheFile);
 
+    long fileLength = env.getLongField(thisPtr, "length");
+
+    // File length was increased
+    if (startPos + written > fileLength) {
+      env.setLongField(thisPtr, "length", startPos + written - fileLength);
+    }
+
     return written;
   }
 
