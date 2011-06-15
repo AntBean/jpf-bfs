@@ -36,7 +36,7 @@ import org.junit.Test;
  */
 public class RandomAccessFileTest extends TestJPF {
   @BeforeClass
-  public static void setUpClass() throws Exception {
+  public static void setUpFileSandbox() throws Exception {
     File fileSandbox = new File("fileSandbox");
     if (fileSandbox.exists()) {
       FileUtils.removeRecursively(fileSandbox);
@@ -53,6 +53,23 @@ public class RandomAccessFileTest extends TestJPF {
     if (!testFile.createNewFile()) {
       throw new RuntimeException("Unable to create file for java.io.RandomAccessFile testing");
     }
+  }
+
+  @AfterClass
+  public static void removeFileSandbox() {
+    File fileSandbox = new File("fileSandbox");
+    if (fileSandbox.exists()) {
+      FileUtils.removeRecursively(fileSandbox);
+    }
+  }
+
+  @Before
+  public void clearTestFileContent() throws Exception {
+    File testFile = new File("fileSandbox/testFile");
+    RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+    raf.setLength(0);
+
+    raf.close();
   }
 
   @Test
@@ -170,6 +187,10 @@ public class RandomAccessFileTest extends TestJPF {
     }
   }
 
+  // Following tests are almost equal. They test reading from a file after
+  // something was written to it by a SUT. Test differ in relative position of
+  // read buffer and write chunk with respect to each other
+
   @Test
   public void testBacktrackableReadWrite() throws Exception {
     if (!isJPFRun()) {
@@ -185,7 +206,7 @@ public class RandomAccessFileTest extends TestJPF {
 
       Verify.getBoolean();
       byte[] expectedBeforeWrite = {1, 1, 1, 1, 1};
-      byte[] buffer = new byte[100];
+      byte[] buffer = new byte[10];
 
       int read = raf.read(buffer);
       assertEquals(5, read);
@@ -194,12 +215,128 @@ public class RandomAccessFileTest extends TestJPF {
       byte[] toWrite = {2, 2, 2};
       raf.seek(1);
       raf.write(toWrite);
-      raf.seek(0);
 
+      raf.seek(0);
       byte[] expectedAfterWrite = {1, 2, 2, 2, 1};
 
       read = raf.read(buffer);
       assertEquals(5, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+
+      raf.seek(0);
+      expectedAfterWrite = new byte[] {1, 2, 2, 2};
+
+      read = raf.read(buffer, 0, 4);
+      assertEquals(4, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+
+      raf.seek(1);
+      expectedAfterWrite = new byte[] {2, 2, 2, 1};
+
+      read = raf.read(buffer, 0, 4);
+      assertEquals(4, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+    }
+  }
+
+  @Test
+  public void testBacktrackableReadWrite2() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1,1,1,1,1,1,1};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      Verify.getBoolean();
+      byte[] expectedBeforeWrite = {1, 1, 1, 1, 1, 1, 1};
+      byte[] buffer = new byte[10];
+
+      int read = raf.read(buffer);
+      assertEquals(7, read);
+      assertReadResult(expectedBeforeWrite, buffer, read);
+
+      byte[] toWrite = {2, 2, 2};
+      raf.seek(2);
+      raf.write(toWrite);
+
+      raf.seek(0);
+      byte[] expectedAfterWrite = {1, 1, 2, 2, 2};
+
+      read = raf.read(buffer, 0, 5);
+      assertEquals(5, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+    }
+  }
+
+  @Test
+  public void testBacktrackableReadWrite3() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1,1,1,1,1,1,1};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      Verify.getBoolean();
+      byte[] expectedBeforeWrite = {1, 1, 1, 1, 1, 1, 1};
+      byte[] buffer = new byte[10];
+
+      int read = raf.read(buffer);
+      assertEquals(7, read);
+      assertReadResult(expectedBeforeWrite, buffer, read);
+
+      byte[] toWrite = {2, 2, 2};
+      raf.seek(2);
+      raf.write(toWrite);
+
+      raf.seek(3);
+      byte[] expectedAfterWrite = {2, 2, 1, 1};
+
+      read = raf.read(buffer, 0, 4);
+      assertEquals(4, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+    }
+  }
+
+  @Test
+  public void testBacktrackableReadWrite4() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      Verify.getBoolean();
+      byte[] expectedBeforeWrite = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+      byte[] buffer = new byte[10];
+
+      int read = raf.read(buffer);
+      assertEquals(9, read);
+      assertReadResult(expectedBeforeWrite, buffer, read);
+
+      byte[] toWrite = {2, 2, 2, 2, 2};
+      raf.seek(2);
+      raf.write(toWrite);
+
+      raf.seek(3);
+      byte[] expectedAfterWrite = {2, 2, 2};
+
+      read = raf.read(buffer, 0, 3);
+      assertEquals(3, read);
       assertReadResult(expectedAfterWrite, buffer, read);
     }
   }

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.ListIterator;
+import static java.lang.Math.*;
 
 
 /**
@@ -154,17 +155,36 @@ public class JPF_gov_nasa_jpf_FileState {
         Pair<Integer, Integer> readChunk = iter.next();
         int rcOff = readChunk.a;
         int rcLen = readChunk.b;
+        final long writeChunkEnd = delta + wcLength;
+        final int readChunkEnd = rcOff + rcLen;
 
         // Read chunk includes write chunk
-        if (delta > rcOff && (delta + wcLength) < (rcOff + rcLen)) {
+        if (delta >= rcOff && writeChunkEnd <= readChunkEnd) {
           readData(cacheFileName, 0, data, (int) (rcOff + offset + delta), wcLength);
           iter.remove();
 
-          iter.add(new Pair<Integer, Integer>(rcOff, (int) delta - rcOff));
-          iter.add(new Pair<Integer, Integer>((int) delta + wcLength, (int)( rcOff + rcLen - delta - wcLength)));
+
+          addNewReadChunk(iter, rcOff, (int) delta - rcOff);
+          addNewReadChunk(iter, (int) delta + wcLength, (int)( readChunkEnd - writeChunkEnd));
+
+        } else if (delta >= rcOff && writeChunkEnd >= readChunkEnd) {
+          // Left part of a read chunk can't be read from this write chunk
+          readData(cacheFileName, 0, data, (int)(offset + delta), (int)(readChunkEnd - delta));
+
+          iter.remove();
+          addNewReadChunk(iter, rcOff, (int)(delta - rcOff));
+        } else if (delta <= rcOff && writeChunkEnd > rcOff && writeChunkEnd < readChunkEnd) {
+          // Right chunk can't be read from this write chunk
+          readData(cacheFileName, rcOff - delta, data, offset + rcOff, (int) (wcLength + delta - rcOff));
+
+          iter.remove();
+          addNewReadChunk(iter,(int) (delta + wcLength), (int) (rcOff + rcLen - delta - wcLength));
         }
-        else {
-          throw new RuntimeException("Not implemented yet");
+        else if (delta < rcOff && writeChunkEnd > readChunkEnd) {
+          // Write chunk includes read chunk
+          readData(cacheFileName, rcOff - delta, data, offset + rcOff, rcLen);
+
+          iter.remove();
         }
       }
 
@@ -181,6 +201,13 @@ public class JPF_gov_nasa_jpf_FileState {
     }
 
     return readBytes;
+  }
+
+  private static void addNewReadChunk(ListIterator<Pair<Integer, Integer>> iter, int rcOff, int rcLen) {
+    if (rcLen > 0) {
+      Pair<Integer, Integer> rcChunk = new Pair<Integer, Integer>(rcOff, rcLen);
+      iter.add(rcChunk);
+    }
   }
 
   /**
@@ -220,7 +247,4 @@ public class JPF_gov_nasa_jpf_FileState {
       raf.read(data, off, len);
     }
   }
-
-
-
 }
