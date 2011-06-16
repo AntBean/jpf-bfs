@@ -18,70 +18,73 @@
 //
 package java.io;
 
+import gov.nasa.jpf.FileInterface;
+
 
 
 
 /**
- * a simple abstraction for a file descriptor, which for us is little more
- * than just an id for a native data buffer (we don't want to keep the
- * data itself in the JPF space)
+ * FileDescriptor - interface to a FileInterface instance that implements
+ * methods to access files on a file system. *
  * 
- * <2do> still needs the standard descriptors
  */
 public class FileDescriptor {
-  int fd; // to be set from the native side
+
+  private FileInterface fileInterface;
   
-  static final int FD_READ = 0;
-  static final int FD_WRITE = 1;
-  
-  static final int FD_NEW = 0;
-  static final int FD_OPENED = 1;
-  static final int FD_CLOSED = 2;
-  
-  String fileName;
-  int mode; // no use to turn it into an Enum - it's accessed from the native peer
-  
-  // we can't use the 'fd' field for it, because we need to keep that in
-  // case we have to automatically reopen after a backtrack
-  int state = FD_NEW;
-  
-  long off; // we need to keep this on the model side to make it backtrackable
-    
-  public FileDescriptor () {
-    fd = -1;
-  }
-  
-  FileDescriptor (String fname, int mode) throws IOException, FileNotFoundException  {
-    fileName = fname;
-    this.mode = mode;
-    
-    fd = open(fname, mode);
-    
-    if (fd != -1){
-      state = FD_OPENED;
-    } else {
-      throw new FileNotFoundException(fname);
-    }
+  public FileDescriptor(FileInterface fi) {
+    fileInterface = fi;
   }
   
   public boolean valid () {
-    return (fd != -1);
+    return fileInterface.valid();
   }
   
   public void close () throws IOException {
-    close0();
-    state = FD_CLOSED;
+    fileInterface.close();
+  }
+
+  public void sync() {
+    fileInterface.sync();
   }
   
-  //--- those are the real work horses
-  native int open (String fname, int mode) throws IOException;
-  public native void sync();  
-  native int read () throws IOException;
-  native int read (byte[] buf, int off, int len);
-  native long skip(long n) throws IOException;
-  native int available () throws IOException;
-  native void close0 () throws IOException;
+  int read () throws IOException {
+    return fileInterface.read();
+  }
+
+  int read (byte[] buf, int off, int len) {
+    return fileInterface.read(buf, off, len);
+  }
+
+  long skip(long n) throws IOException {
+    return fileInterface.skip(n);
+  }
+
+  int available () throws IOException {
+    return fileInterface.available();
+  }
   
-  native void write (int b) throws IOException;
-  native void write (byte[] buf, int off, int len);
+  void write (int b) throws IOException {
+    fileInterface.write(b);
+  }
+
+  void write (byte[] buf, int off, int len) throws IOException {
+    fileInterface.write(buf, off, len);
+  }
+
+  void setLength(long newLength) {
+    fileInterface.setLength(newLength);
+  }
+
+  void seek(long pos) {
+    fileInterface.seek(pos);
+  }
+
+  long length() {
+    return fileInterface.length();
+  }
+
+  long filePointer() {
+    return fileInterface.getFilePointer();
+  }
 }

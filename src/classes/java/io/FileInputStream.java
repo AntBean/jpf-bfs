@@ -28,8 +28,7 @@ import java.nio.channels.FileChannel;
  */
 public class FileInputStream extends InputStream implements Closeable {
   
-  private FileState fileState;
-  private long filePos;
+  private FileDescriptor fd;
   
   public FileInputStream (String fileName) throws FileNotFoundException {
     this(new File(fileName));
@@ -40,8 +39,8 @@ public class FileInputStream extends InputStream implements Closeable {
       throw new FileNotFoundException(file.getPath() + "(No such file or directory)");
     }
 
-    fileState = file.getFileInfo().getFileState();
-    fileState.open();
+    FileState fileState = file.getFileInfo().getFileState();
+    fd = fileState.open();
   }
   
   public FileInputStream (FileDescriptor fd) {
@@ -49,11 +48,11 @@ public class FileInputStream extends InputStream implements Closeable {
   }  
 
   public int available () throws IOException {
-     return (int) (fileState.getLength() - filePos);
+     return fd.available();
   }
 
   public void close () throws IOException {
-    fileState.close();
+    fd.close();
   }
 
   public FileChannel getChannel() {
@@ -65,15 +64,7 @@ public class FileInputStream extends InputStream implements Closeable {
   }
   
   public int read() throws IOException {
-    byte[] aByte = new byte[1];
-    int read = fileState.read(filePos, aByte, 0, 1);
-    
-    if (read == 1) {
-      filePos++;
-      return aByte[0];
-    }
-
-    return -1;
+    return fd.read();
   }
 
   public int read(byte buffer[]) throws IOException {
@@ -81,24 +72,10 @@ public class FileInputStream extends InputStream implements Closeable {
   }
 
   public int read(byte buffer[], int off, int len) throws IOException {
-    if (filePos < fileState.getLength()) {
-      int read = fileState.read(filePos, buffer, off, len);
-      filePos += read;
-
-      return read;
-    }
-
-    return -1;
+    return fd.read(buffer, off, len);
   }
   
   public long skip(long shift) throws IOException {
-    if (shift + filePos > fileState.getLength()) {
-      filePos = fileState.getLength();
-
-    } else {
-      filePos = filePos + shift;
-    }
-
-    return shift;
+    return fd.skip(shift);
   }
 }

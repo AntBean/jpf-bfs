@@ -33,7 +33,9 @@ import java.nio.channels.FileChannel;
  * to FileInputStreams, which is terribly inefficient for frequent
  * restores (in which case a simple byte[] buffer would be more efficient)
  */
-public class JPF_java_io_FileDescriptor {
+
+// <2do> This class was a peer for FileDescriptor and should be fixed.
+public class JPF_gov_nasa_jpf_NativeFileInterface {
 
   static JPFLogger logger = JPF.getLogger("java.io.FileDescriptor");
 

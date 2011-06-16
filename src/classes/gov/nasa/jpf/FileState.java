@@ -19,6 +19,7 @@
 
 package gov.nasa.jpf;
 
+import java.io.FileDescriptor;
 import java.util.ArrayList;
 
 /**
@@ -338,8 +339,21 @@ public class FileState {
     lastModified = time;
   }
 
-  public void open() {
-    openCnt++;
+  public FileDescriptor open() {
+    if (exists() && !isDir()) {
+      openCnt++;
+
+      FileInterface fi;
+      if (getNativeFSFileName() != null) {
+        fi = FileInterfaceFactory.createFileInterface(this);
+      } else {
+        fi = new BFSFileInterface(this);
+      }
+
+      return new FileDescriptor(fi);
+    }
+
+    return null;
   }
 
   public void close() {
@@ -354,7 +368,7 @@ public class FileState {
    * @param length - number of bytes to write
    * @return number of bytes that was written
    */
-  public native int write(long startPos, byte[] data, int offset, int length);
+  native int write(long startPos, byte[] data, int offset, int length);
 
   /**
    * Read data from a BFS file
@@ -364,7 +378,7 @@ public class FileState {
    * @param length - number of bytes to read
    * @return number of bytes that was read
    */
-  public native int read(long startPos, byte[] data, int offset, int length);
+  native int read(long startPos, byte[] data, int offset, int length);
 
   @Override
   public String toString() {

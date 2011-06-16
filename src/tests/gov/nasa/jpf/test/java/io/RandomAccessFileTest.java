@@ -181,6 +181,7 @@ public class RandomAccessFileTest extends TestJPF {
 
       byte[] expectedAfterTrunk = {1,1,1};
       raf.setLength(3);
+      raf.seek(0);
       read = raf.read(buffer);
       assertEquals(3, read);
       assertReadResult(expectedAfterTrunk, buffer, read);

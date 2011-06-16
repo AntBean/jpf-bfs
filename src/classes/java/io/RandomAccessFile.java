@@ -25,12 +25,12 @@ import java.nio.channels.FileChannel;
  * MJI model class for java.io.RandomAccessFile
  *
  * @author Ivan Mushketik
+ * <2do> Check readOnly flag
  */
 public class RandomAccessFile implements DataInput, DataOutput {
 
+  private FileDescriptor fd;
   private boolean readOnly;
-  FileState fileState;
-  long filePointer;
 
   public RandomAccessFile(File file, String mode) throws FileNotFoundException {
     readOnly = parseMode(mode);
@@ -47,8 +47,8 @@ public class RandomAccessFile implements DataInput, DataOutput {
         }
       }
 
-      fileState = file.getFileInfo().getFileState();
-      fileState.open();
+      FileState fileState = file.getFileInfo().getFileState();
+      fd = fileState.open();
 
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());
@@ -80,33 +80,31 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public long getFilePointer() {
-    return filePointer;
+    return fd.filePointer();
   }
 
-  public void close() {
-    fileState.close();
+  public void close() throws IOException {
+    fd.close();
   }
 
   public long length() throws IOException {
-    return fileState.getLength();
+    return fd.length();
   }
 
   public void seek(long pos) throws IOException {
-    filePointer = pos;    
+    fd.seek(pos);
   }
 
   public void setLength(long newLength) throws IOException {
-    fileState.setLength(newLength);
+    fd.setLength(newLength);
   }
 
   public int read() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return fd.read();
   }
 
   public int read(byte [] b, int off, int len) throws IOException {
-    int read = fileState.read(filePointer, b, off, len);
-
-    return read;
+    return fd.read(b, off, len);
   }
 
   public int read(byte [] bytes) throws IOException {
@@ -174,7 +172,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void write(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    fd.write(i);
   }
 
   public void write(byte[] bytes) throws IOException {
@@ -182,8 +180,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    int written = fileState.write(filePointer, bytes, offset, length);
-    filePointer += written;
+    fd.write(bytes, offset, length);
   }
 
   public void writeBoolean(boolean bln) throws IOException {

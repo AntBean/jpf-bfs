@@ -20,13 +20,10 @@ package java.io;
 
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
-import javax.imageio.IIOException;
 
 public class FileOutputStream extends OutputStream {  
 
-  private FileState fileState;
-  private long filePos;
-  private boolean isOpened;
+  private FileDescriptor fd;
 
   public FileOutputStream (String name) throws FileNotFoundException {
     this(new File(name));
@@ -50,16 +47,15 @@ public class FileOutputStream extends OutputStream {
         }
       }
 
-      fileState = file.getFileInfo().getFileState();
-
-      fileState.open();
-      isOpened = true;
+      FileState fileState = file.getFileInfo().getFileState();
+      fd = fileState.open();
+      
 
       if (append) {
-        filePos = fileState.getLength();
+        fd.seek(fd.length());
       } else {
         // If FileInputStream don't append it's output to a file it removes file's content
-        fileState.setLength(0);
+        fd.setLength(0);
       }
       
 
@@ -73,8 +69,7 @@ public class FileOutputStream extends OutputStream {
   }
 
   public void close () throws IOException {
-    fileState.close();
-    isOpened = false;
+    fd.close();
   }
 
   public FileChannel getChannel() {
@@ -86,10 +81,7 @@ public class FileOutputStream extends OutputStream {
   }
   
   public void write (int b) throws IOException {
-    byte toWrite = (byte) b;
-    byte[] writeBuff = new byte[] {toWrite};
-
-    write(writeBuff, 0, 1);
+    fd.write(b);
   }
 
   public void write (byte[] buf) throws IOException {
@@ -97,15 +89,10 @@ public class FileOutputStream extends OutputStream {
   }
 
   public void write (byte[] buf, int off, int len) throws IOException {
-    if (isOpened) {
-      int written = fileState.write(filePos, buf, off, len);
-      filePos += written;
-    } else {
-      throw new IOException("Attempt to write to closed stream");
-    }
+    fd.write(buf, off, len);
   }
 
   public void flush () throws IOException {
-    // Nothing to do. BFS is always sync
+    fd.sync();
   }
 }
