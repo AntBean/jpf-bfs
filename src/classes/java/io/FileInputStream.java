@@ -65,7 +65,15 @@ public class FileInputStream extends InputStream implements Closeable {
   }
   
   public int read() throws IOException {
-    throw new RuntimeException("Not yet implemented");
+    byte[] aByte = new byte[1];
+    int read = fileState.read(filePos, aByte, 0, 1);
+    
+    if (read == 1) {
+      filePos++;
+      return aByte[0];
+    }
+
+    return -1;
   }
 
   public int read(byte buffer[]) throws IOException {

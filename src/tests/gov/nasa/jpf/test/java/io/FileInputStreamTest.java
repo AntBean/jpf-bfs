@@ -160,6 +160,25 @@ public class FileInputStreamTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testReadSingleByte() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3} );
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      FileInputStream fis = new FileInputStream("fileSandbox/testFile");
+
+      Verify.getBoolean();
+      assertEquals(1, fis.read());
+      assertEquals(2, fis.read());
+      assertEquals(3, fis.read());
+      assertEquals(-1, fis.read());
+    }
+  }
+
   // <2do> code duplication. Same methods exist in RandomAccessFile.
   private void assertReadResult(byte[] expected, byte[] buffer, int bufferLength) {
     String expectedStr = byteArrayToStr(expected, expected.length);
