@@ -1,5 +1,5 @@
 //
-// Copyright  (C) 2007 United States Government as represented by the
+// Copyright  (C) 2011 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
 //  (NASA).  All Rights Reserved.
 // 
@@ -20,11 +20,13 @@ package java.io;
 
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
+import javax.imageio.IIOException;
 
 public class FileOutputStream extends OutputStream {  
 
   private FileState fileState;
   private long filePos;
+  private boolean isOpened;
 
   public FileOutputStream (String name) throws FileNotFoundException {
     this(new File(name));
@@ -41,18 +43,25 @@ public class FileOutputStream extends OutputStream {
   public FileOutputStream (File file, boolean append) throws FileNotFoundException {
     try {
       if (!file.exists()) {
-        if (!file.createNewFile()) {
-          throw new FileNotFoundException(file.getPath() + "(No such file or director)");
+        boolean created = file.createNewFile();
+
+        if (!created) {
+          throw new FileNotFoundException(file.getPath() + " (No such file or director)");
         }
       }
 
       fileState = file.getFileInfo().getFileState();
 
+      fileState.open();
+      isOpened = true;
+
       if (append) {
         filePos = fileState.getLength();
+      } else {
+        // If FileInputStream don't append it's output to a file it removes file's content
+        fileState.setLength(0);
       }
-
-      fileState.open();
+      
 
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());
@@ -65,6 +74,7 @@ public class FileOutputStream extends OutputStream {
 
   public void close () throws IOException {
     fileState.close();
+    isOpened = false;
   }
 
   public FileChannel getChannel() {
@@ -76,15 +86,23 @@ public class FileOutputStream extends OutputStream {
   }
   
   public void write (int b) throws IOException {
-    throw new RuntimeException("Not yet implemented");
+    byte toWrite = (byte) b;
+    byte[] writeBuff = new byte[] {toWrite};
+
+    write(writeBuff, 0, 1);
   }
 
   public void write (byte[] buf) throws IOException {
-    throw new RuntimeException("Not yet implemented");
+    write(buf, 0, buf.length);
   }
 
   public void write (byte[] buf, int off, int len) throws IOException {
-    throw new RuntimeException("Not yet implemented");
+    if (isOpened) {
+      int written = fileState.write(filePos, buf, off, len);
+      filePos += written;
+    } else {
+      throw new IOException("Attempt to write to closed stream");
+    }
   }
 
   public void flush () throws IOException {

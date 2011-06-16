@@ -58,6 +58,8 @@ public class JPF_gov_nasa_jpf_FileState {
     }
   }
 
+  // <2do> If starPos points beyond file and SUT performs write operation, zero bytes
+  // should be added
   public static int write__J_3BII__I(MJIEnv env, int thisPtr, long startPos, int dataPtr, int offset, int length) throws Exception {
     byte[] data = env.getByteArrayObject(dataPtr);
 
@@ -80,7 +82,7 @@ public class JPF_gov_nasa_jpf_FileState {
 
     // File length was increased
     if (startPos + written > fileLength) {
-      env.setLongField(thisPtr, "length", startPos + written - fileLength);
+      env.setLongField(thisPtr, "length", startPos + written);
     }
 
     return written;
@@ -204,7 +206,7 @@ public class JPF_gov_nasa_jpf_FileState {
       String fsNativeFile = env.getStringField(thisPtr, "nativeFSFileName");
       File nativeFile = new File(fsNativeFile);
 
-      readLeftChunksFromNativeFS(nativeFile, startPos, data, readList);
+      readLeftChunksFromNativeFS(nativeFile, startPos, data, offset, readList);
     }
 
     return readBytes;
@@ -232,7 +234,6 @@ public class JPF_gov_nasa_jpf_FileState {
 
     raf.seek(filePos);
     raf.read(data, offset, length);
-
   }
 
   /**
@@ -240,18 +241,19 @@ public class JPF_gov_nasa_jpf_FileState {
    * @param nativeFile - canonical path of a file on a native FS
    * @param startPos - offset in a native file
    * @param data - buffer to read data to
+   * @param bufferOffset - 
    * @param readList - list of data chunks to fill in a buffer
    * @throws Exception
    */
-  private static void readLeftChunksFromNativeFS(File nativeFile, long startPos, byte[] data, ArrayList<Pair<Integer, Integer>> readList) throws Exception {
+  private static void readLeftChunksFromNativeFS(File nativeFile, long startPos, byte[] data, int bufferOffset, ArrayList<Pair<Integer, Integer>> readList) throws Exception {
     RandomAccessFile raf = new RandomAccessFile(nativeFile, "r");
 
-    for (Pair<Integer, Integer> readPos : readList) {
-      raf.seek(startPos);
-      int off = readPos.a;
-      int len = readPos.b;
+    for (Pair<Integer, Integer> readPos : readList) {      
+      int rcOffset = readPos.a;
+      int rcLength = readPos.b;
+      raf.seek(startPos + rcOffset);
 
-      raf.read(data, off, len);
+      raf.read(data, bufferOffset + rcOffset, rcLength);
     }
   }
 }

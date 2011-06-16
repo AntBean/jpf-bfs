@@ -341,6 +341,40 @@ public class RandomAccessFileTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testWriteSingleByte() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      Verify.getBoolean();
+      byte[] expectedBeforeWrite = {1, 2, 3, 4, 5, 6, 7};
+      byte[] buffer = new byte[10];
+
+      int read = raf.read(buffer);
+      assertEquals(7, read);
+      assertReadResult(expectedBeforeWrite, buffer, read);
+
+      byte[] toWrite = {42};
+      raf.seek(0);
+      raf.write(toWrite);
+
+      raf.seek(0);
+      byte[] expectedAfterWrite = {42, 2, 3, 4, 5, 6, 7};
+
+      read = raf.read(buffer);
+      assertEquals(7, read);
+      assertReadResult(expectedAfterWrite, buffer, read);
+    }
+  }
+
   private void assertReadResult(byte[] expected, byte[] buffer, int bufferLength) {
     String expectedStr = byteArrayToStr(expected, expected.length);
     String bufferStr = byteArrayToStr(buffer, bufferLength);
