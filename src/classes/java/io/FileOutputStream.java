@@ -18,56 +18,76 @@
 //
 package java.io;
 
+import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
 
-public class FileOutputStream extends OutputStream {
+public class FileOutputStream extends OutputStream {  
 
-  FileDescriptor fd;
-  
-  public FileOutputStream (String fname) throws FileNotFoundException {
-    try {
-      fd = new FileDescriptor(fname, FileDescriptor.FD_WRITE);
-    } catch (IOException iox){
-      throw new FileNotFoundException(fname);
-    }
+  private FileState fileState;
+  private long filePos;
+
+  public FileOutputStream (String name) throws FileNotFoundException {
+    this(new File(name));
+  }
+
+  public FileOutputStream (String name, boolean append) throws FileNotFoundException {
+    this(new File(name), append);
   }
   
   public FileOutputStream (File file) throws FileNotFoundException {
-    this( file.getAbsolutePath());
+    this(file, false);
+  }
+
+  public FileOutputStream (File file, boolean append) throws FileNotFoundException {
+    try {
+      if (!file.exists()) {
+        if (!file.createNewFile()) {
+          throw new FileNotFoundException(file.getPath() + "(No such file or director)");
+        }
+      }
+
+      fileState = file.getFileInfo().getFileState();
+
+      if (append) {
+        filePos = fileState.getLength();
+      }
+
+      fileState.open();
+
+    } catch (IOException ex) {
+      throw new FileNotFoundException(ex.getMessage());
+    }
   }
   
-  public FileOutputStream (FileDescriptor fd) {
-    this.fd = fd;
+  public FileOutputStream (FileDescriptor fdObj) {
+    throw new RuntimeException("Not yet implemented");
   }
-  
+
+  public void close () throws IOException {
+    fileState.close();
+  }
+
   public FileChannel getChannel() {
-    return null; // <2do> not yet supported
+    throw new RuntimeException("Not yet implemented");
   }
   
   public FileDescriptor getFD() {
-    return fd;
-  }
-  
-  //--- our native peer methods
-  
-  boolean open (String fname) {
-    // this sets the FileDescriptor from the peer side
-    return false;
+    throw new RuntimeException("Not yet implemented");
   }
   
   public void write (int b) throws IOException {
-    fd.write(b);
+    throw new RuntimeException("Not yet implemented");
+  }
+
+  public void write (byte[] buf) throws IOException {
+    throw new RuntimeException("Not yet implemented");
   }
 
   public void write (byte[] buf, int off, int len) throws IOException {
-    fd.write(buf, off, len);
-  }
-  
-  public void close () throws IOException {
-    fd.close();
+    throw new RuntimeException("Not yet implemented");
   }
 
   public void flush () throws IOException {
-    fd.sync();
+    // Nothing to do. BFS is always sync
   }
 }
