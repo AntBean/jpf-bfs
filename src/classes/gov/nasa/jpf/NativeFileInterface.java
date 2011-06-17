@@ -31,7 +31,7 @@ public class NativeFileInterface implements FileInterface {
 
   public native int read() throws IOException;
 
-  public native int read(byte[] buf, int off, int len);
+  public native int read(byte[] buf, int off, int len) throws IOException;
 
   public native long skip(long n) throws IOException;
 

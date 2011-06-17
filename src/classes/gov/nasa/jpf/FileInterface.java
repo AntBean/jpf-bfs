@@ -46,7 +46,7 @@ public interface FileInterface {
    * @param len - length of a space in a buffer
    * @return number of read bytes
    */
-  public int read (byte[] buf, int off, int len);
+  public int read (byte[] buf, int off, int len) throws IOException;
 
   /**
    * Skip bytes in a file

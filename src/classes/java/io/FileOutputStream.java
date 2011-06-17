@@ -65,7 +65,7 @@ public class FileOutputStream extends OutputStream {
   }
   
   public FileOutputStream (FileDescriptor fdObj) {
-    throw new RuntimeException("Not yet implemented");
+    this.fd = fdObj;
   }
 
   public void close () throws IOException {
@@ -77,7 +77,7 @@ public class FileOutputStream extends OutputStream {
   }
   
   public FileDescriptor getFD() {
-    throw new RuntimeException("Not yet implemented");
+    return fd;
   }
   
   public void write (int b) throws IOException {

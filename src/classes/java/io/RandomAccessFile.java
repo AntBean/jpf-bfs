@@ -76,7 +76,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public FileDescriptor getFD() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return fd;
   }
 
   public long getFilePointer() {

@@ -30,6 +30,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static gov.nasa.jpf.test.java.io.BFSTestUtils.*;
 
 /**
  *
@@ -177,26 +178,5 @@ public class FileInputStreamTest extends TestJPF {
       assertEquals(3, fis.read());
       assertEquals(-1, fis.read());
     }
-  }
-
-  // <2do> code duplication. Same methods exist in RandomAccessFile.
-  private void assertReadResult(byte[] expected, byte[] buffer, int bufferLength) {
-    String expectedStr = byteArrayToStr(expected, expected.length);
-    String bufferStr = byteArrayToStr(buffer, bufferLength);
-    String errorMsg = "Expected " + expectedStr + " but read " + bufferStr;
-
-    for (int i = 0; i < bufferLength; i++) {
-      assertEquals(errorMsg, expected[i], buffer[i]);
-    }
-  }
-
-  private String byteArrayToStr(byte[] array, int length) {
-    String result = "[";
-
-    for (int i = 0; i < length; i++) {
-      result += array[i] + ", ";
-    }
-
-    return result + "]";
   }
 }

@@ -44,7 +44,7 @@ public class FileInputStream extends InputStream implements Closeable {
   }
   
   public FileInputStream (FileDescriptor fd) {
-    throw new RuntimeException("Not yet implemented");
+    this.fd = fd;
   }  
 
   public int available () throws IOException {
@@ -60,7 +60,7 @@ public class FileInputStream extends InputStream implements Closeable {
   }
 
   public FileDescriptor getFD() {
-    throw new RuntimeException("Not yet implemented");
+    return fd;
   }
   
   public int read() throws IOException {

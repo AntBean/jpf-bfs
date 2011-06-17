@@ -41,18 +41,23 @@ public class BFSFileInterface implements FileInterface {
   }
 
   public int read() throws IOException {
-    byte[] aByte = new byte[1];
-    int read = fileState.read(filePos, aByte, 0, 1);
+    if (isOpened) {
+      byte[] aByte = new byte[1];
+      int read = fileState.read(filePos, aByte, 0, 1);
 
-    if (read == 1) {
-      filePos++;
-      return aByte[0];
+      if (read == 1) {
+        filePos++;
+        return aByte[0];
+      }
+
+      return -1;
+    } else {
+      throw new IOException("Attempt to read with closed descriptor");
     }
-
-    return -1;
   }
 
-  public int read(byte[] buffer, int off, int len) {
+  public int read(byte[] buffer, int off, int len) throws IOException {
+    if (isOpened) {
     if (filePos < fileState.getLength()) {
       int read = fileState.read(filePos, buffer, off, len);
       filePos += read;
@@ -61,6 +66,10 @@ public class BFSFileInterface implements FileInterface {
     }
 
     return -1;
+    } else {
+      throw new IOException("Attempt to read with closed descriptor");
+    }
+
   }
 
   public long skip(long shift) throws IOException {
@@ -93,7 +102,7 @@ public class BFSFileInterface implements FileInterface {
       int written = fileState.write(filePos, buf, off, len);
       filePos += written;
     } else {
-      throw new IOException("Attempt to write to closed stream");
+      throw new IOException("Attempt to write with closed descriptor");
     }
   }
 

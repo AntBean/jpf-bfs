@@ -52,7 +52,7 @@ public class FileDescriptor {
     return fileInterface.read();
   }
 
-  int read (byte[] buf, int off, int len) {
+  int read (byte[] buf, int off, int len) throws IOException {
     return fileInterface.read(buf, off, len);
   }
 
