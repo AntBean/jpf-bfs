@@ -38,7 +38,7 @@ public class FileState {
   // File/directory that represents this file/directory content on a native FS
   private String nativeFSFileName;
   // True if file/directory exists
-  private boolean isExist;
+  private boolean doesExist;
   // Children of this file
   private ArrayList<FileInfo> children = new ArrayList<FileInfo>();
   // Rights of SUT on this file
@@ -67,7 +67,7 @@ public class FileState {
     isDir = fs.isDir;
     openCnt = fs.openCnt;
     nativeFSFileName = fs.nativeFSFileName;
-    isExist = fs.isExist;
+    doesExist = fs.doesExist;
     sutRights = fs.sutRights;
     ownerRights = fs.ownerRights;
     groupRights = fs.groupRights;
@@ -132,15 +132,15 @@ public class FileState {
    * @return true if file exists
    */
   public boolean exists() {
-    return isExist;
+    return doesExist;
   }
 
   /**
    * Set if file exists
-   * @param exist - true if file exists
+   * @param exists - true if file exists
    */
-  public void setIsExists(boolean exist) {
-    this.isExist = exist;
+  public void setDoesExist(boolean exists) {
+    this.doesExist = exists;
   }
 
   /**
@@ -344,6 +344,8 @@ public class FileState {
       openCnt++;
 
       FileInterface fi;
+      // If file was created during SUT run it's imposible to return
+      // NativeFileInterface
       if (getNativeFSFileName() != null) {
         fi = FileInterfaceFactory.createFileInterface(this);
       } else {
@@ -385,7 +387,7 @@ public class FileState {
     String result;
     result = "length = " + length;
     result += "; isDir = " + isDir;
-    result += "; exists = " + isExist;
+    result += "; exists = " + doesExist;
     result += "; openCnt = " + openCnt;
     result += "; nativeFSName = " + nativeFSFileName;
     result += "; rights = " + ownerRights + "" + groupRights + "" + allRights;

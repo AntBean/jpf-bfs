@@ -69,6 +69,7 @@ public class File
     
     this.filename = filename;
     canonicalPath = getCanonicalPath(filename);
+    fileInfo = getFileInfo();
   }
 
   private static native String getCanonicalPath(String filename);
@@ -169,20 +170,16 @@ public class File
 
   public boolean canRead() { 
     System.out.println("File.canRead()");
-    getFileInfo();
+    return fileInfo.getFileState().isReadableForSUT();
+    
 
-    if (fileInfo != null) {
-      return fileInfo.getFileState().isReadableForSUT();
-    }
-
-    return false;
+    
   }
 
   public boolean setReadable(boolean readable) {
     System.out.println("File.setReadable()");
-    getFileInfo();
 
-    if (fileInfo != null) {
+    if (fileInfo.exists()) {
       fileInfo.getFileState().setReadableForSUT(readable);
 
       return true;
@@ -193,9 +190,8 @@ public class File
 
   public boolean canWrite() {
     System.out.println("File.canWrite()");
-    getFileInfo();
 
-    if (fileInfo != null) {
+    if (fileInfo.exists()) {
       return fileInfo.getFileState().isWritableForSUT();
     }
 
@@ -204,9 +200,8 @@ public class File
 
   public boolean setWritable(boolean writable) {
     System.out.println("File.setReadable()");
-    getFileInfo();
 
-    if (fileInfo != null) {
+    if (fileInfo.exists()) {
       fileInfo.getFileState().setWritableForSUT(writable);
 
       return true;
@@ -217,9 +212,8 @@ public class File
 
   public boolean canExecute() {
     System.out.println("File.canWrite()");
-    getFileInfo();
 
-    if (fileInfo != null) {
+    if (fileInfo.exists()) {
       return fileInfo.getFileState().isExecutableForSUT();
     }
 
@@ -228,9 +222,8 @@ public class File
 
   public boolean setExecutable(boolean executable) {
     System.out.println("File.setReadable()");
-    getFileInfo();
 
-    if (fileInfo != null) {
+    if (fileInfo.exists()) {
       fileInfo.getFileState().setExecutableForSUT(executable);
 
       return true;
@@ -241,7 +234,6 @@ public class File
 
   public boolean exists() {
     System.out.println("File.exists()");
-    getFileInfo();
 
     if (fileInfo != null) {
       return fileInfo.exists();
@@ -252,9 +244,8 @@ public class File
 
   public boolean isDirectory() { 
     System.out.println("File.isDirectory()");
-    getFileInfo();
     
-    if (fileInfo != null && fileInfo.exists()) {
+    if (fileInfo.exists()) {
       return fileInfo.getFileState().isDir();
     }
     
@@ -263,7 +254,6 @@ public class File
 
   public boolean isFile() {
     System.out.println("File.isFile()");
-    getFileInfo();
 
     if (fileInfo != null && fileInfo.exists()) {
       return !fileInfo.getFileState().isDir();
@@ -277,11 +267,7 @@ public class File
   public long length() {
     System.out.println("File.length()");
 
-    if (fileInfo != null) {
-      return fileInfo.getFileState().getLength();
-    }
-
-    return 0;
+    return fileInfo.getFileState().getLength();
   }
 
   public boolean createNewFile() throws java.io.IOException {
@@ -292,20 +278,13 @@ public class File
 
   public boolean delete() {
     System.out.println("File.delete()");
-    getFileInfo();
-
-    if (fileInfo != null) {
-      return fileInfo.delete();
-    }
-
-    return false;
+    return fileInfo.delete();
   }
 
   public void deleteOnExit() {}
   
   public String[] list()  {
     System.out.println("File.list()");
-    getFileInfo();
 
     if (fileInfo != null) {
       String[] childsCP = fileInfo.list();
@@ -326,7 +305,6 @@ public class File
 
   public String[] list(FilenameFilter filter)  {
     System.out.println("File.list(FilenameFilter)");
-    getFileInfo();
 
     if (fileInfo != null) {
       String[] childs = list();
@@ -359,7 +337,6 @@ public class File
   
   public File[] listFiles()  {
     System.out.println("File.listFiles()");
-    getFileInfo();
 
     if (fileInfo != null) {
       String[] childs = list();
@@ -380,7 +357,6 @@ public class File
   }
   public File[] listFiles(FilenameFilter filter) {
     System.out.println("File.listFiles(FilenameFilter)");
-    getFileInfo();
 
     if (fileInfo != null) {
       String[] childs = list(filter);
@@ -403,7 +379,6 @@ public class File
   
   public File[] listFiles(FileFilter filter) {
     System.out.println("File.listFiles(FilenameFilter)");
-    getFileInfo();
     
     if (fileInfo != null) {
       File[] children = listFiles();
@@ -448,19 +423,13 @@ public class File
 
   public boolean renameTo(File f)  { 
     System.out.println("File.renameTo()");
-    getFileInfo();
-
-    if (fileInfo != null) {
-      return fileInfo.renameTo(f.canonicalPath);
-    }
-
-    return false;
+    return fileInfo.renameTo(f.canonicalPath);
   }
 
   public long lastModified() {
     System.out.println("File.setLastModified()");
 
-    if (fileInfo != null && fileInfo.exists()) {
+    if (fileInfo.exists()) {
       return fileInfo.getFileState().getLastModified();
     }
 
@@ -481,7 +450,18 @@ public class File
 
   public boolean setReadOnly()  { return false; }
   
-  public static native File[] listRoots();
+  public static File[] listRoots() {
+    String[] rootsNames = listRootsNames();
+    File[] roots = new File[rootsNames.length];
+
+    for (int i = 0; i < rootsNames.length; i++) {
+      roots[i] = new File(rootsNames[i]);
+    }
+
+    return roots;
+  }
+
+  public static native String[] listRootsNames();
 
   public native long getFreeSpace();
 

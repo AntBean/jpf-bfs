@@ -19,6 +19,7 @@
 
 package gov.nasa.jpf;
 
+import com.sun.org.apache.bcel.internal.generic.F2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -51,7 +52,7 @@ public class FileInfo {
     
     fileState = new FileState();
     fileState.setIsDir(isDir);
-    fileState.setIsExists(true);
+    fileState.setDoesExist(true);
   }
 
   /**
@@ -62,7 +63,7 @@ public class FileInfo {
 
     // File can be deleted if it exists or it's not a file system root
     if (fileState.exists() && !isFSRoot(canonicalPath)) {
-      fileState.setIsExists(false);
+      fileState.setDoesExist(false);
 
       // Recursively delete all children
       for (FileInfo child : fileState.getChildren()) {
@@ -219,14 +220,19 @@ public class FileInfo {
     if (newFI != null) {
       System.out.println("Found in native FS");
       newFI.fileState.setChildren(new ArrayList<FileInfo>());
-
-      addNewFI(newFI);
     }
     else {
       System.out.println("Found no FileInfo");
     }
     
+    if (newFI == null) {
+      newFI = new FileInfo(canonicaPath, true);
+      newFI.fileState.setDoesExist(false);
+    }
+
+    addNewFI(newFI);
     return newFI;
+
   }
 
   /**
@@ -246,7 +252,7 @@ public class FileInfo {
        */
       if (parentFI == null || !parentFI.exists()) {
         System.out.println(parentFI.canonicalPath + " was deleted, so " + newFI.canonicalPath + " is deleted too");
-        newFI.fileState.setIsExists(false);
+        newFI.fileState.setDoesExist(false);
       }
     }
 
@@ -290,11 +296,15 @@ public class FileInfo {
       if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
           fi = new FileInfo(canonicalPath, false);
+          addNewFI(fi);
+          
+        } else {
+          fi.fileState.setIsDir(false);
+          fi.fileState.setDoesExist(true);
         }
 
-        fi.fileState.setIsDir(false);
-
-        addNewFI(fi);
+        System.out.println("New file is " + fi);
+        
         return true;
       }
     }
@@ -333,7 +343,6 @@ public class FileInfo {
    */
   public static boolean mkdir(String canonicalPath) {
     System.out.println("Attempt to create new FileInfo for a dir " + canonicalPath);
-
     FileInfo fi = getFileInfo(canonicalPath);
 
     if (fi == null || !fi.fileState.exists()) {
@@ -343,11 +352,11 @@ public class FileInfo {
       if (parentFI != null && parentFI.fileState.exists()) {
         if (fi == null) {
           fi = new FileInfo(canonicalPath, true);
+          addNewFI(fi);
         }
 
         fi.fileState.setIsDir(true);
-
-        addNewFI(fi);
+        fi.fileState.setDoesExist(true);
         return true;
       }
     }
@@ -366,6 +375,7 @@ public class FileInfo {
   public static boolean mkdirs(String canonicalPath, boolean firstCall) {
     FileInfo fi = getFileInfo(canonicalPath);
     System.out.println("FileInfo.mkdirs " + fi);
+
     
     // File not exists
     if (fi == null) {
@@ -380,7 +390,7 @@ public class FileInfo {
       // File was deleted
       String parent = getParent(canonicalPath);
       if (mkdirs(parent, false)) {
-        fi.fileState.setIsExists(true);
+        fi.fileState.setDoesExist(true);
         fi.fileState.setChildren(new ArrayList<FileInfo>());
 
         FileInfo parentFI = getFileInfoByCanonicalPath(parent);
@@ -428,7 +438,6 @@ public class FileInfo {
    */
   public static String createTempFile(String tempDir, char separatorChar, String prefix, String suffix) {
     System.out.println("Creating tempFile in " + tempDir + "; with prefix '" + prefix + "' and suffix '" + suffix + "'");
-
     FileInfo fi = getFileInfo(tempDir);
 
     if (fi != null && fi.fileState.exists() && fi.fileState.isDir()) {
@@ -453,6 +462,14 @@ public class FileInfo {
     }
 
     return null;
+  }
+
+  // <2do> REMOVE WHEN DEVELOPING IS DONE
+  private static void printCurrentFileInfos() {
+    System.out.println("\nCurrent FIs:");
+    for (FileInfo fileI : fileInfos) {
+       System.out.println(fileI);
+    }
   }
 
   /**

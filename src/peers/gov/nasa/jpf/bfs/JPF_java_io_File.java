@@ -134,14 +134,14 @@ public class JPF_java_io_File {
     return getFile(env,objref).canWrite();
   }
 
-  public static int listRoots_____3Ljava_io_File_2(MJIEnv env, int classRef) throws IOException {
+  public static int listRootsNames_____3Ljava_lang_String_2(MJIEnv env, int classRef) throws IOException {
     File[] roots = File.listRoots();
-    int rootResultRef = env.newObjectArray("java.io.File", roots.length);
+    int rootResultRef = env.newObjectArray("java.lang.String", roots.length);
     ElementInfo rootsEI = env.getElementInfo(rootResultRef);
 
     for (int i = 0; i < roots.length; i++) {
-      int rootFileRef = createJPFFile(env, roots[i]);
-      rootsEI.setReferenceElement(i, rootFileRef);
+      int rootFileNameRef = env.newString(roots[i].getPath());
+      rootsEI.setReferenceElement(i, rootFileNameRef);
     }
 
     return rootResultRef;
