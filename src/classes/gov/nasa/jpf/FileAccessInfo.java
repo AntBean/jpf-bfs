@@ -22,17 +22,15 @@ package gov.nasa.jpf;
 /**
  * Some file should be read/written from BFS, but operations with other should 
  * avoid BFS overhead and use native FS. 
- * This class is a factory that creates instance of FileInterface according to 
- * BFS configuration.
+ * This class returns file access mode that is set in JPF config
  *
  * @author Ivan Mushketik
  */
-class FileInterfaceFactory {
+class FileAccessInfo {
 
-  // <2do> This should return NativeFileInterface if file represented by file state
-  // should be read/written without BFS overhead
-  static FileInterface createFileInterface(FileState fileState) {
-    return new BFSFileInterface(fileState);
+  // <2do> This should check JPF config
+  static int getFileAccessMode(String cannonicalPath) {
+    return FileAccessMode.BFS_FILE_ACCESS;
   }
 
 }

@@ -51,6 +51,8 @@ public class FileState {
   private byte allRights;
   // Time of last modification
   private long lastModified;
+  // Access mode to a file
+  private int fileMode;
 
   private WriteChunk lastWriteChunk;
 
@@ -72,6 +74,8 @@ public class FileState {
     ownerRights = fs.ownerRights;
     groupRights = fs.groupRights;
     allRights = fs.allRights;
+    lastModified = fs.lastModified;
+    fileMode = fs.fileMode;
   }
 
   /**
@@ -339,6 +343,14 @@ public class FileState {
     lastModified = time;
   }
 
+  public int getFileAccessMode() {
+    return fileMode;
+  }
+
+  void setFileAccessMode(int fileMode) {
+    this.fileMode = fileMode;
+  }
+
   public FileDescriptor open() {
     if (exists() && !isDir()) {
       openCnt++;
@@ -346,11 +358,20 @@ public class FileState {
       FileInterface fi;
       // If file was created during SUT run it's imposible to return
       // NativeFileInterface
-      if (getNativeFSFileName() != null) {
-        fi = FileInterfaceFactory.createFileInterface(this);
-      } else {
+      if (fileMode == FileAccessMode.BFS_FILE_ACCESS) {
         fi = new BFSFileInterface(this);
+
+      } else if (fileMode == FileAccessMode.NATIVE_FILE_ACCESS) {
+        fi = new NativeFileInterface();
+
+      } else if (fileMode == FileAccessMode.NATIVE_FILE_ACCESS_READONLY) {
+        throw new RuntimeException("Readonly native access file isn't implemented yet");
+
+      } else {
+        throw new JPFException("Not supported file access mode " + fileMode);
       }
+
+
 
       return new FileDescriptor(fi);
     }
@@ -395,4 +416,6 @@ public class FileState {
 
     return result;
   }
+
+
 }

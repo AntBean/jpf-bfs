@@ -114,7 +114,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
     return -1;    
   }
   
-  public static void close0 (MJIEnv env, int objref) {
+  public static void close (MJIEnv env, int objref) {
     int fd = env.getIntField(objref, "fd");
     
     try {

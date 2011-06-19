@@ -19,7 +19,6 @@
 
 package gov.nasa.jpf;
 
-import com.sun.org.apache.bcel.internal.generic.F2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -33,7 +32,8 @@ import java.util.Random;
  * FileXStream and RandomAccessFile should still be able to read/write to this file.
  * This class also stores all FileInfos that was created during SUT work.
  *
- * <2do> it's not optimized at. Some methods can be easily moved to a peer side.
+ * <2do> it's not optimized at all. Some methods can be easily moved to a peer side.
+ * <2do> Add setting fileInfo in all methods that create files
  * @author Ivan Mushketik
  */
 public class FileInfo {
@@ -53,6 +53,11 @@ public class FileInfo {
     fileState = new FileState();
     fileState.setIsDir(isDir);
     fileState.setDoesExist(true);
+  }
+
+  private FileInfo(String canonicalPath, FileState state) {
+    this.canonicalPath = canonicalPath;
+    fileState = state;
   }
 
   /**
@@ -168,7 +173,7 @@ public class FileInfo {
 
         // Destanation file doesn't exist
         if (destFI == null) {
-          FileInfo newFI = new FileInfo(destCanonicalPath, state.isDir());
+          FileInfo newFI = new FileInfo(destCanonicalPath, state);
           newFI.fileState = state;
           addNewFI(newFI);
 
@@ -230,6 +235,8 @@ public class FileInfo {
       newFI.fileState.setDoesExist(false);
     }
 
+    int fileMode = FileAccessInfo.getFileAccessMode(canonicaPath);
+    newFI.fileState.setFileAccessMode(fileMode);
     addNewFI(newFI);
     return newFI;
 
