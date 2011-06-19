@@ -22,10 +22,18 @@ package gov.nasa.jpf;
 import java.io.IOException;
 
 /**
- *
+ * File interface that perform read/write operations with native file system
  * @author Ivan Mushketik
  */
 public class NativeFileInterface implements FileInterface {
+
+  private boolean isOpened;
+  private long filePos;
+  // Canonical path of a file on which read/write should be performed
+  private String canonicalPath;
+  private FileState fileState;
+
+  public NativeFileInterface(FileState fileState) {}
 
   public native void sync();
 
@@ -41,26 +49,25 @@ public class NativeFileInterface implements FileInterface {
 
   public native void write(byte[] buf, int off, int len) throws IOException;
 
-  public native void close() throws IOException;
+  public void close() throws IOException {
+    if (isOpened) {
+      nativeClose();
 
-  public boolean valid() {
-    throw new UnsupportedOperationException("Not supported yet.");
+      // Decrease open counter
+      fileState.close();
+    }
   }
 
-  public void setLength(long newLength) {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
+  private native void nativeClose() throws IOException;
 
-  public void seek(long pos) {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
+  public native boolean valid();
 
-  public long length() {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
+  public native void setLength(long newLength);
 
-  public long getFilePointer() {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
+  public native void seek(long pos);
+
+  public native long length();
+
+  public native long getFilePointer();
 
 }

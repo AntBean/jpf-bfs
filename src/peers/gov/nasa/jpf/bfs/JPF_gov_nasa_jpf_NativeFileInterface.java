@@ -1,5 +1,5 @@
 //
-// Copyright  (C) 20037 United States Government as represented by the
+// Copyright  (C) 2011 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
 //  (NASA).  All Rights Reserved.
 // 
@@ -18,405 +18,260 @@
 //
 package gov.nasa.jpf.bfs;
 
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.util.DynamicObjectArray;
 import gov.nasa.jpf.util.JPFLogger;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
+import java.util.HashMap;
 
 /**
- * native peer for file descriptors, which are our basic interface to
- * access file contents. The implementation used here just forwards
- * to FileInputStreams, which is terribly inefficient for frequent
- * restores (in which case a simple byte[] buffer would be more efficient)
+ * @author Ivan Mushketik
  */
 
-// <2do> This class was a peer for FileDescriptor and should be fixed.
 public class JPF_gov_nasa_jpf_NativeFileInterface {
 
-  static JPFLogger logger = JPF.getLogger("java.io.FileDescriptor");
+  static JPFLogger logger = JPF.getLogger("gov.nasa.jpf.NativeFileInterface");
+  static final HashMap<Integer, RandomAccessFile> rafs = new HashMap<Integer, RandomAccessFile>();
 
+  public static void $init__Lgov_nasa_jpf_FileState_2__V(MJIEnv env, int objref, int fileStateRef) {
+    try {
+      String canonicalPath = env.getStringField(fileStateRef, "nativeFSFileName");
+      RandomAccessFile raf = new RandomAccessFile(canonicalPath, "rws");
+      rafs.put(objref, raf);
 
-  // NOTE: keep those in sync with the model class
-  static final int FD_READ = 0;
-  static final int FD_WRITE = 1;
-  
-  static final int FD_NEW = 0;
-  static final int FD_OPENED = 1;
-  static final int FD_CLOSED = 2;
+      env.setBooleanField(objref, "isOpened", true);
+      env.setReferenceField(objref, "fileState", fileStateRef);
 
-  
-  static int count=2;  // count out std handles
-  static DynamicObjectArray<Object> content;
-  
-  public static void init (Config conf){
-    content = new DynamicObjectArray<Object>();
-    count = 2;
-  }
-  
-  public static int open__Ljava_lang_String_2I__I (MJIEnv env, int objref,
-                                                   int fnameRef, int mode){
-    String fname = env.getStringObject(fnameRef);
-    if (mode == FD_READ){
-      return openRead(fname);
-    } else if (mode == FD_WRITE){
-      return openWrite(fname);
-    } else {
-      env.throwException("java.io.IOException", "illegal open mode: " + mode);
-      return -1;
+    } catch (FileNotFoundException ex) {
+      throw new JPFException(ex);
     }
   }
-  
-  public static int openRead (String fname) {
-    File file = new File(fname);
-    if (file.exists()) {
+
+  public static void sync____V(MJIEnv env, int objref) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
       try {
-        FileInputStream fis = new FileInputStream(file);
-        fis.getChannel(); // just to allocate one
+        raf.getFD().sync();
 
-        count++;
-        content.set(count, fis);
-
-        logger.info("opening ", fname, " (read) => ", count);
-
-        return count;
-        
-      } catch (IOException x) {
-        logger.warning("failed to open ", fname, " (read) : ", x);
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
       }
     } else {
-      logger.info("cannot open ", fname, " (read) : file not found");
-    }
-    
-    return -1;
-  }
-  
-  public static int openWrite (String fname){
-    File file = new File(fname);
-    try {
-      FileOutputStream fos = new FileOutputStream(file);
-      fos.getChannel(); // just to allocate one
-                
-      count++;
-      content.set(count, fos);
-
-      logger.info("opening ", fname, " (write) => ", count);
-
-      return count;
-        
-    } catch (IOException x) {
-      logger.warning("failed to open ", fname, " (write) : ", x);
-    }
-    
-    return -1;    
-  }
-  
-  public static void close (MJIEnv env, int objref) {
-    int fd = env.getIntField(objref, "fd");
-    
-    try {
-      Object fs = content.get(fd);
-      
-      if (fs != null){
-        logger.info("closing ", fd);
-
-        if (fs instanceof FileInputStream){
-          ((FileInputStream)fs).close();
-        } else {
-          ((FileOutputStream)fs).close();          
-        }
-      } else {
-        logger.warning("cannot close ", fd, " : no such stream");
-      }
-      content.set(fd, null);
-      
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");      
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
+      env.throwException("java.io.IOException", "Bad file descriptor");
     }
   }
-  
-  // that's a JPF specific thing - we backrack into
-  // a state where the file was still open, and hence don't want to
-  // change the FileDescriptor identify
-  static void reopen (MJIEnv env, int objref) throws IOException {
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-    
-    if (content.get(fd) == null){
-      int mode = env.getIntField(objref, "mode");
-      int fnRef = env.getReferenceField(objref, "fileName");
-      String fname = env.getStringObject(fnRef);
-      
-      if (mode == FD_READ){
-        FileInputStream fis = new FileInputStream(fname);
-        FileChannel fc = fis.getChannel(); // just to allocate one
-        fc.position(off);
-        content.set(fd, fis);
-        
-      } else if (mode == FD_WRITE){
-        FileOutputStream fos = new FileOutputStream(fname);
-        FileChannel fc = fos.getChannel(); // just to allocate one
-        fc.position(off);
-        content.set(fd, fos);
-        
-      } else {
-        env.throwException("java.io.IOException", "illegal mode: " + mode);
-      }
-    }
-  }
-  
-  public static void write__I__ (MJIEnv env, int objref, int b){
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-    
-    try {
-      // this is terrible overhead
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileOutputStream){
-          FileOutputStream fos = (FileOutputStream)fs;
-          FileChannel fc = fos.getChannel();
-          fc.position(off);
-          fos.write(b);
-          env.setLongField(objref, "off", fc.position());
-          
-        } else {
-          env.throwException("java.io.IOException", "write attempt on file opened for read access");
-        }
-        
-      } else {
-        if (env.getIntField(objref, "state") == FD_OPENED){ // backtracked
-          reopen(env,objref);
-          write__I__(env,objref,b); // try again
-        } else {
-          env.throwException("java.io.IOException", "write attempt on closed file");
-        }
-      }
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");      
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
-    }    
-  }
-  
-  public static void write___3BII__ (MJIEnv env, int objref,
-                                     int bref, int offset, int len){
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-    
-    try {
-      // this is terrible overhead
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileOutputStream){
-          FileOutputStream fos = (FileOutputStream)fs;
-          FileChannel fc = fos.getChannel();
-          fc.position(off);
-          
-          byte[] buf = new byte[len]; // <2do> make this a permanent buffer
-          for (int i=0, j=offset; i<len; i++, j++){
-            buf[i] = env.getByteArrayElement(bref, j);
-          }
-          fos.write(buf);
-          
-          env.setLongField(objref, "off", fc.position());
-          
-        } else {
-          env.throwException("java.io.IOException", "write attempt on file opened for read access");
-        }
-        
-      } else {
-        if (env.getIntField(objref, "state") == FD_OPENED){ // backtracked
-          reopen(env,objref);
-          write___3BII__(env,objref,bref,offset,len); // try again
-        } else {
-          env.throwException("java.io.IOException", "write attempt on closed file");
-        }
-      }
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");      
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
-    }        
-  }
-  
 
   public static int read____I (MJIEnv env, int objref) {
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-        
-    try {
-      // this is terrible overhead
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileInputStream){
-          FileInputStream fis = (FileInputStream)fs;
-          FileChannel fc = fis.getChannel();
-          fc.position(off);
-          int r = fis.read();
-          env.setLongField(objref, "off", fc.position());
-          return r;
-          
-        } else {
-          env.throwException("java.io.IOException", "read attempt on file opened for write access");
-          return -1;                  
-        }
-        
-      } else {
-        if (env.getIntField(objref, "state") == FD_OPENED){ // backtracked
-          reopen(env,objref);
-          return read____I(env,objref); // try again
-        } else {
-          env.throwException("java.io.IOException", "read attempt on closed file");
-          return -1;
-        }
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+        long filePos = env.getLongField(objref, "filePos");
+        raf.seek(filePos);
+
+        int read = raf.read();
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+        return read;
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+        return -1;
       }
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");
-      return -1;
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
       return -1;
     }
   }
   
-  public static int read___3BII__I (MJIEnv env, int objref, int bufref, int offset, int len) {
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-        
-    try {
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileInputStream){
-          FileInputStream fis = (FileInputStream)fs;
-          FileChannel fc = fis.getChannel();
-          fc.position(off);
-      
-          byte[] buf = new byte[len]; // <2do> make this a permanent buffer
-          
-          int r = fis.read(buf);
-          for (int i=0, j=offset; i<len; i++, j++) {
-            env.setByteArrayElement(bufref, j, buf[i]);
-          }
-          env.setLongField(objref, "off", fc.position());
-          return r;
-          
-        } else {
-          env.throwException("java.io.IOException", "read attempt on file opened for write access");
-          return -1;                  
-        }
-        
-      } else {
-        if (env.getIntField(objref, "state") == FD_OPENED){ // backtracked
-          reopen(env,objref);
-          return read___3BII__I(env,objref,bufref,offset,len); // try again
-        } else {
-          env.throwException("java.io.IOException", "read attempt on closed file");
-          return -1;        
-        }
+  public static int read___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+
+      try {
+        long filePos = env.getLongField(objref, "filePos");
+        raf.seek(filePos);
+        byte[] buffer = env.getByteArrayObject(bufferRef);
+
+        int read = raf.read(buffer, off, len);
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+        return read;
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+        return -1;
       }
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");
-      return -1;
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
       return -1;
     }
   }
-  
-  public static long skip__J__J (MJIEnv env, int objref, long nBytes) {
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-        
-    try {
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileInputStream){
-          FileInputStream fis = (FileInputStream)fs;
-          FileChannel fc = fis.getChannel();
-          fc.position(off);
 
-          long r = fis.skip(nBytes);
-          env.setLongField(objref, "off", fc.position());
-          return r;
-          
-        } else {
-          env.throwException("java.io.IOException", "skip attempt on file opened for write access");
-          return -1;                  
-        }
-        
-      } else {
-        env.throwException("java.io.IOException", "skip attempt on closed file");
-        return -1;        
-      }
-          
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");
-      return -1;
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
-      return -1;
-    }    
-  }
-  
-  public static void sync____ (MJIEnv env, int objref){
-    int fd = env.getIntField(objref, "fd");
+  public static long skip__J__J(MJIEnv env, int objref, long shift){
+    RandomAccessFile raf = rafs.get(objref);
 
-    try {
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileOutputStream){
-          ((FileOutputStream)fs).flush();
+    if (raf != null) {
+      try {
+        long filePos = env.getLongField(objref, "filePos");
+        long fileLength = raf.length();
+
+        if (shift + filePos > fileLength) {
+          filePos = fileLength;
+
         } else {
-          // nothing
+          filePos = filePos + shift;
         }
-        
-      } else {
-        env.throwException("java.io.IOException", "sync attempt on closed file");
+
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+        return shift;
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+        return -1;
       }
-          
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");      
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
-    }        
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
+      return -1;
+    }
   }
-  
+ 
   public static int available____I (MJIEnv env, int objref) {
-    int fd = env.getIntField(objref, "fd");
-    long off = env.getLongField(objref,"off");
-    
-    try {
-      Object fs = content.get(fd);
-      if (fs != null){
-        if (fs instanceof FileInputStream){
-          FileInputStream fis = (FileInputStream)fs;
-          FileChannel fc = fis.getChannel();
-          fc.position(off);
-          return fis.available();
-          
-        } else {
-          env.throwException("java.io.IOException", "available() on file opened for write access");
-          return -1;                  
-        }
-        
-      } else {
-        env.throwException("java.io.IOException", "available() on closed file");
-        return -1;        
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+
+
+        long filePos = env.getLongField(objref, "filePos");
+        long fileLength = raf.length();
+
+        return (int) (fileLength - filePos);
+
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+        return -1;
       }
-          
-    } catch (ArrayIndexOutOfBoundsException aobx){
-      env.throwException("java.io.IOException", "file not open");
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
       return -1;
-    } catch (IOException iox) {
-      env.throwException("java.io.IOException", iox.getMessage());
+    }
+  }
+  
+  public static void write__I__V (MJIEnv env, int objref, int b) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+        long filePos = env.getLongField(objref, "filePos");
+        raf.seek(filePos);
+
+
+        raf.write(b);
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+
+      }
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
+    }
+
+  }
+
+  public static void write___3BII__V (MJIEnv env, int objref, int bufferRef, int off, int len) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+        long filePos = env.getLongField(objref, "filePos");
+        raf.seek(filePos);
+        byte[] buffer = env.getByteArrayObject(bufferRef);
+
+        raf.write(buffer, off, len);
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+
+      }
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
+    }
+  }
+
+  public static void nativeClose____V (MJIEnv env, int objref) {
+    boolean isOpened = env.getBooleanField(objref, "isOpened");
+    if (isOpened) {
+      try {
+        RandomAccessFile raf = rafs.get(objref);
+        raf.close();
+        rafs.remove(objref);
+        env.setBooleanField(objref, "isOpened", false);
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+      }
+    }
+  }
+
+  public static boolean valid____Z(MJIEnv env, int objref) {
+    return false;
+  }
+
+  public static void setLength__J__V(MJIEnv env, int objref, long newLength) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+
+        long filePos = env.getLongField(objref, "filePos");
+        raf.seek(filePos);
+
+        raf.setLength(newLength);
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+      }
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
+    }
+  }
+  
+  public static void seek__J__V(MJIEnv env, int objref, long pos) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+        raf.seek(pos);
+
+        env.setLongField(objref, "filePos", raf.getFilePointer());
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+      }
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
+    }
+  }
+
+  public static long length____J(MJIEnv env, int objref) {
+    RandomAccessFile raf = rafs.get(objref);
+
+    if (raf != null) {
+      try {
+        return raf.length();
+
+      } catch (IOException ex) {
+        env.throwException("java.io.IOException", ex.getMessage());
+        return -1;
+      }
+    } else {
+      env.throwException("java.io.IOException", "Bad file descriptor");
       return -1;
-    }    
-    
+    }
+  }
+  
+  public static long getFilePointer____J(MJIEnv env, int objref) {
+    return env.getLongField(objref, "filePos");
   }
 }

@@ -30,5 +30,5 @@ public class FileAccessMode {
   // Read/write operations made from native FS
   public static final int NATIVE_FILE_ACCESS = 2;
   // Write operation ignored. Read operations made from native FS
-  public static final int NATIVE_FILE_ACCESS_READONLY = 3;
+  public static final int BFS_IGNORE_WRITE = 3;
 }

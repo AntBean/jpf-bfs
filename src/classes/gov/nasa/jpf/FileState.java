@@ -362,16 +362,14 @@ public class FileState {
         fi = new BFSFileInterface(this);
 
       } else if (fileMode == FileAccessMode.NATIVE_FILE_ACCESS) {
-        fi = new NativeFileInterface();
+        fi = new NativeFileInterface(this);
 
-      } else if (fileMode == FileAccessMode.NATIVE_FILE_ACCESS_READONLY) {
+      } else if (fileMode == FileAccessMode.BFS_IGNORE_WRITE) {
         throw new RuntimeException("Readonly native access file isn't implemented yet");
 
       } else {
         throw new JPFException("Not supported file access mode " + fileMode);
       }
-
-
 
       return new FileDescriptor(fi);
     }
