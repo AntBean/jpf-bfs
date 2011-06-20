@@ -18,7 +18,9 @@
 //
 package gov.nasa.jpf.test.java.io;
 
+import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.jvm.Verify;
+import gov.nasa.jpf.util.ClassSpec;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
@@ -121,6 +123,153 @@ public class FileDescriptorTest extends TestJPF {
 
       fos.close();
       fis.read();
+    }
+  }
+
+  @Test
+  public void testReadWhenFileDeleted() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation("+jpf-bfs.opened-delete = warning")) {
+      File testFile = new File("fileSandbox/testFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+      
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+
+      assertTrue(testFile.delete());
+
+      raf.seek(2);
+      raf.write(new byte[] {42, 42, 42});
+
+      raf.seek(0);
+      read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 42, 42, 42, 6, 7}, buffer, read);
+    }
+  }
+
+  @Test
+  public void testDeleteOpenedFileWhenAwaitError() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyJPFException(new ClassSpec("gov.nasa.jpf.JPFException"),
+                           "+jpf-bfs.opened-delete = error")) {
+      File testFile = new File("fileSandbox/testFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+
+      testFile.delete();
+    }
+  }
+
+  @Test
+  public void testDeleteClosedFileWhenAwaitError() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation("+jpf-bfs.opened-delete = error")) {
+      File testFile = new File("fileSandbox/testFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+      raf.close();
+
+      testFile.delete();
+    }
+  }
+
+  @Test
+  public void testReadWhenFileRenamed() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation("+jpf-bfs.opened-rename = warning")) {
+      File testFile = new File("fileSandbox/testFile");
+      File newFile = new File("fileSandbox/newFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+
+      assertTrue(testFile.renameTo(newFile));
+
+      raf.seek(2);
+      raf.write(new byte[] {42, 42, 42});
+
+      raf.seek(0);
+      read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 42, 42, 42, 6, 7}, buffer, read);
+    }
+  }
+
+  @Test
+  public void testRenameOpenedFileWhenAwaitError() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyJPFException(new ClassSpec("gov.nasa.jpf.JPFException"),
+                           "+jpf-bfs.opened-rename = error")) {
+      File testFile = new File("fileSandbox/testFile");
+      File newFile = new File("fileSandbox/newFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+
+      testFile.renameTo(newFile);
+    }
+  }
+
+  @Test
+  public void testRenameClosedFileWhenAwaitError() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6, 7} );
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation("+jpf-bfs.opened-rename = error")) {
+      File testFile = new File("fileSandbox/testFile");
+      File newFile = new File("fileSandbox/newFile");
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+
+      Verify.getBoolean();
+      byte[] buffer = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+      raf.close();
+
+      testFile.renameTo(newFile);
     }
   }
 }

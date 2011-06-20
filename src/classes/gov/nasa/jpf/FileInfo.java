@@ -68,6 +68,7 @@ public class FileInfo {
 
     // File can be deleted if it exists or it's not a file system root
     if (fileState.exists() && !isFSRoot(canonicalPath)) {
+      checkDeleteConfig();
       fileState.setDoesExist(false);
 
       // Recursively delete all children
@@ -80,6 +81,8 @@ public class FileInfo {
 
     return false;
   }
+
+  private native void checkDeleteConfig();
 
   /**
    * Get file state.
@@ -168,6 +171,7 @@ public class FileInfo {
 
       // If file's parent doesn't exist or was deleted, file can't be moved
       if (destParentFI != null && destParentFI.fileState.exists()) {
+        checkRenameConfig();
         // State of file to move
         FileState state = new FileState(fileState);
 
@@ -203,6 +207,8 @@ public class FileInfo {
 
     return false;
   }
+
+  private native void checkRenameConfig();
 
   /**
    * Get FileInfo with data about a file with specified canonical path. If FI was
@@ -501,4 +507,6 @@ public class FileInfo {
 
     return result;
   }
+
+
 }

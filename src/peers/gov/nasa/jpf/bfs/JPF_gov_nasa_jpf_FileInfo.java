@@ -19,14 +19,59 @@
 
 package gov.nasa.jpf.bfs;
 
+import gov.nasa.jpf.Config;
+import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.JPFConfigException;
+import gov.nasa.jpf.JPFException;
+import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Ivan Mushketik
  */
 public class JPF_gov_nasa_jpf_FileInfo {
+
+  private static final Logger logger = JPF.getLogger("gov.nasa.jpf.FileInfo");
+
+  private static final int NOTHING = 0;
+  private static final int WARNING = 1;
+  private static final int ERROR = 2;
+
+  private static final String OPENED_DELETE_KEY = "jpf-bfs.opened-delete";
+  private static final String OPENED_RENAME_KEY = "jpf-bfs.opened-rename";
+
+  private static final String DO_NOTHING = "nothing";
+  private static final String REPORT_WARNING = "warning";
+  private static final String THROW_ERROR = "error";
+
+  private static int onOpenedDelete = NOTHING;
+  private static int onOpenedRename = NOTHING;
+
+  static {
+    Config config = JVM.getVM().getConfig();
+    onOpenedDelete = parseOnOpened(config, OPENED_DELETE_KEY);
+    onOpenedRename = parseOnOpened(config, OPENED_RENAME_KEY);
+  }
+
+  private static int parseOnOpened(Config config, String key) {
+    String value = config.getString(key);
+
+    if (value == null || value.equals(DO_NOTHING)) {
+      return NOTHING;
+    } else if (value.equals(REPORT_WARNING)) {
+      return WARNING;
+    } else if (value.equals(THROW_ERROR)) {
+      return ERROR;
+    } else {
+      throw new JPFConfigException("Unexpected value '" + value +
+                                   "' for key '" + key + "' in config.");
+    }
+  }
+
   public static int createNewFileInfo__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(MJIEnv env, int clsRef, int fileNameRef) {
     
     String fileName = env.getStringObject(fileNameRef);
@@ -88,5 +133,37 @@ public class JPF_gov_nasa_jpf_FileInfo {
     }
 
     return env.newStringArray(childs);
+  }
+
+  public static void checkDeleteConfig____V(MJIEnv env, int objRef) {
+    int fileStateRef = env.getReferenceField(objRef, "fileState");
+    int openCnt = env.getIntField(fileStateRef, "openCnt");
+
+    // File is going to be deleted when it's opened
+    if (openCnt > 0) {
+      String fileCP = env.getStringField(objRef, "canonicalPath");
+
+      if (onOpenedDelete == WARNING) {
+        logger.log(Level.WARNING, "File {0} deleted while opened", fileCP);
+      } else if (onOpenedDelete == ERROR) {
+        throw new JPFException("File " + fileCP + " deleted while opened");
+      }
+    }
+  }
+
+  public static void checkRenameConfig____V(MJIEnv env, int objRef) {
+    int fileStateRef = env.getReferenceField(objRef, "fileState");
+    int openCnt = env.getIntField(fileStateRef, "openCnt");
+
+    // File is going to be deleted when it's opened
+    if (openCnt > 0) {
+      String fileCP = env.getStringField(objRef, "canonicalPath");
+
+      if (onOpenedRename == WARNING) {
+        logger.log(Level.WARNING, "File {0} renamed while opened", fileCP);
+      } else if (onOpenedRename == ERROR) {
+        throw new JPFException("File " + fileCP + " renamed while opened");
+      }
+    }
   }
 }
