@@ -25,7 +25,7 @@ import java.util.ArrayList;
 /**
  * This class stores state of a file in BFS
  * <2do> Check SUT rights before writing/reading any data
- * <2do> Set lasModified field with every read operation
+ * <2do> Set lasModified field with every write operation
  * @author Ivan Mushketik
  */
 public class FileState {
@@ -411,6 +411,7 @@ public class FileState {
     result += "; nativeFSName = " + nativeFSFileName;
     result += "; rights = " + ownerRights + "" + groupRights + "" + allRights;
     result += "; SUT rights = " + sutRights;
+    result += "; file mode = " + fileMode;
 
     return result;
   }

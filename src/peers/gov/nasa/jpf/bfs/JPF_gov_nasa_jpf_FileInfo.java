@@ -25,6 +25,7 @@ import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,10 +43,14 @@ public class JPF_gov_nasa_jpf_FileInfo {
   private static int onOpenedDelete = FSMode.NOTHING;
   private static int onOpenedRename = FSMode.NOTHING;
 
+  private static File cacheDir;
+
   static {
     Config config = JVM.getVM().getConfig();
     onOpenedDelete = FSMode.parseOnOpened(config, OPENED_DELETE_KEY);
     onOpenedRename = FSMode.parseOnOpened(config, OPENED_RENAME_KEY);
+
+    cacheDir = BFSUtils.getCacheDir();
   }
 
   public static int createNewFileInfo__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(MJIEnv env, int clsRef, int fileNameRef) {
@@ -142,4 +147,12 @@ public class JPF_gov_nasa_jpf_FileInfo {
       }
     }
   }
+
+  public static int createFileForNativeAccess____Ljava_lang_String_2(MJIEnv env, int classRef) throws IOException {
+    File tempFile = File.createTempFile("file", "forNativeAccess", cacheDir);
+    int tempFileCPRef = env.newString(tempFile.getCanonicalPath());
+
+    return tempFileCPRef;
+  }
+
 }

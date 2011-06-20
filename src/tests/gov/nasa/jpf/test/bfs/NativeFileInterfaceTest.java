@@ -156,4 +156,35 @@ public class NativeFileInterfaceTest extends TestJPF {
       fis.write(42);
     }
   }
+
+  @Test
+  public void testReadWriteFromCreatedFile() throws Exception {
+    if (verifyNoPropertyViolation("+jpf-bfs.bfs.exclude = *fileSandbox/*")) {
+      File newFile = new File("fileSandbox/newFile");      
+      newFile.createNewFile();
+      RandomAccessFile raf = new RandomAccessFile(newFile, "rws");
+
+      raf.write(new byte[] {1, 2, 3, 4, 5});
+      raf.seek(0);
+
+      // Starts from false
+      boolean b = Verify.getBoolean(true);
+      byte[] buffer = new byte[7];
+      int read;
+      read = raf.read(buffer);
+      assertEquals(5, read);
+
+      // First execution
+      if (!b) {
+         assertReadResult(new byte[] {1, 2, 3, 4, 5}, buffer, read);
+
+      } else {
+         // Second execution
+         assertReadResult(new byte[] {1, 2, 3, 42, 42}, buffer, read);
+      }
+
+      raf.seek(3);
+      raf.write(new byte[] {42, 42});
+    }
+  }
 }

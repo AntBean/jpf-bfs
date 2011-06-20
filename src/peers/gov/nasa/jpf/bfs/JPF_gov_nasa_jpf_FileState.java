@@ -19,18 +19,13 @@
 
 package gov.nasa.jpf.bfs;
 
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.Pair;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.ListIterator;
-import static java.lang.Math.*;
 
 
 /**
@@ -42,20 +37,7 @@ public class JPF_gov_nasa_jpf_FileState {
   private static final File fsCacheDir;
 
   static {
-    JVM jvm = JVM.getVM();
-    Config config = jvm.getConfig();
-    String fsCacheDirName = config.getString("jpf-bfs.writecache_dir");
-
-
-    fsCacheDir = new File(fsCacheDirName);
-
-    // Create directory where data, that will be written on BFS during SUT run will be save
-    // Each data chunk saved to a separate file
-    if (!fsCacheDir.exists()) {
-      if (!fsCacheDir.mkdir()) {
-        throw new RuntimeException("Unable to create cache dir " + fsCacheDirName);
-      }
-    }
+    fsCacheDir = BFSUtils.getCacheDir();
   }
 
   // <2do> If starPos points beyond file and SUT performs write operation, zero bytes

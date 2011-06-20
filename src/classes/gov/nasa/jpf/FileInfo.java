@@ -41,6 +41,8 @@ public class FileInfo {
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
 
 
+
+
   // Canonical path of a file
   private String canonicalPath;
   // Current state of a file
@@ -316,6 +318,12 @@ public class FileInfo {
           fi.fileState.setDoesExist(true);
         }
 
+        // We need to create file on native FS for read/write operations
+        if (fi.fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
+          String tempFile = createFileForNativeAccess();
+          fi.fileState.setNativeFSFileName(tempFile);
+        }
+
         System.out.println("New file is " + fi);
         
         return true;
@@ -484,6 +492,8 @@ public class FileInfo {
        System.out.println(fileI);
     }
   }
+
+  private static native String createFileForNativeAccess();
 
   /**
    * Check if specified canonical path is a file system root on this system.
