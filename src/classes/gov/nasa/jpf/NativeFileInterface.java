@@ -32,8 +32,9 @@ public class NativeFileInterface implements FileInterface {
   // Canonical path of a file on which read/write should be performed
   private String canonicalPath;
   private FileState fileState;
+  boolean ignoreWriteMode;
 
-  public NativeFileInterface(FileState fileState) {}
+  public NativeFileInterface(FileState fileState, boolean ignoreWriteMode) {}
 
   public native void sync();
 
