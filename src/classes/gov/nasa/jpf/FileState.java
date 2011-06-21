@@ -21,6 +21,7 @@ package gov.nasa.jpf;
 
 import java.io.FileDescriptor;
 import java.util.ArrayList;
+import gov.nasa.jpf.jvm.Verify;
 
 /**
  * This class stores state of a file in BFS
@@ -53,6 +54,8 @@ public class FileState {
   private long lastModified;
   // Access mode to a file
   private int fileMode;
+
+  private int lastOperation = FileOperations.READ;
 
   private WriteChunk lastWriteChunk;
 
@@ -110,7 +113,7 @@ public class FileState {
    * Get number of open operations minus number of close operations
    * @return
    */
-  public int getOpenCnt() {
+  public synchronized  int getOpenCnt() {
     return openCnt;
   }
 
@@ -351,7 +354,7 @@ public class FileState {
     this.fileMode = fileMode;
   }
 
-  public FileDescriptor open() {
+  public synchronized FileDescriptor open() {
     if (exists() && !isDir()) {
       openCnt++;
 
@@ -371,14 +374,27 @@ public class FileState {
         throw new JPFException("Not supported file access mode " + fileMode);
       }
 
-      return new FileDescriptor(fi);
+      return new FileDescriptor(fi, this);
     }
 
     return null;
   }
 
-  public void close() {
+  public synchronized void close() {
     openCnt--;
+  }
+
+  // We need markRead/markWrite to create race with access to lastOperation field
+  // if this file is read/written or written/written from several threads at the
+  // same time with no synchronization this will be detected by
+  // PreciseRaceDetector
+
+  public void markWrite(int operation) {
+    lastOperation = operation;
+  }
+
+  public int markRead() {
+    return lastOperation;
   }
 
   /**
@@ -402,7 +418,7 @@ public class FileState {
   native int read(long startPos, byte[] data, int offset, int length);
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     String result;
     result = "length = " + length;
     result += "; isDir = " + isDir;
@@ -415,6 +431,4 @@ public class FileState {
 
     return result;
   }
-
-
 }

@@ -48,6 +48,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
       }
 
       FileState fileState = file.getFileInfo().getFileState();
+      System.out.println("Opened fileState with HASH = " + fileState.hashCode());
       fd = fileState.open();
 
     } catch (IOException ex) {
@@ -226,6 +227,5 @@ public class RandomAccessFile implements DataInput, DataOutput {
   public void writeUTF(String string) throws IOException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
-  
 }
 

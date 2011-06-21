@@ -40,9 +40,6 @@ public class FileInfo {
 
   private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
 
-
-
-
   // Canonical path of a file
   private String canonicalPath;
   // Current state of a file
@@ -220,7 +217,7 @@ public class FileInfo {
    * @return FileInfo about a file if it was created during SUT run, or it exists on
    * a native FS and wasn't deleted. Otherwise return null.
    */
-  public static FileInfo getFileInfo(String canonicaPath) {
+  public static synchronized FileInfo getFileInfo(String canonicaPath) {
     System.out.println("Request for " + canonicaPath + " FileInfo");
     FileInfo newFI = getFileInfoByCanonicalPath(canonicaPath);
 

@@ -46,7 +46,7 @@ public class BFSFileInterface implements FileInterface {
       int read = fileState.read(filePos, aByte, 0, 1);
 
       if (read == 1) {
-        filePos++;
+        filePos += 1;
         return aByte[0];
       }
 

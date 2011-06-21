@@ -18,6 +18,7 @@
 //
 package gov.nasa.jpf.test.java.io;
 
+import org.junit.Ignore;
 import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.jvm.Verify;
 import gov.nasa.jpf.util.ClassSpec;
@@ -25,8 +26,11 @@ import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -270,6 +274,190 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
 
       testFile.renameTo(newFile);
+    }
+  }
+
+  static final ClassSpec RACE_DETECTION_PROPERTY = new ClassSpec("gov.nasa.jpf.listener.PreciseRaceDetector");
+  static final String RACE_DETECTION_LISTENER = "+listener=gov.nasa.jpf.listener.PreciseRaceDetector";
+
+  @Ignore
+  // <2do> This test fails but JPF find race in the same code if started with bin/jfp
+  public void testRaceDetectionWithShardDescriptorRead() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileInputStream fis1 = new FileInputStream(fileName);
+     final FileInputStream fis2 = new FileInputStream(fis1.getFD());
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fis1.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fis2.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithShardDescriptorReadWrite() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileInputStream fis = new FileInputStream(fileName);
+     final FileOutputStream fos = new FileOutputStream(fis.getFD());
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fis.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos.write(1);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithReadWriteSameFile() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileInputStream fis = new FileInputStream(fileName);
+     final FileOutputStream fos = new FileOutputStream(fileName);
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fis.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos.write(1);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithWriteWriteSameFile() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileOutputStream fos1 = new FileOutputStream(fileName);
+     final FileOutputStream fos2 = new FileOutputStream(fileName);
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fos1.write(2);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos2.write(1);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithReadReadSameFile() throws Exception {
+    if (verifyNoPropertyViolation(RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileInputStream fis1 = new FileInputStream(fileName);
+     final FileInputStream fis2 = new FileInputStream(fileName);
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fis1.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fis2.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
     }
   }
 }
