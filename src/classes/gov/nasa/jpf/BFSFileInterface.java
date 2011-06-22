@@ -115,7 +115,17 @@ public class BFSFileInterface implements FileInterface {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
+  // <2do> If new length is far more then current length this will create
+  // huge array of zeros.
+  // Maybe it's better to move setLength to peer side and avoid this array creation
   public void setLength(long newLength) {
+    long fileLength = fileState.getLength();
+    if (fileLength < newLength) {
+       int delta = (int) (newLength - fileLength);
+       byte[] zeros = new byte[delta];
+       fileState.write(fileLength, zeros, 0, delta);
+    }
+
     fileState.setLength(newLength);
   }
 
@@ -130,7 +140,4 @@ public class BFSFileInterface implements FileInterface {
   public long getFilePointer() {
     return filePos;
   }
-
-
-
 }

@@ -34,9 +34,14 @@ import java.util.HashMap;
  */
 
 public class JPF_gov_nasa_jpf_NativeFileInterface {
+  private static final String IGNORE_WRITE_MODE_FIELD = "ignoreWriteMode";
+  private static final String IS_OPENED_FIELD = "isOpened";
+  private static final String FILEPOS_FIELD = "filePos";
+  private static final String FILE_STATE_FIELD = "fileState";
 
   static JPFLogger logger = JPF.getLogger("gov.nasa.jpf.NativeFileInterface");
   static final HashMap<Integer, RandomAccessFile> rafs = new HashMap<Integer, RandomAccessFile>();
+
 
   private static final String IGNORE_WRITE_FILE_READ_KEY = "jpf-bfs.ignore-write-file-read";
   private static int onIgnoreWriteFileRead = FSMode.NOTHING;
@@ -52,9 +57,9 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       RandomAccessFile raf = new RandomAccessFile(canonicalPath, "rws");
       rafs.put(objref, raf);
 
-      env.setBooleanField(objref, "isOpened", true);
-      env.setReferenceField(objref, "fileState", fileStateRef);
-      env.setBooleanField(objref, "ignoreWriteMode", ignoreWriteMode);
+      env.setBooleanField(objref, IS_OPENED_FIELD, true);
+      env.setReferenceField(objref, FILE_STATE_FIELD, fileStateRef);
+      env.setBooleanField(objref, IGNORE_WRITE_MODE_FIELD, ignoreWriteMode);
 
     } catch (FileNotFoundException ex) {
       throw new JPFException(ex);
@@ -75,41 +80,9 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       env.throwException("java.io.IOException", "Bad file descriptor");
     }
   }
-
-//  public static int read____I (MJIEnv env, int objref) {
-//    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
-//
-//    if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
-//      if (onIgnoreWriteFileRead == FSMode.WARNING) {
-//        logger.warning("Attempt to read file with ignore write mode");
-//      }
-//
-//      RandomAccessFile raf = rafs.get(objref);
-//      if (raf != null) {
-//        try {
-//          long filePos = env.getLongField(objref, "filePos");
-//          raf.seek(filePos);
-//
-//          int read = raf.read();
-//          env.setLongField(objref, "filePos", raf.getFilePointer());
-//          return read;
-//        } catch (IOException ex) {
-//          env.throwException("java.io.IOException", ex.getMessage());
-//          return -1;
-//        }
-//      } else {
-//        env.throwException("java.io.IOException", "Bad file descriptor");
-//        return -1;
-//      }
-//
-//    } else {
-//      throw new JPFException("Attempt to read file with ignore write mode");
-//    }
-//
-//  }
   
   public static int readNative___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
-    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
+    boolean ignoreWriteMode = env.getBooleanField(objref, IGNORE_WRITE_MODE_FIELD);
 
     if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
       if (onIgnoreWriteFileRead == FSMode.WARNING) {
@@ -120,7 +93,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       if (raf != null) {
 
         try {
-          long filePos = env.getLongField(objref, "filePos");
+          long filePos = env.getLongField(objref, FILEPOS_FIELD);
           raf.seek(filePos);
           byte[] buffer = env.getByteArrayObject(bufferRef);
 
@@ -146,7 +119,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
 
     if (raf != null) {
       try {
-        long filePos = env.getLongField(objref, "filePos");
+        long filePos = env.getLongField(objref, FILEPOS_FIELD);
         long fileLength = raf.length();
 
         return (int) (fileLength - filePos);
@@ -162,14 +135,14 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   }
 
   public static int writeNative___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
-    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
+    boolean ignoreWriteMode = env.getBooleanField(objref, IGNORE_WRITE_MODE_FIELD);
 
     if (!ignoreWriteMode) {
       RandomAccessFile raf = rafs.get(objref);
 
       if (raf != null) {
         try {
-          long filePos = env.getLongField(objref, "filePos");
+          long filePos = env.getLongField(objref, FILEPOS_FIELD);
           raf.seek(filePos);
           byte[] buffer = env.getByteArrayObject(bufferRef);
 
@@ -191,13 +164,13 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   }
 
   public static void nativeClose____V (MJIEnv env, int objref) {
-    boolean isOpened = env.getBooleanField(objref, "isOpened");
+    boolean isOpened = env.getBooleanField(objref, IS_OPENED_FIELD);
     if (isOpened) {
       try {
         RandomAccessFile raf = rafs.get(objref);
         raf.close();
         rafs.remove(objref);
-        env.setBooleanField(objref, "isOpened", false);
+        env.setBooleanField(objref, IS_OPENED_FIELD, false);
       } catch (IOException ex) {
         env.throwException("java.io.IOException", ex.getMessage());
       }
@@ -213,11 +186,15 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
 
     if (raf != null) {
       try {
-        long filePos = env.getLongField(objref, "filePos");
+        long filePos = env.getLongField(objref, FILEPOS_FIELD);
         raf.seek(filePos);
 
         raf.setLength(newLength);
-        env.setLongField(objref, "filePos", raf.getFilePointer());
+        env.setLongField(objref, FILEPOS_FIELD, raf.getFilePointer());
+        
+        // Update file length in BFS
+        int fileStateRef = env.getReferenceField(objref, FILE_STATE_FIELD);
+        env.setLongField(fileStateRef, "length", newLength);
 
       } catch (IOException ex) {
         env.throwException("java.io.IOException", ex.getMessage());
@@ -245,6 +222,6 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   }
   
   public static long getFilePointer____J(MJIEnv env, int objref) {
-    return env.getLongField(objref, "filePos");
+    return env.getLongField(objref, FILEPOS_FIELD);
   }
 }

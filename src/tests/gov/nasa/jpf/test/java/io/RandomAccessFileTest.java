@@ -376,4 +376,72 @@ public class RandomAccessFileTest extends TestJPF {
       assertReadResult(expectedAfterWrite, buffer, read);
     }
   }
+
+  @Test
+  public void testDecreaseFileLength() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      File testFile = new File("fileSandbox/testFile");
+
+      Verify.getBoolean();
+      assertEquals(7, testFile.length());
+
+      raf.setLength(3);
+      raf.close();
+      assertEquals(3, testFile.length());
+    }
+  }
+
+  @Test
+  public void testIncreaseFileLength() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      File testFile = new File("fileSandbox/testFile");
+
+      Verify.getBoolean();
+      assertEquals(7, testFile.length());
+      int read;
+      byte[] buffer = new byte[15];
+      read = raf.read(buffer);
+      assertEquals(7, read);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
+      raf.seek(raf.length());
+      raf.write(new byte[] {10, 20, 30});
+
+      raf.seek(0);
+      read = raf.read(buffer);
+      assertEquals(10, read);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7, 10, 20, 30}, buffer, read);
+
+      raf.setLength(7);
+      assertEquals(7, testFile.length());
+
+      raf.setLength(10);
+      assertEquals(10, testFile.length());
+
+      raf.seek(raf.length());
+      raf.write(new byte[] {42});
+      raf.seek(0);
+
+      read = raf.read(buffer);
+      assertEquals(11, read);
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 42}, buffer, read);
+    }
+  }
 }

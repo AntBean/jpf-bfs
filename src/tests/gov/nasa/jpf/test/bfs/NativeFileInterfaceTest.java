@@ -273,6 +273,19 @@ public class NativeFileInterfaceTest extends TestJPF {
     }
   }
 
+  @Test
+  public void testChangeFileLength() throws Exception {
+     if (verifyNoPropertyViolation(EXCLUDE_SANDBOX)) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      raf.setLength(10);
+      raf.close();
+
+      File testFile = new File("fileSandbox/testFile");
+      assertEquals(10, testFile.length());
+    }
+  }
+
   static final ClassSpec RACE_DETECTION_PROPERTY = new ClassSpec("gov.nasa.jpf.listener.PreciseRaceDetector");
   static final String RACE_DETECTION_LISTENER = "+listener=gov.nasa.jpf.listener.PreciseRaceDetector";
 
