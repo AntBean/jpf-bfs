@@ -38,17 +38,60 @@ public class NativeFileInterface implements FileInterface {
 
   public native void sync();
 
-  public native int read() throws IOException;
+  public int read() throws IOException {
+    byte[] aByte = new byte[1];
+    int read = read(aByte, 0, 1);
 
-  public native int read(byte[] buf, int off, int len) throws IOException;
+    if (read == 1) {
+      return aByte[0];
+    }
 
-  public native long skip(long n) throws IOException;
+    return -1;
+  }
+
+  public int read(byte[] buf, int off, int len) throws IOException {
+    int read = readNative(buf, off, len);
+
+    if (read > 0) {
+      filePos += read;
+    }
+
+    return read;
+  }
+
+  private native int readNative(byte[] buf, int off, int len) throws IOException;
+
+  public long skip(long shift) throws IOException {
+    long fileLength = length();
+
+    if (shift + filePos > fileLength) {
+      filePos = fileLength;
+
+    } else {
+      filePos = filePos + shift;
+    }
+
+    return shift;
+  }
 
   public native int available() throws IOException;
 
-  public native void write(int b) throws IOException;
+  public void write(int b) throws IOException {
+    byte[] aByte = new byte[1];
+    aByte[0] = (byte) b;
 
-  public native void write(byte[] buf, int off, int len) throws IOException;
+    write(aByte, 0, 1);
+  }
+
+  public void write(byte[] buf, int off, int len) throws IOException {
+    int written = writeNative(buf, off, len);
+
+    if (written > 0) {
+      filePos += written;
+    }
+  }
+
+  private native int writeNative(byte[] buf, int off, int len) throws IOException;
 
   public void close() throws IOException {
     if (isOpened) {
@@ -65,10 +108,18 @@ public class NativeFileInterface implements FileInterface {
 
   public native void setLength(long newLength);
 
-  public native void seek(long pos);
+  public void seek(long pos) throws IOException {
+    if (isOpened) {
+      filePos = pos;
+    } else {
+      throw new IOException("Bad file descriptor");
+    }
+  }
 
   public native long length();
 
+  // We can just return filePos field here, but if we move this method to the peer
+  // side we will avoid race detection when one thread write/read and another
+  // just read file pointer
   public native long getFilePointer();
-
 }

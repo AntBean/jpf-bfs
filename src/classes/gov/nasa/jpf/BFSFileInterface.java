@@ -119,7 +119,7 @@ public class BFSFileInterface implements FileInterface {
     fileState.setLength(newLength);
   }
 
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     filePos = pos;
   }
 

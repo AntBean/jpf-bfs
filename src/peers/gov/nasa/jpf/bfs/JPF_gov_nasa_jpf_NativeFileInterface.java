@@ -21,6 +21,7 @@ package gov.nasa.jpf.bfs;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.JPFException;
+import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.JPFLogger;
@@ -75,39 +76,39 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
     }
   }
 
-  public static int read____I (MJIEnv env, int objref) {
-    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
-
-    if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
-      if (onIgnoreWriteFileRead == FSMode.WARNING) {
-        logger.warning("Attempt to read file with ignore write mode");
-      }
-
-      RandomAccessFile raf = rafs.get(objref);
-      if (raf != null) {
-        try {
-          long filePos = env.getLongField(objref, "filePos");
-          raf.seek(filePos);
-
-          int read = raf.read();
-          env.setLongField(objref, "filePos", raf.getFilePointer());
-          return read;
-        } catch (IOException ex) {
-          env.throwException("java.io.IOException", ex.getMessage());
-          return -1;
-        }
-      } else {
-        env.throwException("java.io.IOException", "Bad file descriptor");
-        return -1;
-      }
-
-    } else {
-      throw new JPFException("Attempt to read file with ignore write mode");
-    }
-    
-  }
+//  public static int read____I (MJIEnv env, int objref) {
+//    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
+//
+//    if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
+//      if (onIgnoreWriteFileRead == FSMode.WARNING) {
+//        logger.warning("Attempt to read file with ignore write mode");
+//      }
+//
+//      RandomAccessFile raf = rafs.get(objref);
+//      if (raf != null) {
+//        try {
+//          long filePos = env.getLongField(objref, "filePos");
+//          raf.seek(filePos);
+//
+//          int read = raf.read();
+//          env.setLongField(objref, "filePos", raf.getFilePointer());
+//          return read;
+//        } catch (IOException ex) {
+//          env.throwException("java.io.IOException", ex.getMessage());
+//          return -1;
+//        }
+//      } else {
+//        env.throwException("java.io.IOException", "Bad file descriptor");
+//        return -1;
+//      }
+//
+//    } else {
+//      throw new JPFException("Attempt to read file with ignore write mode");
+//    }
+//
+//  }
   
-  public static int read___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
+  public static int readNative___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
     boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
 
     if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
@@ -124,7 +125,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
           byte[] buffer = env.getByteArrayObject(bufferRef);
 
           int read = raf.read(buffer, off, len);
-          env.setLongField(objref, "filePos", raf.getFilePointer());
+
           return read;
         } catch (IOException ex) {
           env.throwException("java.io.IOException", ex.getMessage());
@@ -139,41 +140,12 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       throw new JPFException("Attempt to read file with ignore write mode");
     }
   }
-
-  public static long skip__J__J(MJIEnv env, int objref, long shift){
-    RandomAccessFile raf = rafs.get(objref);
-
-    if (raf != null) {
-      try {
-        long filePos = env.getLongField(objref, "filePos");
-        long fileLength = raf.length();
-
-        if (shift + filePos > fileLength) {
-          filePos = fileLength;
-
-        } else {
-          filePos = filePos + shift;
-        }
-
-        env.setLongField(objref, "filePos", raf.getFilePointer());
-        return shift;
-      } catch (IOException ex) {
-        env.throwException("java.io.IOException", ex.getMessage());
-        return -1;
-      }
-    } else {
-      env.throwException("java.io.IOException", "Bad file descriptor");
-      return -1;
-    }
-  }
  
   public static int available____I (MJIEnv env, int objref) {
     RandomAccessFile raf = rafs.get(objref);
 
     if (raf != null) {
       try {
-
-
         long filePos = env.getLongField(objref, "filePos");
         long fileLength = raf.length();
 
@@ -188,34 +160,8 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       return -1;
     }
   }
-  
-  public static void write__I__V (MJIEnv env, int objref, int b) {
-    boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
 
-    if (!ignoreWriteMode) {
-      RandomAccessFile raf = rafs.get(objref);
-
-      if (raf != null) {
-        try {
-          long filePos = env.getLongField(objref, "filePos");
-          raf.seek(filePos);
-
-
-          raf.write(b);
-          env.setLongField(objref, "filePos", raf.getFilePointer());
-
-        } catch (IOException ex) {
-          env.throwException("java.io.IOException", ex.getMessage());
-
-        }
-      } else {
-        env.throwException("java.io.IOException", "Bad file descriptor");
-      }
-    }
-
-  }
-
-  public static void write___3BII__V (MJIEnv env, int objref, int bufferRef, int off, int len) {
+  public static int writeNative___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
     boolean ignoreWriteMode = env.getBooleanField(objref, "ignoreWriteMode");
 
     if (!ignoreWriteMode) {
@@ -228,16 +174,20 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
           byte[] buffer = env.getByteArrayObject(bufferRef);
 
           raf.write(buffer, off, len);
-          env.setLongField(objref, "filePos", raf.getFilePointer());
+
+          long newFP = raf.getFilePointer();
+          return (int) (newFP - filePos);
 
         } catch (IOException ex) {
           env.throwException("java.io.IOException", ex.getMessage());
-
+          return -1;
         }
       } else {
         env.throwException("java.io.IOException", "Bad file descriptor");
+        return -1;
       }
     }
+    return 0;
   }
 
   public static void nativeClose____V (MJIEnv env, int objref) {
@@ -263,29 +213,12 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
 
     if (raf != null) {
       try {
-
         long filePos = env.getLongField(objref, "filePos");
         raf.seek(filePos);
 
         raf.setLength(newLength);
         env.setLongField(objref, "filePos", raf.getFilePointer());
 
-      } catch (IOException ex) {
-        env.throwException("java.io.IOException", ex.getMessage());
-      }
-    } else {
-      env.throwException("java.io.IOException", "Bad file descriptor");
-    }
-  }
-  
-  public static void seek__J__V(MJIEnv env, int objref, long pos) {
-    RandomAccessFile raf = rafs.get(objref);
-
-    if (raf != null) {
-      try {
-        raf.seek(pos);
-
-        env.setLongField(objref, "filePos", raf.getFilePointer());
       } catch (IOException ex) {
         env.throwException("java.io.IOException", ex.getMessage());
       }
@@ -313,15 +246,5 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   
   public static long getFilePointer____J(MJIEnv env, int objref) {
     return env.getLongField(objref, "filePos");
-  }
-
-  private static void onIgnoreWriteFileRead() {
-    
-    if (onIgnoreWriteFileRead == FSMode.ERROR) {
-      throw new JPFException("Attempt to read file with ignore write mode");
-    } else if (onIgnoreWriteFileRead == FSMode.WARNING) {
-      logger.warning("Attempt to read file with ignore write mode");
-    }
-
   }
 }

@@ -97,7 +97,7 @@ public interface FileInterface {
    * Set file pointer.
    * @param pos - new file pointer position
    */
-  public void seek(long pos);
+  public void seek(long pos) throws IOException;
 
   /**
    * Get file's length

@@ -298,7 +298,6 @@ public class FileDescriptorTest extends TestJPF {
         }
       };
 
-
       Runnable r2 = new Runnable() {
         public void run() {
           try {
@@ -333,7 +332,6 @@ public class FileDescriptorTest extends TestJPF {
           }
         }
       };
-
 
       Runnable r2 = new Runnable() {
         public void run() {
@@ -370,7 +368,6 @@ public class FileDescriptorTest extends TestJPF {
         }
       };
 
-
       Runnable r2 = new Runnable() {
         public void run() {
           try {
@@ -405,7 +402,6 @@ public class FileDescriptorTest extends TestJPF {
           }
         }
       };
-
 
       Runnable r2 = new Runnable() {
         public void run() {
@@ -442,11 +438,116 @@ public class FileDescriptorTest extends TestJPF {
         }
       };
 
-
       Runnable r2 = new Runnable() {
         public void run() {
           try {
             fis2.read();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithShardDescriptorWriteSkip() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final FileInputStream fis = new FileInputStream(fileName);
+     final FileOutputStream fos = new FileOutputStream(fis.getFD());
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            fis.skip(3);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos.write(1);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testRaceDetectionWithShardDescriptorWriteSeek() throws Exception {
+    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
+     final String fileName = "fileSandbox/testFile";
+     final RandomAccessFile raf = new RandomAccessFile(fileName, "rws");
+     final FileOutputStream fos = new FileOutputStream(raf.getFD());
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            raf.seek(3);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos.write(1);
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Thread t1 = new Thread(r1);
+      Thread t2 = new Thread(r2);
+
+      t1.start();
+      t2.start();
+    }
+  }
+
+  @Test
+  public void testNoRaceWithShardDescriptorWriteGetFP() throws Exception {
+    if (verifyNoPropertyViolation()) {
+     final String fileName = "fileSandbox/testFile";
+     final RandomAccessFile raf = new RandomAccessFile(fileName, "rws");
+     final FileOutputStream fos = new FileOutputStream(raf.getFD());
+
+      Runnable r1 = new Runnable() {
+        public void run() {
+          try {
+            // NO RACE HERE!!
+            raf.getFilePointer();
+          } catch (Exception ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      };
+
+      Runnable r2 = new Runnable() {
+        public void run() {
+          try {
+            fos.write(1);
           } catch (Exception ex) {
             throw new RuntimeException(ex);
           }

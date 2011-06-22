@@ -88,7 +88,7 @@ public class FileDescriptor {
     fileInterface.setLength(newLength);
   }
 
-  void seek(long pos) {
+  void seek(long pos) throws IOException {
     fileInterface.seek(pos);
   }
 
