@@ -65,9 +65,14 @@ public class NativeFileInterfaceRaceTests extends TestJPF {
   static final ClassSpec RACE_DETECTION_PROPERTY = new ClassSpec("gov.nasa.jpf.listener.PreciseRaceDetector");
   static final String RACE_DETECTION_LISTENER = "+listener=gov.nasa.jpf.listener.PreciseRaceDetector";
 
-  @Ignore
-  // <2do> this work if run with help of bin/jpf
-  public void testRaceDetectionWithShardDescriptorRead() throws Exception {
+  @Test  
+  public void testRaceDetectionWithShardDescriptorRead() throws Exception {    
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5});
+      raf.close();
+    }
+    
     if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER, EXCLUDE_SANDBOX)) {
      final String fileName = "fileSandbox/testFile";
      final FileInputStream fis1 = new FileInputStream(fileName);

@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# unix shell script to run jpf tests
+#
+
+JPF_HOME=`dirname "$0"`/..
+
+if test -z "$JVM_FLAGS"; then
+  JVM_FLAGS="-Xmx1024m -ea"
+fi
+
+DEBUG_FLAGS="-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y"
+
+java $DEBUG_FLAGS $JVM_FLAGS -jar "$JPF_HOME/tools/RunTest.jar" "$@"

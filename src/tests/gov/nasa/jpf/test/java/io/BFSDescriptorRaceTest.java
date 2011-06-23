@@ -76,9 +76,14 @@ public class BFSDescriptorRaceTest extends TestJPF {
   static final ClassSpec RACE_DETECTION_PROPERTY = new ClassSpec("gov.nasa.jpf.listener.PreciseRaceDetector");
   static final String RACE_DETECTION_LISTENER = "+listener=gov.nasa.jpf.listener.PreciseRaceDetector";
 
-  @Ignore
-  // <2do> This test fails but JPF find race in the same code if started with bin/jfp
+  @Test
   public void testRaceDetectionWithShardDescriptorRead() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.write(new byte[] {1, 2, 3, 4, 5});
+      raf.close();
+    }
+    
     if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
      final String fileName = "fileSandbox/testFile";
      final FileInputStream fis1 = new FileInputStream(fileName);
