@@ -177,10 +177,6 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
     }
   }
 
-  public static boolean valid____Z(MJIEnv env, int objref) {
-    return false;
-  }
-
   public static void setLength__J__V(MJIEnv env, int objref, long newLength) {
     RandomAccessFile raf = rafs.get(objref);
 

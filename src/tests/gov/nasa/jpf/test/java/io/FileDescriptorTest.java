@@ -18,19 +18,15 @@
 //
 package gov.nasa.jpf.test.java.io;
 
-import org.junit.Ignore;
-import gov.nasa.jpf.JPFException;
+import java.io.FileDescriptor;
 import gov.nasa.jpf.jvm.Verify;
 import gov.nasa.jpf.util.ClassSpec;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -277,288 +273,19 @@ public class FileDescriptorTest extends TestJPF {
     }
   }
 
-  static final ClassSpec RACE_DETECTION_PROPERTY = new ClassSpec("gov.nasa.jpf.listener.PreciseRaceDetector");
-  static final String RACE_DETECTION_LISTENER = "+listener=gov.nasa.jpf.listener.PreciseRaceDetector";
-
-  @Ignore
-  // <2do> This test fails but JPF find race in the same code if started with bin/jfp
-  public void testRaceDetectionWithShardDescriptorRead() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileInputStream fis1 = new FileInputStream(fileName);
-     final FileInputStream fis2 = new FileInputStream(fis1.getFD());
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fis1.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fis2.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
   @Test
-  public void testRaceDetectionWithShardDescriptorReadWrite() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileInputStream fis = new FileInputStream(fileName);
-     final FileOutputStream fos = new FileOutputStream(fis.getFD());
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fis.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testRaceDetectionWithReadWriteSameFile() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileInputStream fis = new FileInputStream(fileName);
-     final FileOutputStream fos = new FileOutputStream(fileName);
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fis.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testRaceDetectionWithWriteWriteSameFile() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileOutputStream fos1 = new FileOutputStream(fileName);
-     final FileOutputStream fos2 = new FileOutputStream(fileName);
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fos1.write(2);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos2.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testRaceDetectionWithReadReadSameFile() throws Exception {
-    if (verifyNoPropertyViolation(RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileInputStream fis1 = new FileInputStream(fileName);
-     final FileInputStream fis2 = new FileInputStream(fileName);
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fis1.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fis2.read();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testRaceDetectionWithShardDescriptorWriteSkip() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final FileInputStream fis = new FileInputStream(fileName);
-     final FileOutputStream fos = new FileOutputStream(fis.getFD());
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            fis.skip(3);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testRaceDetectionWithShardDescriptorWriteSeek() throws Exception {
-    if (verifyPropertyViolation(RACE_DETECTION_PROPERTY, RACE_DETECTION_LISTENER)) {
-     final String fileName = "fileSandbox/testFile";
-     final RandomAccessFile raf = new RandomAccessFile(fileName, "rws");
-     final FileOutputStream fos = new FileOutputStream(raf.getFD());
-
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            raf.seek(3);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
-    }
-  }
-
-  @Test
-  public void testNoRaceWithShardDescriptorWriteGetFP() throws Exception {
+  public void testIsDescriptorValid() throws Exception {
     if (verifyNoPropertyViolation()) {
-     final String fileName = "fileSandbox/testFile";
-     final RandomAccessFile raf = new RandomAccessFile(fileName, "rws");
-     final FileOutputStream fos = new FileOutputStream(raf.getFD());
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      FileDescriptor fd1 = raf.getFD();
+      assertTrue("If file wasn't closed descriptor should be valid", fd1.valid());
 
-      Runnable r1 = new Runnable() {
-        public void run() {
-          try {
-            // NO RACE HERE!!
-            raf.getFilePointer();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
+      raf.close();
+      assertFalse("If file was closed descriptor shouldn't be valid", fd1.valid());
 
-      Runnable r2 = new Runnable() {
-        public void run() {
-          try {
-            fos.write(1);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      };
-
-      Thread t1 = new Thread(r1);
-      Thread t2 = new Thread(r2);
-
-      t1.start();
-      t2.start();
+      FileDescriptor fd2 = raf.getFD();
+      assertFalse("If RandomAccessFile should return not valid descriptor for a closed file",
+                  fd2.valid());
     }
   }
 }

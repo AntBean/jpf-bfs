@@ -18,6 +18,7 @@
 //
 package gov.nasa.jpf.test.bfs;
 
+import java.io.FileDescriptor;
 import gov.nasa.jpf.util.ClassSpec;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -283,6 +284,22 @@ public class NativeFileInterfaceTest extends TestJPF {
 
       File testFile = new File("fileSandbox/testFile");
       assertEquals(10, testFile.length());
+    }
+  }
+
+  @Test
+  public void testIsDescriptorValid() throws Exception {
+    if (verifyNoPropertyViolation(EXCLUDE_SANDBOX)) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      FileDescriptor fd1 = raf.getFD();
+      assertTrue("If file wasn't closed descriptor should be valid", fd1.valid());
+
+      raf.close();
+      assertFalse("If file was closed descriptor shouldn't be valid", fd1.valid());
+
+      FileDescriptor fd2 = raf.getFD();
+      assertFalse("If RandomAccessFile should return not valid descriptor for a closed file",
+                  fd2.valid());
     }
   }
 

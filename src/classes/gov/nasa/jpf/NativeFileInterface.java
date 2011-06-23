@@ -104,7 +104,9 @@ public class NativeFileInterface implements FileInterface {
 
   private native void nativeClose() throws IOException;
 
-  public native boolean valid();
+  public boolean valid() {
+    return isOpened;
+  }
 
   public native void setLength(long newLength);
 

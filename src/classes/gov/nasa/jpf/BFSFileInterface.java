@@ -112,7 +112,7 @@ public class BFSFileInterface implements FileInterface {
   }
 
   public boolean valid() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return isOpened;
   }
 
   // <2do> If new length is far more then current length this will create
