@@ -44,18 +44,6 @@ public class File
   private FileInfo fileInfo;
 
   protected FileInfo getFileInfo() {
-    System.out.println("getFileInfo()");
-    if (fileInfo == null) {
-      fileInfo = FileInfo.getFileInfo(canonicalPath);
-    }
-    
-    if (fileInfo == null) {
-      System.out.println("Returned FileInfo - null");
-    }
-    else {
-      System.out.println("Returned FileInfo - " + fileInfo);
-    }
-
     return fileInfo;
   }
 
@@ -69,14 +57,13 @@ public class File
     
     this.filename = filename;
     canonicalPath = getCanonicalPath(filename);
-    fileInfo = getFileInfo();
+    fileInfo = FileInfo.getFileInfo(canonicalPath);
   }
 
   private static native String getCanonicalPath(String filename);
 
   public File (String parent, String child) {
   	filename = parent + separator + child;
-
     canonicalPath = getCanonicalPath(filename);
   }
   
