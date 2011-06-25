@@ -21,7 +21,6 @@ package gov.nasa.jpf;
 
 import java.io.FileDescriptor;
 import java.util.ArrayList;
-import gov.nasa.jpf.jvm.Verify;
 
 /**
  * This class stores state of a file in BFS

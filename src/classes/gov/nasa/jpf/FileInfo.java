@@ -26,14 +26,13 @@ import java.util.Random;
 /**
  * FileInfo stores data about all created and deleted files in Backtrackable
  * FileSystem (BFS).
- * Real data about file state like last modified time, rights, lenghts is stored in
+ * Real data about file state like last modified time, rights, lengths is stored in
  * a FileState class. This separation was made, because file can be renamed (moved)
  * and File class should "see" that old file was deleted, but such files like
  * FileXStream and RandomAccessFile should still be able to read/write to this file.
  * This class also stores all FileInfos that was created during SUT work.
  *
  * <2do> it's not optimized at all. Some methods can be easily moved to a peer side.
- * <2do> Add setting fileInfo in all methods that create files
  * @author Ivan Mushketik
  */
 public class FileInfo {
@@ -81,6 +80,11 @@ public class FileInfo {
     return false;
   }
 
+  /**
+   * According to jpf-bfs configuration deleting of an opened file should either
+   * be an error or produce warning. This method checks jpf-bfs config and either
+   * log a warning or throw an exception.
+   */
   private native void checkDeleteConfig();
 
   /**
@@ -207,6 +211,11 @@ public class FileInfo {
     return false;
   }
 
+  /**
+   * According to jpf-bfs configuration renaming of an opened file should either
+   * be an error or produce warning. This method checks jpf-bfs config and either
+   * log a warning or throw an exception.
+   */
   private native void checkRenameConfig();
 
   /**
@@ -243,6 +252,9 @@ public class FileInfo {
     int fileMode = FileAccessInfo.getFileAccessMode(canonicaPath);
     newFI.fileState.setFileAccessMode(fileMode);
     addNewFI(newFI);
+    
+    System.out.println("New FI is " + newFI);
+    
     return newFI;
 
   }
@@ -296,32 +308,25 @@ public class FileInfo {
    * @param canonicalPath - canonical path of a new file
    * @return true if file was created, false otherwise.
    */
-  public static boolean createNewFile(String canonicalPath) {
-    System.out.println("Attempt to create new FileInfo for a file " + canonicalPath);
+  public boolean createNewFile(String canonicalPath) {
+    System.out.println("Attempt to create new FileInfo for a file " + canonicalPath);    
 
-    FileInfo fi = getFileInfo(canonicalPath);
-
-    if (fi == null || !fi.fileState.exists()) {
+    if (!fileState.exists()) {
       String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.exists()) {
-        if (fi == null) {
-          fi = new FileInfo(canonicalPath, false);
-          addNewFI(fi);
-          
-        } else {
-          fi.fileState.setIsDir(false);
-          fi.fileState.setDoesExist(true);
-        }
+      if (parentFI != null && parentFI.fileState.exists()) {        
+          fileState.setIsDir(false);
+          fileState.setDoesExist(true);
+          fileState.setNativeFSFileName(null);        
 
         // We need to create file on native FS for read/write operations
-        if (fi.fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
+        if (fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
           String tempFile = createFileForNativeAccess();
-          fi.fileState.setNativeFSFileName(tempFile);
+          fileState.setNativeFSFileName(tempFile);
         }
 
-        System.out.println("New file is " + fi);
+        System.out.println("New file is " + this);
         
         return true;
       }
@@ -359,22 +364,18 @@ public class FileInfo {
    * @param canonicalPath - canonical path of a directory to create.
    * @return true if directory was created, false otherwise
    */
-  public static boolean mkdir(String canonicalPath) {
+  public boolean mkdir() {
     System.out.println("Attempt to create new FileInfo for a dir " + canonicalPath);
-    FileInfo fi = getFileInfo(canonicalPath);
 
-    if (fi == null || !fi.fileState.exists()) {
+    if (!fileState.exists()) {
       String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.exists()) {
-        if (fi == null) {
-          fi = new FileInfo(canonicalPath, true);
-          addNewFI(fi);
-        }
-
-        fi.fileState.setIsDir(true);
-        fi.fileState.setDoesExist(true);
+      if (parentFI != null && parentFI.fileState.exists()) {        
+        fileState.setIsDir(true);
+        fileState.setDoesExist(true);
+        fileState.setNativeFSFileName(null);
+        
         return true;
       }
     }
@@ -385,45 +386,39 @@ public class FileInfo {
   /**
    * Create all directories that needed to be created for a directory with
    * given canonical path.
-   * @param canonicalPath - canonial path of a directory that should be created.
+   * @param canonicalPath - canonical path of a directory that should be created.
    * @param firstCall - true if this call to this function is the first one, false
    * otherwise.
    * @return true if all directories were created, false otherwise.
    */
-  public static boolean mkdirs(String canonicalPath, boolean firstCall) {
-    FileInfo fi = getFileInfo(canonicalPath);
-    System.out.println("FileInfo.mkdirs " + fi);
-
+  public boolean mkdirs(boolean firstCall) {
+    System.out.println("FileInfo.mkdirs " + this);
     
     // File not exists
-    if (fi == null) {
-      String parent = getParent(canonicalPath);
-      if (mkdirs(parent, false)) {
-        mkdir(canonicalPath);
-        return true;
-      } else {
-        return false;
-      }
-    } else if (!fi.fileState.exists()) {
+    
+    if (!fileState.exists()) {
       // File was deleted
       String parent = getParent(canonicalPath);
-      if (mkdirs(parent, false)) {
-        fi.fileState.setDoesExist(true);
-        fi.fileState.setChildren(new ArrayList<FileInfo>());
-
-        FileInfo parentFI = getFileInfoByCanonicalPath(parent);
-        parentFI.fileState.addChild(fi);
+      FileInfo parentFI = getFileInfo(parent);
+      
+      if (parentFI.mkdirs(false)) {
+        fileState.setDoesExist(true);
+        fileState.setChildren(new ArrayList<FileInfo>());
+        fileState.setIsDir(true);
+        fileState.setNativeFSFileName(null);
+        
+        parentFI.fileState.addChild(this);
 
         return true;
       } else {
         return false;
-      }
-    } else if (!fi.fileState.isDir()) {
-      // FS object is a file
-      return false;
+      }     
     } else if (firstCall) {
       // If File.mkdirs() is called to create existing directory it should return
       // false
+      return false;
+    }  else if (!fileState.isDir()) {
+      // FS object is a file
       return false;
     }
 
@@ -490,6 +485,14 @@ public class FileInfo {
     }
   }
 
+  /**
+   * Create temp file for a native access mode. If a canonical path of a new file
+   * matches native-access mode it should be created on a native FS. In order to 
+   * not change FS during SUT run a temp file in special folder is created and 
+   * canonical path of such a file is returned. 
+   * 
+   * @return canonical path of a temp file that can be used for a native access.
+   */
   private static native String createFileForNativeAccess();
 
   /**

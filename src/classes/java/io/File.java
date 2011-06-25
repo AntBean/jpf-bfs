@@ -123,9 +123,6 @@ public class File
     return filename;
   }
   
-  
-  //--- native peer intercepted (hopefully)
-  
   int getPrefixLength() { return 0; }
   
   public String getPath() {
@@ -260,7 +257,7 @@ public class File
   public boolean createNewFile() throws java.io.IOException {
     System.out.println("File.createNewFile()");
     
-    return FileInfo.createNewFile(canonicalPath);
+    return fileInfo.createNewFile(canonicalPath);
   }
 
   public boolean delete() {
@@ -272,51 +269,43 @@ public class File
   
   public String[] list()  {
     System.out.println("File.list()");
+    String[] childsCP = fileInfo.list();
 
-    if (fileInfo != null) {
-      String[] childsCP = fileInfo.list();
+    if (childsCP != null) {
+      String[] childsNames = new String[childsCP.length];
 
-      if (childsCP != null) {
-        String[] childsNames = new String[childsCP.length];
-
-        for (int i = 0; i < childsCP.length; i++) {
-          childsNames[i] = childsCP[i].substring(canonicalPath.length() + 1);
-        }
-
-        return childsNames;
+      for (int i = 0; i < childsCP.length; i++) {
+        childsNames[i] = childsCP[i].substring(canonicalPath.length() + 1);
       }
-    }
 
+      return childsNames;
+    }
+    
     return null;
   }
 
   public String[] list(FilenameFilter filter)  {
-    System.out.println("File.list(FilenameFilter)");
+    System.out.println("File.list(FilenameFilter)");    
+    String[] childs = list();
 
-    if (fileInfo != null) {
-      String[] childs = list();
+    if (childs != null) {
+      int shift = 0;
 
-      if (childs != null) {
-        int shift = 0;
-
-        for (int i = 0; i < childs.length; i++) {
-          if (!filter.accept(this, childs[i])) {
-            shift++;
-          } else {
-            if (shift != 0) {
-              childs[i - shift] = childs[i];
-            }
+      for (int i = 0; i < childs.length; i++) {
+        if (!filter.accept(this, childs[i])) {
+          shift++;
+        } else {
+          if (shift != 0) {
+            childs[i - shift] = childs[i];
           }
         }
-
-        String[] filteredChilds = new String[childs.length - shift];
-
-        System.arraycopy(childs, 0, filteredChilds, 0, childs.length - shift);
-
-        return filteredChilds;
       }
 
-      return null;
+      String[] filteredChilds = new String[childs.length - shift];
+
+      System.arraycopy(childs, 0, filteredChilds, 0, childs.length - shift);
+
+      return filteredChilds;
     }
 
     return null;
@@ -324,24 +313,21 @@ public class File
   
   public File[] listFiles()  {
     System.out.println("File.listFiles()");
+    
+    String[] childs = list();
+    if (childs != null) {
+      File[] result = new File[childs.length];
 
-    if (fileInfo != null) {
-      String[] childs = list();
-      if (childs != null) {
-        File[] result = new File[childs.length];
-
-        for (int i = 0; i < childs.length; i++) {
-          result[i] = new File(canonicalPath, childs[i]);
-        }
-
-        return result;
+      for (int i = 0; i < childs.length; i++) {
+        result[i] = new File(canonicalPath, childs[i]);
       }
 
-      return null;
+      return result;
     }
 
     return null;
   }
+  
   public File[] listFiles(FilenameFilter filter) {
     System.out.println("File.listFiles(FilenameFilter)");
 
@@ -367,44 +353,40 @@ public class File
   public File[] listFiles(FileFilter filter) {
     System.out.println("File.listFiles(FilenameFilter)");
     
-    if (fileInfo != null) {
-      File[] children = listFiles();
-      
-      if (children != null) {
-        int shift = 0;
+    File[] children = listFiles();
 
-        for (int i = 0; i < children.length; i++) {
-          if (!filter.accept(children[i])) {
-            shift++;
-          } else {
-            if (shift != 0) {
-              children[i - shift] = children[i];
-            }
+    if (children != null) {
+      int shift = 0;
+
+      for (int i = 0; i < children.length; i++) {
+        if (!filter.accept(children[i])) {
+          shift++;
+        } else {
+          if (shift != 0) {
+            children[i - shift] = children[i];
           }
         }
-
-        File[] filteredChildren = new File[children.length - shift];
-
-        System.arraycopy(children, 0, filteredChildren, 0, children.length - shift);
-
-        return filteredChildren;
       }
-      
-      return null;
+
+      File[] filteredChildren = new File[children.length - shift];
+
+      System.arraycopy(children, 0, filteredChildren, 0, children.length - shift);
+
+      return filteredChildren;
     }
-    
+
     return null;
   }
 
   public boolean mkdir() {
     System.out.println("File.mkdir()");
-    return FileInfo.mkdir(canonicalPath);
+    return fileInfo.mkdir();
   }
   
   public boolean mkdirs() {
     System.out.println("File.mkdirs()");
 
-    return FileInfo.mkdirs(canonicalPath, true);
+    return fileInfo.mkdirs(true);
   }
 
 
@@ -426,7 +408,7 @@ public class File
   public boolean setLastModified(long time)  {
     System.out.println("File.setLastModified()");
 
-    if (fileInfo != null && fileInfo.exists()) {
+    if (fileInfo.exists()) {
       fileInfo.getFileState().setLastModified(time);
 
       return true;
