@@ -85,8 +85,6 @@ public interface FileInterface {
    */
   public void close () throws IOException;
 
-  public boolean valid();
-
   /**
    * Set new file length
    * @param newLength - new file length

@@ -80,7 +80,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
     return fd;
   }
 
-  public long getFilePointer() {
+  public long getFilePointer() throws IOException {
     return fd.filePointer();
   }
 

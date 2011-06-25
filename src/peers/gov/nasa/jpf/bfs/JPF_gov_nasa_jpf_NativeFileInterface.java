@@ -35,7 +35,6 @@ import java.util.HashMap;
 
 public class JPF_gov_nasa_jpf_NativeFileInterface {
   private static final String IGNORE_WRITE_MODE_FIELD = "ignoreWriteMode";
-  private static final String IS_OPENED_FIELD = "isOpened";
   private static final String FILEPOS_FIELD = "filePos";
   private static final String FILE_STATE_FIELD = "fileState";
 
@@ -57,7 +56,6 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       RandomAccessFile raf = new RandomAccessFile(canonicalPath, "rws");
       rafs.put(objref, raf);
 
-      env.setBooleanField(objref, IS_OPENED_FIELD, true);
       env.setReferenceField(objref, FILE_STATE_FIELD, fileStateRef);
       env.setBooleanField(objref, IGNORE_WRITE_MODE_FIELD, ignoreWriteMode);
 
@@ -164,16 +162,12 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   }
 
   public static void nativeClose____V (MJIEnv env, int objref) {
-    boolean isOpened = env.getBooleanField(objref, IS_OPENED_FIELD);
-    if (isOpened) {
-      try {
-        RandomAccessFile raf = rafs.get(objref);
-        raf.close();
-        rafs.remove(objref);
-        env.setBooleanField(objref, IS_OPENED_FIELD, false);
-      } catch (IOException ex) {
-        env.throwException("java.io.IOException", ex.getMessage());
-      }
+    try {
+      RandomAccessFile raf = rafs.get(objref);
+      raf.close();
+      rafs.remove(objref);
+    } catch (IOException ex) {
+      env.throwException("java.io.IOException", ex.getMessage());
     }
   }
 

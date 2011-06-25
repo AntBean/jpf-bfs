@@ -28,36 +28,29 @@ import java.io.IOException;
 public class BFSFileInterface implements FileInterface {
 
   private FileState fileState;
-  private boolean isOpened;
   private long filePos;
 
   BFSFileInterface(FileState fileState) {
     this.fileState = fileState;
-    isOpened = true;
   }
 
   public void sync() {
     // Nothing to do. BFS is always sync
   }
 
-  public int read() throws IOException {
-    if (isOpened) {
-      byte[] aByte = new byte[1];
-      int read = fileState.read(filePos, aByte, 0, 1);
+  public int read() throws IOException {    
+    byte[] aByte = new byte[1];
+    int read = fileState.read(filePos, aByte, 0, 1);
 
-      if (read == 1) {
-        filePos += 1;
-        return aByte[0];
-      }
-
-      return -1;
-    } else {
-      throw new IOException("Attempt to read with closed descriptor");
+    if (read == 1) {
+      filePos += 1;
+      return aByte[0];
     }
+
+    return -1;
   }
 
   public int read(byte[] buffer, int off, int len) throws IOException {
-    if (isOpened) {
     if (filePos < fileState.getLength()) {
       int read = fileState.read(filePos, buffer, off, len);
       filePos += read;
@@ -66,10 +59,6 @@ public class BFSFileInterface implements FileInterface {
     }
 
     return -1;
-    } else {
-      throw new IOException("Attempt to read with closed descriptor");
-    }
-
   }
 
   public long skip(long shift) throws IOException {
@@ -98,21 +87,12 @@ public class BFSFileInterface implements FileInterface {
   }
 
   public void write(byte[] buf, int off, int len) throws IOException {
-    if (isOpened) {
       int written = fileState.write(filePos, buf, off, len);
       filePos += written;
-    } else {
-      throw new IOException("Attempt to write with closed descriptor");
-    }
   }
 
   public void close() throws IOException {
     fileState.close();
-    isOpened = false;
-  }
-
-  public boolean valid() {
-    return isOpened;
   }
 
   // <2do> If new length is far more then current length this will create

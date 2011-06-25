@@ -31,72 +31,123 @@ public class FileDescriptor {
 
   private FileInterface fileInterface;
   private FileState fileState;
+  private boolean isOpened;
   
   public FileDescriptor(FileInterface fi, FileState fileState) {
     fileInterface = fi;
     this.fileState = fileState;
+    isOpened = true;
   }
   
   public boolean valid () {
-    return fileInterface.valid();
+    return isOpened;
   }
   
   public void close () throws IOException {
-    fileInterface.close();
+    if (isOpened) {
+      fileInterface.close();
+      isOpened = false;
+    }
   }
 
-  public void sync() {
-    fileInterface.sync();
+  public void sync() throws SyncFailedException {
+    if (isOpened) {
+      fileInterface.sync();
+    } else {
+      throw new SyncFailedException("Attempt to sync closed descriptor");
+    }
   }
   
   int read () throws IOException {
-    if (fileState.getOpenCnt() > 1) {
-      System.out.println("[MY LISTENER] Read when openCnt > 1");
+    if (isOpened) {
+
+      if (fileState.getOpenCnt() > 1) {
+        System.out.println("[MY LISTENER] Read when openCnt > 1");
+      }
+      fileState.markRead();
+      return fileInterface.read();
+    } else {
+      throw new IOException("Attempt to read with closed descriptor");
     }
-    fileState.markRead();
-    return fileInterface.read();
   }
 
   int read (byte[] buf, int off, int len) throws IOException {
-    fileState.markRead();
-    return fileInterface.read(buf, off, len);
+    if (isOpened) {
+      fileState.markRead();
+      return fileInterface.read(buf, off, len);
+    } else {
+      throw new IOException("Attempt to read with closed descriptor");
+    } 
   }
 
   long skip(long n) throws IOException {
-    return fileInterface.skip(n);
+    if (isOpened) {
+      return fileInterface.skip(n);
+    } else {
+      throw new IOException("Attempt to skip bytes with closed descriptor");
+    }
   }
 
   int available () throws IOException {
-    return fileInterface.available();
+    if (isOpened) {
+      return fileInterface.available();
+    } else {
+      throw new IOException("Attempt to get number of available bytes with closed descriptor");
+    }
   }
   
   void write (int b) throws IOException {
-    if (fileState.getOpenCnt() > 1) {
-      System.out.println("[MY LISTENER] Write when openCnt > 1");
-    }
-    fileState.markWrite(FileOperations.WRITE);
-    fileInterface.write(b);
+    if (isOpened) {
+      if (fileState.getOpenCnt() > 1) {
+        System.out.println("[MY LISTENER] Write when openCnt > 1");
+      }
+      fileState.markWrite(FileOperations.WRITE);
+      fileInterface.write(b);
+    } else {     
+      throw new IOException("Attempt to write with closed descriptor");
+    }    
   }
 
   void write (byte[] buf, int off, int len) throws IOException {
-    fileState.markWrite(FileOperations.WRITE);
-    fileInterface.write(buf, off, len);
+    if (isOpened) {
+      fileState.markWrite(FileOperations.WRITE);
+      fileInterface.write(buf, off, len);
+    } else {
+      throw new IOException("Attempt to read with closed descriptor");
+    }
   }
 
-  void setLength(long newLength) {
-    fileState.markWrite(FileOperations.WRITE);
-    fileInterface.setLength(newLength);
+  void setLength(long newLength) throws IOException {
+    if (isOpened) {
+      fileState.markWrite(FileOperations.WRITE);
+      fileInterface.setLength(newLength);
+    } else {
+      throw new IOException("Attempt to set file length with closed descriptor");
+    }
   }
 
   void seek(long pos) throws IOException {
-    fileInterface.seek(pos);
+    if (isOpened) {
+      fileInterface.seek(pos);
+    } else {
+      throw new IOException("Attempt to seek in file with closed descriptor");
+    }
   }
 
-  long length() {
-    return fileInterface.length();
+  long length() throws IOException {
+    if (isOpened) {
+      return fileInterface.length();
+    } else {
+      throw new IOException("Attempt to get file length with closed descriptor");
+    }
   }
 
-  long filePointer() {
-    return fileInterface.getFilePointer();
+  long filePointer() throws IOException {
+    if (isOpened) {
+      return fileInterface.getFilePointer();
+    } else {
+      throw new IOException("Attempt to get file pointer with closed descriptor");
+    }
+    
   }
 }

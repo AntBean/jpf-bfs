@@ -26,8 +26,6 @@ import java.io.IOException;
  * @author Ivan Mushketik
  */
 public class NativeFileInterface implements FileInterface {
-
-  private boolean isOpened;
   private long filePos;
   // Canonical path of a file on which read/write should be performed
   private String canonicalPath;
@@ -94,28 +92,18 @@ public class NativeFileInterface implements FileInterface {
   private native int writeNative(byte[] buf, int off, int len) throws IOException;
 
   public void close() throws IOException {
-    if (isOpened) {
-      nativeClose();
+    nativeClose();
 
-      // Decrease open counter
-      fileState.close();
-    }
+    // Decrease open counter
+    fileState.close();
   }
 
   private native void nativeClose() throws IOException;
 
-  public boolean valid() {
-    return isOpened;
-  }
-
   public native void setLength(long newLength);
 
   public void seek(long pos) throws IOException {
-    if (isOpened) {
-      filePos = pos;
-    } else {
-      throw new IOException("Bad file descriptor");
-    }
+    filePos = pos;   
   }
 
   public native long length();
