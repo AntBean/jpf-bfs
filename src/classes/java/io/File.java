@@ -256,7 +256,7 @@ public class File
     return fileInfo.getFileState().getLength();
   }
 
-  public boolean createNewFile() throws java.io.IOException {
+  public boolean createNewFile() throws IOException {
     System.out.println("File.createNewFile()");
     
     return fileInfo.createNewFile(canonicalPath);

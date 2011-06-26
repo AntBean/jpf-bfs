@@ -802,6 +802,29 @@ public class FileTest extends TestJPF {
     }
   }
   
+  @Test
+  public void testListDirWhenHasNoRights() {
+    if (verifyNoPropertyViolation()) {
+      File dir = new File("fileSandbox/parent");
+      dir.setExecutable(false);
+      dir.setReadable(false);
+      
+      assertNull("If SUT has not read and execute rights for a directory File.list() should return null",
+                 dir.list());
+    }
+  }
+  
+  @Test
+  public void testCreateFileInDirWithNoWriteRights() throws Exception {
+    if (verifyUnhandledException("java.io.IOException")) {
+      File dir = new File("fileSandbox/parent");
+      dir.setWritable(false);
+      File newFile = new File("fileSandbox/parent/newFile");
+      
+      newFile.createNewFile();
+    }
+  }
+  
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

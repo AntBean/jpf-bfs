@@ -19,6 +19,7 @@
 
 package gov.nasa.jpf;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -45,12 +46,22 @@ public class FileInfo {
   private FileState fileState;
 
   // Create new file in BFS
-  private FileInfo(String filename, boolean isDir) {
+  private FileInfo(String filename, boolean isDir, boolean exists) {
     canonicalPath = filename;
     
     fileState = new FileState();
     fileState.setIsDir(isDir);
-    fileState.setDoesExist(true);
+    fileState.setDoesExist(exists);
+    
+    if (isDir) {
+      fileState.setChildren(new ArrayList<FileInfo>());
+    }
+    
+    if (exists) {
+      fileState.setReadableForSUT(true);
+      fileState.setWritableForSUT(true);
+    }
+    
   }  
 
   private FileInfo(String canonicalPath, FileState state) {
@@ -63,7 +74,8 @@ public class FileInfo {
    * @return true if operation successfully finished, false otherwise.
    */
   public boolean delete() {
-
+    System.out.println("FileInfo.delete() " + this);    
+    
     // File can be deleted if it exists or it's not a file system root
     if (fileState.exists() && !isFSRoot(canonicalPath)) {
       checkDeleteConfig();
@@ -110,52 +122,53 @@ public class FileInfo {
    * of canonical paths of files in this directory. Otherwise it returns null.
    */
   public String[] list() {
-    System.out.println("FileInfo.list()");
+    System.out.println("FileInfo.list() for " + this);
 
     if (fileState.isDir() && fileState.exists()) {
-      String[] nativeFSChildren = {};
+      if (fileState.isReadableForSUT()) {// && fileState.isExecutableForSUT()) {
+        String[] nativeFSChildren = {};
 
-      // If directory existed on a filesystem before SUT run, we can read child files
-      // that exist on a native FS
-      if (fileState.getNativeFSFileName() != null) {
-        nativeFSChildren = getChildrenCPs(fileState.getNativeFSFileName());
-      }
-
-      System.out.println("Native FS children: ");
-      for (String childName : nativeFSChildren) {
-        System.out.print(childName + ", ");
-      }
-      System.out.println(";");
-
-      HashSet<String> set = new HashSet<String>();
-
-      for (String fsChild : nativeFSChildren) {
-        set.add(fsChild);
-      }
-
-      // Add new children to child's set remove children that were deleted by SUT
-      for (FileInfo child : fileState.getChildren()) {
-        if (child.fileState.exists()) {
-          set.add(child.canonicalPath);
-          System.out.println("Found new existing child " + child.canonicalPath);
+        // If directory existed on a filesystem before SUT run, we can read child files
+        // that exist on a native FS
+        if (fileState.getNativeFSFileName() != null) {
+          nativeFSChildren = getChildrenCPs(fileState.getNativeFSFileName());
         }
-        else {
-          set.remove(child.canonicalPath);
-          System.out.println("Found new deleted child " + child.canonicalPath);
+
+        System.out.println("Native FS children: ");
+        for (String childName : nativeFSChildren) {
+          System.out.print(childName + ", ");
         }
-      }
+        System.out.println(";");
 
-      System.out.println("Current children: ");
-      for (String childName : set) {
-        System.out.print(childName + ", ");
-      }
-      System.out.println(";");
+        HashSet<String> set = new HashSet<String>();
 
-      String[] currentChildren = new String[set.size()];      
-      return set.toArray(currentChildren);
+        for (String fsChild : nativeFSChildren) {
+          set.add(fsChild);
+        }
+
+        // Add new children to child's set remove children that were deleted by SUT
+        for (FileInfo child : fileState.getChildren()) {
+          if (child.fileState.exists()) {
+            set.add(child.canonicalPath);
+            System.out.println("Found new existing child " + child.canonicalPath);
+          } else {
+            set.remove(child.canonicalPath);
+            System.out.println("Found new deleted child " + child.canonicalPath);
+          }
+        }
+
+        System.out.println("Current children: ");
+        for (String childName : set) {
+          System.out.print(childName + ", ");
+        }
+        System.out.println(";");
+
+        String[] currentChildren = new String[set.size()];
+        return set.toArray(currentChildren);
+      }
     }
 
-    // FileInfo represents not a directory, or doesn't exist
+    // FileInfo represents not a directory, or doesn't exist, or SUT has no rights
     return null;
   }
 
@@ -245,7 +258,7 @@ public class FileInfo {
     }
     
     if (newFI == null) {
-      newFI = new FileInfo(canonicaPath, true);
+      newFI = new FileInfo(canonicaPath, true, false);
       newFI.fileState.setDoesExist(false);
     }
 
@@ -308,25 +321,31 @@ public class FileInfo {
    * @param canonicalPath - canonical path of a new file
    * @return true if file was created, false otherwise.
    */
-  public boolean createNewFile(String canonicalPath) {
+  public boolean createNewFile(String canonicalPath) throws IOException {
     System.out.println("Attempt to create new FileInfo for a file " + canonicalPath);    
 
     if (!fileState.exists()) {
       String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.exists()) {        
-         setNewFileState(false);
+      if (parentFI != null && parentFI.fileState.exists()) {
+        if (parentFI.fileState.isWritableForSUT()) {
+          setNewFileState(false);
+          //parentFI.fileState.addChild(this);
 
-        // We need to create file on native FS for read/write operations
-        if (fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
-          String tempFile = createFileForNativeAccess();
-          fileState.setNativeFSFileName(tempFile);
+          // We need to create file on native FS for read/write operations
+          if (fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
+            String tempFile = createFileForNativeAccess();
+            fileState.setNativeFSFileName(tempFile);
+          }
+
+          System.out.println("New file is " + this);
+
+          return true;
+
+        } else {
+          throw new IOException("SUT has no write permission for a directory " + parentFI.canonicalPath);
         }
-
-        System.out.println("New file is " + this);
-        
-        return true;
       }
     }
 
@@ -362,7 +381,7 @@ public class FileInfo {
    * @param canonicalPath
    */
   private static void createNewFileFI(String canonicalPath) {
-    FileInfo fi = new FileInfo(canonicalPath, false);
+    FileInfo fi = new FileInfo(canonicalPath, false, true);
     fileInfos.add(fi);
   }
 
@@ -379,9 +398,8 @@ public class FileInfo {
       FileInfo parentFI = getFileInfo(parentCP);
 
       if (parentFI != null && parentFI.fileState.exists()) {        
-        fileState.setIsDir(true);
-        fileState.setDoesExist(true);
-        fileState.setNativeFSFileName(null);
+        setNewFileState(true);
+        //fileState.setChildren(new ArrayList<FileInfo>());
         
         return true;
       }
@@ -401,18 +419,16 @@ public class FileInfo {
   public boolean mkdirs(boolean firstCall) {
     System.out.println("FileInfo.mkdirs " + this);
     
-    // File not exists
-    
+    // File not exists    
     if (!fileState.exists()) {
       // File was deleted
       String parent = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parent);
       
       if (parentFI.mkdirs(false)) {
-        fileState.setDoesExist(true);
+        setNewFileState(true);
+        
         fileState.setChildren(new ArrayList<FileInfo>());
-        fileState.setIsDir(true);
-        fileState.setNativeFSFileName(null);
         
         parentFI.fileState.addChild(this);
 
