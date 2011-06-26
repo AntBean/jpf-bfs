@@ -89,7 +89,7 @@ public interface FileInterface {
    * Set new file length
    * @param newLength - new file length
    */
-  public void setLength(long newLength);
+  public void setLength(long newLength) throws IOException;
 
   /**
    * Set file pointer.

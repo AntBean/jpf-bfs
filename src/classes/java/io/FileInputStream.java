@@ -21,6 +21,8 @@ package java.io;
 
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * a simple model to read data w/o dragging the file system content into
@@ -40,7 +42,20 @@ public class FileInputStream extends InputStream implements Closeable {
     }
 
     FileState fileState = file.getFileInfo().getFileState();
+    
+    checkPermissions(file, fileState);
+    
     fd = fileState.open();
+  }
+  
+  private void checkPermissions(File file, FileState fileState) throws FileNotFoundException {
+    try {
+      if (!fileState.isReadableForSUT()) {
+        throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
+      }
+    } catch (IOException ex) {
+      throw new FileNotFoundException(ex.getMessage());
+    }
   }
   
   public FileInputStream (FileDescriptor fd) {

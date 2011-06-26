@@ -130,10 +130,6 @@ public class JPF_java_io_File {
     return getFile(env, objref).isHidden();
   }
 
-  public static boolean canWrite____Z (MJIEnv env, int objref) {
-    return getFile(env,objref).canWrite();
-  }
-
   public static int listRootsNames_____3Ljava_lang_String_2(MJIEnv env, int classRef) throws IOException {
     File[] roots = File.listRoots();
     int rootResultRef = env.newObjectArray("java.lang.String", roots.length);

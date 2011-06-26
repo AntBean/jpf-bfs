@@ -154,10 +154,12 @@ public class File
 
   public boolean canRead() { 
     System.out.println("File.canRead()");
-    return fileInfo.getFileState().isReadableForSUT();
     
-
+    if (fileInfo.exists()) {
+      return fileInfo.getFileState().isReadableForSUT();
+    }
     
+    return false;
   }
 
   public boolean setReadable(boolean readable) {
@@ -183,7 +185,7 @@ public class File
   }
 
   public boolean setWritable(boolean writable) {
-    System.out.println("File.setReadable()");
+    System.out.println("File.setWritable()");
 
     if (fileInfo.exists()) {
       fileInfo.getFileState().setWritableForSUT(writable);

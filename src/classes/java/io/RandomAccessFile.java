@@ -39,22 +39,34 @@ public class RandomAccessFile implements DataInput, DataOutput {
 
       if (!file.exists()) {
         if (readOnly) {
-          throw new FileNotFoundException(file.getCanonicalPath() + "(No such file or directory)");
+          throw new FileNotFoundException(file.getCanonicalPath() + " (No such file or directory)");
         } else {
           if (!file.createNewFile()) {
-            throw new FileNotFoundException(file.getCanonicalPath() + "(No such file or directory)");
+            throw new FileNotFoundException(file.getCanonicalPath() + " (No such file or directory)");
           }
         }
-      }
-
+      }     
+      
       FileState fileState = file.getFileInfo().getFileState();
-      System.out.println("Opened fileState with HASH = " + fileState.hashCode());
+      checkFilePermissions(file, fileState);
+      
       fd = fileState.open();
 
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());
     }
-
+  }
+  
+  private void checkFilePermissions(File file, FileState fileState) throws IOException, FileNotFoundException {
+    if (readOnly) {
+      if (!fileState.isReadableForSUT()) {
+        throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
+      }
+    } else {
+      if (!fileState.isReadableForSUT() || !fileState.isWritableForSUT()) {
+        throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
+      }
+    }
   }
 
   public RandomAccessFile(String name, String mode) throws FileNotFoundException {
@@ -227,5 +239,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
   public void writeUTF(String string) throws IOException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
+
+  
 }
 

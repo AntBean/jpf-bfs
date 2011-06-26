@@ -444,4 +444,24 @@ public class RandomAccessFileTest extends TestJPF {
       assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 42}, buffer, read);
     }
   }
+  
+  @Test
+  public void OpenFileForReadWriteWithNoWriteRights() throws Exception {
+    if (verifyUnhandledException("java.io.FileNotFoundException")) {
+      File testFile = new File("fileSandbox/testFile");
+      testFile.setWritable(false);
+      
+      RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+    }
+  }
+  
+  @Test
+  public void OpenFileForReadWithNoReadRights() throws Exception {
+    if (verifyUnhandledException("java.io.FileNotFoundException")) {
+      File testFile = new File("fileSandbox/testFile");
+      testFile.setReadable(false);
+      
+      RandomAccessFile raf = new RandomAccessFile(testFile, "r");
+    }
+  }
 }

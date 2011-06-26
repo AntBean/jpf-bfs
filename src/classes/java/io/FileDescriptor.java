@@ -60,12 +60,12 @@ public class FileDescriptor {
   
   int read () throws IOException {
     if (isOpened) {
-
-      if (fileState.getOpenCnt() > 1) {
-        System.out.println("[MY LISTENER] Read when openCnt > 1");
+      if (fileState.isReadableForSUT()) {
+        fileState.markRead();
+        return fileInterface.read();
+      } else {
+        throw new IOException("No rights to read file");
       }
-      fileState.markRead();
-      return fileInterface.read();
     } else {
       throw new IOException("Attempt to read with closed descriptor");
     }
@@ -73,8 +73,12 @@ public class FileDescriptor {
 
   int read (byte[] buf, int off, int len) throws IOException {
     if (isOpened) {
-      fileState.markRead();
-      return fileInterface.read(buf, off, len);
+      if (fileState.isReadableForSUT()) {
+        fileState.markRead();
+        return fileInterface.read(buf, off, len);
+      } else {
+        throw new IOException("No rights to read file");
+      }
     } else {
       throw new IOException("Attempt to read with closed descriptor");
     } 
@@ -98,11 +102,12 @@ public class FileDescriptor {
   
   void write (int b) throws IOException {
     if (isOpened) {
-      if (fileState.getOpenCnt() > 1) {
-        System.out.println("[MY LISTENER] Write when openCnt > 1");
+      if (fileState.isWritableForSUT()) {
+        fileState.markWrite(FileOperations.WRITE);
+        fileInterface.write(b);
+      } else {
+        throw new IOException("No rights to write to file");
       }
-      fileState.markWrite(FileOperations.WRITE);
-      fileInterface.write(b);
     } else {     
       throw new IOException("Attempt to write with closed descriptor");
     }    
@@ -110,8 +115,12 @@ public class FileDescriptor {
 
   void write (byte[] buf, int off, int len) throws IOException {
     if (isOpened) {
-      fileState.markWrite(FileOperations.WRITE);
-      fileInterface.write(buf, off, len);
+      if (fileState.isWritableForSUT()) {
+        fileState.markWrite(FileOperations.WRITE);
+        fileInterface.write(buf, off, len);
+      } else {
+        throw new IOException("No rights to write to file");
+      }
     } else {
       throw new IOException("Attempt to read with closed descriptor");
     }

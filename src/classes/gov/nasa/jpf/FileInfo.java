@@ -51,7 +51,7 @@ public class FileInfo {
     fileState = new FileState();
     fileState.setIsDir(isDir);
     fileState.setDoesExist(true);
-  }
+  }  
 
   private FileInfo(String canonicalPath, FileState state) {
     this.canonicalPath = canonicalPath;
@@ -316,9 +316,7 @@ public class FileInfo {
       FileInfo parentFI = getFileInfo(parentCP);
 
       if (parentFI != null && parentFI.fileState.exists()) {        
-          fileState.setIsDir(false);
-          fileState.setDoesExist(true);
-          fileState.setNativeFSFileName(null);        
+         setNewFileState(false);
 
         // We need to create file on native FS for read/write operations
         if (fileState.getFileAccessMode() != FileAccessMode.BFS_FILE_ACCESS) {
@@ -334,9 +332,18 @@ public class FileInfo {
 
     return false;
   }
+  
+  private void setNewFileState(boolean isDir) {
+    fileState.setIsDir(isDir);
+    fileState.setDoesExist(true);
+    fileState.setNativeFSFileName(null);
+    
+    fileState.setWritableForSUT(true);
+    fileState.setReadableForSUT(true);
+  }
 
   /**
-   * Create FileInfo for a file with specified canonica path with data read from
+   * Create FileInfo for a file with specified canonical path with data read from
    * a file on a native file system.
    * @param canonicalPath - canonical path of a file.
    * @return FileInfo for a specified file if one exists, null otherwise.

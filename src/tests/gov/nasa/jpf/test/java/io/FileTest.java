@@ -289,29 +289,6 @@ public class FileTest extends TestJPF {
   }
 
   @Test
-  public void testBacktrackableReadableFlagSetting() {
-    if (verifyNoPropertyViolation()) {
-      File file = new File("fileSandbox/parent/child");
-
-      Verify.getBoolean();
-      assertTrue("File.canRead() should return true if file can be read", file.canRead());
-      assertTrue("File.setReadable() should return true when called for existing file", file.setReadable(false));
-
-      assertFalse("File.canRead() should return false if file's read flag set to false", file.canRead());
-    }
-  }
-
-  @Test
-  public void testChangeReadableForNonExistingFile() {
-    if (verifyNoPropertyViolation()) {
-      File file = new File("fileSandbox/parent/DoesntExist");
-
-      assertFalse("File.setReadable() should return false when called for a file that doesn't exist",
-              file.setReadable(true));
-    }
-  }
-
-  @Test
   public void testBacktrackableListChild() throws IOException {
     if (verifyNoPropertyViolation()) {
       File parent = new File("fileSandbox/parent");
@@ -753,8 +730,78 @@ public class FileTest extends TestJPF {
       String[] expectedChilds = {"child1", "child2"};
       assertSameStrings(expectedChilds, parent.list());
     }
+  }  
+  
+  @Test
+  public void testBacktrackableReadableFlagSetting() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child");
+
+      Verify.getBoolean();
+      assertTrue("File.canRead() should return true if file can be read", file.canRead());
+      assertTrue("File.setReadable() should return true when called for existing file", file.setReadable(false));
+
+      assertFalse("File.canRead() should return false if file's read flag set to false", file.canRead());
+    }
   }
 
+  @Test
+  public void testChangeReadableForNonExistingFile() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/DoesntExist");
+
+      assertFalse("File.setReadable() should return false when called for a file that doesn't exist",
+              file.setReadable(true));
+    }
+  }
+  
+  @Test
+  public void testBacktrackableWriteableFlagSetting() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child");
+
+      Verify.getBoolean();
+      assertTrue("File.canWrite() should return true if file can be written", file.canWrite());
+      assertTrue("File.setWritable() should return true when called for existing file", file.setWritable(false));
+
+      assertFalse("File.canWrite() should return false if file's write flag set to false", file.canWrite());
+    }
+  }
+
+  @Test
+  public void testChangeWritableForNonExistingFile() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/DoesntExist");
+
+      assertFalse("File.setWritable() should return false when called for a file that doesn't exist",
+              file.setWritable(true));
+    }
+  }
+    
+  @Test
+  public void testBacktrackableExecutableFlagSetting() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/child");
+      file.setExecutable(true);
+      
+      Verify.getBoolean();
+      assertTrue("File.canExecute() should return true if file can be executed", file.canExecute());
+      assertTrue("File.setExecutable() should return true when called for existing file", file.setExecutable(false));
+
+      assertFalse("File.canExecute() should return false if file's execute flag set to false", file.canExecute());
+    }
+  }
+
+  @Test
+  public void testChangeExecutableForNonExistingFile() {
+    if (verifyNoPropertyViolation()) {
+      File file = new File("fileSandbox/parent/DoesntExist");
+
+      assertFalse("File.setExecutable() should return false when called for a file that doesn't exist",
+              file.setExecutable(true));
+    }
+  }
+  
   private String[] getPathFromFilesArray(File[] listFiles) {
     String[] result = new String[listFiles.length];
 

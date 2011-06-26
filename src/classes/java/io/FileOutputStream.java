@@ -47,9 +47,9 @@ public class FileOutputStream extends OutputStream {
         }
       }
 
-      FileState fileState = file.getFileInfo().getFileState();
-      fd = fileState.open();
-      
+      FileState fileState = file.getFileInfo().getFileState();      
+      checkPermissions(file, fileState);
+      fd = fileState.open();     
 
       if (append) {
         fd.seek(fd.length());
@@ -59,6 +59,16 @@ public class FileOutputStream extends OutputStream {
       }
       
 
+    } catch (IOException ex) {
+      throw new FileNotFoundException(ex.getMessage());
+    }
+  }
+  
+  private void checkPermissions(File file, FileState fileState) throws FileNotFoundException {
+    try {
+      if (!fileState.isWritableForSUT()) {
+        throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
+      }
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());
     }

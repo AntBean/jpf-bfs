@@ -20,6 +20,7 @@
 package gov.nasa.jpf;
 
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -395,7 +396,7 @@ public class FileState {
   public int markRead() {
     return lastOperation;
   }
-
+  
   /**
    * Write data to a BFS file.
    * @param startPos - offset from the beginning of a file
@@ -403,7 +404,7 @@ public class FileState {
    * @param offset - offset in a data buffer
    * @param length - number of bytes to write
    * @return number of bytes that was written
-   */
+   */  
   native int write(long startPos, byte[] data, int offset, int length);
 
   /**
@@ -413,7 +414,7 @@ public class FileState {
    * @param offset - offset in a data buffer
    * @param length - number of bytes to read
    * @return number of bytes that was read
-   */
+   */ 
   native int read(long startPos, byte[] data, int offset, int length);
 
   @Override

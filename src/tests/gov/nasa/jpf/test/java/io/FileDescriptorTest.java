@@ -107,7 +107,7 @@ public class FileDescriptorTest extends TestJPF {
   @Test
   public void testWriteWhenDescriptorIsClosed() throws Exception {
     if (verifyUnhandledException("java.io.IOException")) {
-      FileInputStream fis = new FileInputStream("/home/proger/testFile");
+      FileInputStream fis = new FileInputStream("fileSandbox/testFile");
       FileOutputStream fos = new FileOutputStream(fis.getFD());
 
       fis.close();
@@ -118,7 +118,7 @@ public class FileDescriptorTest extends TestJPF {
   @Test
   public void testReadWhenDescriptorIsClosed() throws Exception {
     if (verifyUnhandledException("java.io.IOException")) {
-      FileInputStream fis = new FileInputStream("/home/proger/testFile");
+      FileInputStream fis = new FileInputStream("fileSandbox/testFile");
       FileOutputStream fos = new FileOutputStream(fis.getFD());
 
       fos.close();

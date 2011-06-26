@@ -18,6 +18,7 @@
 //
 package gov.nasa.jpf.test.java.io;
 
+import java.io.FileInputStream;
 import gov.nasa.jpf.jvm.Verify;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
@@ -231,6 +232,29 @@ public class FileOutputStreamTest extends TestJPF {
       read = raf.read(buffer);
       assertEquals(10, read);
       assertReadResult(expectedAfterWrite, buffer, read);
+    }
+  }
+  
+  @Test
+  public void testOpenFileWithoutPermissionToWrite() throws Exception {
+    if (verifyUnhandledException("java.io.FileNotFoundException")) {
+      File testFile = new File("fileSandbox/testFile");
+      testFile.setWritable(false);
+      
+      FileOutputStream fis = new FileOutputStream(testFile);
+    }
+  }
+  
+  @Test
+  public void testWriteToFileWithNoPermissionsToWrite() throws Exception {
+    if (verifyUnhandledException("java.io.IOException")) {
+     File f = new File("fileSandbox/testFile");
+     f.setWritable(false);     
+     
+     FileInputStream fis = new FileInputStream(f);
+     FileOutputStream fos = new FileOutputStream(fis.getFD());      
+     
+     fos.write(new byte[] {1, 2, 3});
     }
   }
 }

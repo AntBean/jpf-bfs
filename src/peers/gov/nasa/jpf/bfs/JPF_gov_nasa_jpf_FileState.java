@@ -39,9 +39,7 @@ public class JPF_gov_nasa_jpf_FileState {
   static {
     fsCacheDir = BFSUtils.getCacheDir();
   }
-
-  // <2do> If starPos points beyond file and SUT performs write operation, zero bytes
-  // should be added
+  
   public static int write__J_3BII__I(MJIEnv env, int thisPtr, long startPos, int dataPtr, int offset, int length) throws Exception {
     byte[] data = env.getByteArrayObject(dataPtr);
 

@@ -98,7 +98,7 @@ public class BFSFileInterface implements FileInterface {
   // <2do> If new length is far more then current length this will create
   // huge array of zeros.
   // Maybe it's better to move setLength to peer side and avoid this array creation
-  public void setLength(long newLength) {
+  public void setLength(long newLength) throws IOException {
     long fileLength = fileState.getLength();
     if (fileLength < newLength) {
        int delta = (int) (newLength - fileLength);
