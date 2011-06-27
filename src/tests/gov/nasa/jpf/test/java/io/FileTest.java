@@ -71,12 +71,7 @@ public class FileTest extends TestJPF {
   public void testIsFileExistsInDeletedAndCreatedDirectory() {
     if (verifyNoPropertyViolation()) {
       File parent = new File("fileSandbox/parent");
-      File child = new File("fileSandbox/parent/child");
-      assertTrue(parent.delete());
-      assertTrue(parent.mkdir());
-
-      assertFalse("If directory was deleted and recreated all it's children should be deleted",
-                  child.exists());
+      assertFalse("Directory can't be deleted if it is not empty", parent.delete());
     }
   }
 
@@ -91,22 +86,6 @@ public class FileTest extends TestJPF {
       assertTrue("File.create() should return true", file.createNewFile());
       assertTrue("File.isFile() should return true on a file", file.isFile());
       assertTrue("File.exists() should return true on a created file", file.exists());
-    }
-  }
-
-  @Test
-  public void testRemoveParentDir() {
-    if (verifyNoPropertyViolation()) {
-
-      File parent = new File("fileSandbox/parent");
-      File child = new File("fileSandbox/parent/child");
-
-      assertTrue("File.exists() should return true for existing files", parent.exists());
-      assertTrue("File.exists() should return true for existing files", child.exists());
-
-      assertTrue("File.delete() on existing file should return true", parent.delete());
-      assertFalse("File.exists() should return false for deleted files", parent.exists());
-      assertFalse("File.exists() should return false for deleted files", child.exists());
     }
   }
 
@@ -186,29 +165,6 @@ public class FileTest extends TestJPF {
   }
 
   @Test
-  public void testDeleteCreateDirWithCreatedFiles() throws IOException {
-    if (verifyNoPropertyViolation()) {
-      File parent1 = new File("fileSandbox/parent1");
-      File child1 = new File("fileSandbox/parent1/child1");
-
-      Verify.getBoolean();
-      assertFalse("File.exists() should return false if a directory not exists", parent1.exists());
-      assertFalse("File.exists() should return false if a file not exists", child1.exists());
-
-      assertTrue("File.mkdir() should return true when a directory is created", parent1.mkdir());
-      assertTrue("File.createNewFile() should return true when a file is created", child1.createNewFile());
-
-      assertTrue("File.exists() should return true if a directory exists", parent1.exists());
-      assertTrue("File.exists() should return true if a file exists", child1.exists());
-
-      assertTrue("File.delete() should return true when a directory exists", parent1.delete());
-
-      assertFalse("File.exists() should return false if a directory not exists", parent1.exists());
-      assertFalse("File.exists() should return false if a file not exists", child1.exists());
-    }
-  }
-
-  @Test
   public void testCreateFileInNotExistingDirectory() throws IOException {
     if (verifyNoPropertyViolation()) {
       File child1 = new File("fileSandbox/parent1/child1");
@@ -221,11 +177,11 @@ public class FileTest extends TestJPF {
   @Test
   public void testCreateFileInDeletedDirectory() throws IOException {
     if (verifyNoPropertyViolation()) {
-      File parent = new File("fileSandbox/parent");
-      File file = new File("fileSandbox/parent/file");
+      File child = new File("fileSandbox/parent/child");
+      File file = new File("fileSandbox/parent/child/file");
 
       Verify.getBoolean();
-      assertTrue("File.delete() should return true when a directory exists", parent.delete());
+      assertTrue("File.delete() should return true when a directory exists", child.delete());
 
       assertFalse("File.create() should return false if file's parent dir was deleted", file.createNewFile());
       assertFalse("File.exists() should return false if file wasn't created", file.exists());
@@ -246,15 +202,14 @@ public class FileTest extends TestJPF {
   @Test
   public void testCreateDirectoryInDeletedDirectory() throws IOException {
     if (verifyNoPropertyViolation()) {
-      File parent = new File("fileSandbox/parent");
-      File dir = new File("fileSandbox/parent/dir");
+      File child = new File("fileSandbox/parent/child");
+      File dir = new File("fileSandbox/parent/child/dir");
 
       Verify.getBoolean();
-      assertTrue("File.delete() should return true when a directory exists", parent.delete());
+      assertTrue("File.delete() should return true when a directory exists", child.delete());
 
       assertFalse("File.create() should return false if dir's parent dir was deleted", dir.mkdir());
       assertFalse("File.exists() should return false if directory wasn't created", dir.exists());
-
     }
   }
 
@@ -267,24 +222,6 @@ public class FileTest extends TestJPF {
         assertFalse("File.delete() on FS root should return false", root.delete());
         assertTrue("FS root can't be deleted", root.exists());
       }
-    }
-  }
-
-  @Test
-  public void testRecursiveDeletion() throws IOException {
-    if (verifyNoPropertyViolation()) {
-      File file = new File("fileSandbox/parent/child/file");
-      File sandbox = new File("fileSandbox");
-      File parent = new File("parent");
-      File child = new File("child");
-
-      Verify.getBoolean();
-      assertFalse("File.exists() should return false when file doesn't exist", file.exists());
-      assertTrue("File.create() should return true when file is created.", file.createNewFile());
-
-      assertTrue("File.delete() should return true when directory is deleted", sandbox.delete());
-      assertTrue("File.delete() should delete all it's children recursively",
-              !sandbox.exists() && !parent.exists() && !child.exists() && !file.exists());
     }
   }
 
@@ -603,7 +540,7 @@ public class FileTest extends TestJPF {
   @Test
   public void testCreateTempFileInDeletedDirectory() throws IOException {
     if (verifyUnhandledException("java.io.IOException")) {
-      File dir = new File("fileSandbox/parent");
+      File dir = new File("fileSandbox/parent/child");
       dir.delete();
 
       // Attempt to create tempFile in a deleted directory
@@ -822,6 +759,84 @@ public class FileTest extends TestJPF {
       File newFile = new File("fileSandbox/parent/newFile");
       
       newFile.createNewFile();
+    }
+  }
+  
+  @Test
+  public void testRemoveFileIfNoWritePermitionToParentDir() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      File newFile = new File("fileSandbox/parent/newFile");
+      newFile.createNewFile();
+      
+      File parent = new File("fileSandbox/parent");
+      parent.setWritable(false);
+      
+      assertFalse("If SUT has no write permisions for a file's parent directory, File.delete() should return false", 
+              newFile.delete());
+      assertTrue("If file wasn't deleted it should exist", newFile.exists());
+    }
+  }
+  
+  @Test
+  public void testCreateDirectoryInADirWithNoWritePermissions() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      parent.setWritable(false);
+      
+      File childDir = new File("fileSandbox/parent/childDir");
+      assertFalse("If SUT has no write permissions for a parent dir, child dir can't be created", 
+                  childDir.mkdir());
+      assertFalse("If child directory wasn't created it shouldn't exist", childDir.exists());
+      
+    }
+  }
+  
+  @Test
+  public void testCreateDirectoriesInADirWithNoWritePermissions() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      parent.setWritable(false);
+      
+      File childDir = new File("fileSandbox/parent/childDir");
+      File childChildDir = new File("fileSandbox/parent/childDir/childChildDir");
+      
+      assertFalse("If SUT has no write permissions for a parent dir, child dir can't be created", 
+                  childChildDir.mkdirs());
+      assertFalse("If child directory wasn't created it shouldn't exist", childDir.exists());
+      assertFalse("If child directory wasn't created it shouldn't exist", childChildDir.exists());
+      
+    }
+  }
+  
+  @Test
+  public void testRenameFileWithNoWritePermissionsForAParentDirectory() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      parent.setWritable(false);
+      
+      File child = new File("fileSandbox/parent/child");
+      File newChild = new File("fileSandbox/parent/newChild");
+      
+      assertFalse("File can't be renamed in a directory with no write permissions", 
+                  child.renameTo(newChild));
+      assertFalse("If renaming failed, no new file should exist", newChild.exists());
+    }
+  }
+  
+  @Test
+  public void testRenameDirectoryToADirectoryWithNoWritePermissions() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      File child = new File("fileSandbox/parent/child");
+      File newDir = new File("fileSandbox/parent/newChild");
+      child.setWritable(false);
+      
+      newDir.createNewFile();
+      
+      assertFalse("If SUT has no write rights for destanation directory renaming can't be performed", 
+                  newDir.renameTo(child));
+      assertTrue(newDir.exists());
+      assertTrue(child.exists());
+     
     }
   }
   

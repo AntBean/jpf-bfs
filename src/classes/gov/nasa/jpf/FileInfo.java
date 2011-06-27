@@ -77,16 +77,33 @@ public class FileInfo {
     System.out.println("FileInfo.delete() " + this);    
     
     // File can be deleted if it exists or it's not a file system root
-    if (fileState.exists() && !isFSRoot(canonicalPath)) {
-      checkDeleteConfig();
-      fileState.setDoesExist(false);
-
-      // Recursively delete all children
-      for (FileInfo child : fileState.getChildren()) {
-        child.delete();
+    if (fileState.exists() && !isFSRoot(canonicalPath)) {  
+      String parentCP = getParent(canonicalPath);
+      FileInfo parentFI = getFileInfoByCanonicalPath(parentCP);
+      
+      // <2do> Not sure how to check rights for removing file withouth knowledge
+      // about if SUT is a file owner (requires JDK7)
+      if (parentFI.fileState.isWritableForSUT()) {
+        boolean toDelete = false;
+        
+        // If it's a file we need only to check if deleting opened files is
+        // permited
+        if (!fileState.isDir()) { 
+          checkDeleteConfig();
+          toDelete = true;
+        } else {
+          // Only empty directories can be deleted
+          String[] childs = list();
+          if (childs.length == 0) {
+            toDelete = true;
+          }
+        }
+        
+        if (toDelete) {
+          fileState.setDoesExist(false);
+          return true;
+        }        
       }
-
-      return true;
     }
 
     return false;
@@ -185,8 +202,9 @@ public class FileInfo {
       FileInfo destFI = getFileInfo(destCanonicalPath);
       FileInfo destParentFI = getFileInfo(getParent(destCanonicalPath));
 
-      // If file's parent doesn't exist or was deleted, file can't be moved
-      if (destParentFI != null && destParentFI.fileState.exists()) {
+      // Check if renaming permited
+      if (isRenamingPermitted(destParentFI, destFI)) {
+        
         checkRenameConfig();
         // State of file to move
         FileState state = new FileState(fileState);
@@ -222,6 +240,22 @@ public class FileInfo {
     }
 
     return false;
+  }
+
+  /**
+   * Check if renaming is permitted
+   * @param destParentFI - parent directory of a destination file
+   * @param destFI - destination file
+   * @return true if renaming is permitted, false otherwise.
+   */
+  private boolean isRenamingPermitted(FileInfo destParentFI, FileInfo destFI) {
+    // Destanation file's parent exists...
+    return destParentFI != null && 
+           destParentFI.fileState.exists() && 
+           // and it's writable ...
+           destParentFI.fileState.isWritableForSUT() &&
+           // ... and destanation file isn't exists or exists and writable
+           (!destFI.exists() || destFI.fileState.isWritableForSUT());
   }
 
   /**
@@ -397,7 +431,9 @@ public class FileInfo {
       String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
 
-      if (parentFI != null && parentFI.fileState.exists()) {        
+      if (parentFI != null && parentFI.fileState.exists() && 
+          parentFI.fileState.isWritableForSUT()) {        
+        
         setNewFileState(true);
         //fileState.setChildren(new ArrayList<FileInfo>());
         
@@ -435,17 +471,19 @@ public class FileInfo {
         return true;
       } else {
         return false;
-      }     
-    } else if (firstCall) {
-      // If File.mkdirs() is called to create existing directory it should return
-      // false
-      return false;
-    }  else if (!fileState.isDir()) {
-      // FS object is a file
-      return false;
+      }    
+    } else if (fileState.isDir()) {
+      
+      if (firstCall) {
+        // Attempt to create existing directory
+        return false;
+      } else {
+        // If parent directory exists and it's writtable we can create children        
+        return fileState.isWritableForSUT();
+      }
     }
 
-    return true;
+    return false;
   }
 
   /**
@@ -540,6 +578,4 @@ public class FileInfo {
 
     return result;
   }
-
-
 }

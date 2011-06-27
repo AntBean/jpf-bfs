@@ -166,6 +166,10 @@ public class FileState {
     return children;
   }
 
+  public int numberOfChildren() {
+    return children.size();
+  }
+  
   /**
    * Set children of this directory
    * @param children

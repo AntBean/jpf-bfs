@@ -20,6 +20,7 @@ package java.io;
 
 
 import gov.nasa.jpf.FileInfo;
+import gov.nasa.jpf.FileState;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -162,7 +163,7 @@ public class File
     return false;
   }
 
-  public boolean setReadable(boolean readable) {
+  public boolean setReadable(boolean readable, boolean ownerOnly) {
     System.out.println("File.setReadable()");
 
     if (fileInfo.exists()) {
@@ -172,6 +173,10 @@ public class File
     }
 
     return false;
+  }
+  
+  public boolean setReadable(boolean readable) {
+    return setReadable(readable, true);
   }
 
   public boolean canWrite() {
@@ -184,7 +189,7 @@ public class File
     return false;
   }
 
-  public boolean setWritable(boolean writable) {
+  public boolean setWritable(boolean writable, boolean ownerOnly) {
     System.out.println("File.setWritable()");
 
     if (fileInfo.exists()) {
@@ -194,6 +199,10 @@ public class File
     }
 
     return false;
+  }
+  
+  public boolean setWritable(boolean writable) {
+    return setWritable(writable, true);
   }
 
   public boolean canExecute() {
@@ -205,8 +214,8 @@ public class File
 
     return false;
   }
-
-  public boolean setExecutable(boolean executable) {
+  
+  public boolean setExecutable(boolean executable, boolean ownerOnly) {
     System.out.println("File.setReadable()");
 
     if (fileInfo.exists()) {
@@ -218,6 +227,26 @@ public class File
     return false;
   }
 
+  public boolean setExecutable(boolean executable) {
+    return setExecutable(executable, true);
+  }
+
+  public boolean setReadonly() {
+    if (fileInfo.exists()) {
+      FileState fs = fileInfo.getFileState();      
+      fs.setReadableForSUT(true);
+      fs.setWritableForSUT(false);
+      
+      if (fs.isDir()) {
+        fs.setExecutableForSUT(true);      
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }
+  
   public boolean exists() {
     System.out.println("File.exists()");
 
