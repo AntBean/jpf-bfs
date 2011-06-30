@@ -116,8 +116,8 @@ public class RandomAccessFile implements DataInput, DataOutput {
     return fd.read();
   }
 
-  public int read(byte [] b, int off, int len) throws IOException {
-    return fd.read(b, off, len);
+  public int read(byte [] bytes, int off, int len) throws IOException {
+    return fd.read(bytes, off, len);
   }
 
   public int read(byte [] bytes) throws IOException {
@@ -125,63 +125,148 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void readFully(byte[] bytes) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    readFully(bytes, 0, bytes.length);
   }
 
-  public void readFully(byte[] bytes, int i, int i1) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public void readFully(byte[] bytes, int off, int len) throws IOException {
+    int read = read(bytes, off, len);
+    if (read != len) {
+      throw new EOFException("End of file during read");
+    }
   }
 
-  public int skipBytes(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public int skipBytes(int toSkip) throws IOException {
+    return (int) fd.skip(toSkip);
   }
 
   public boolean readBoolean() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int ch = read();
+    if (ch < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return (ch != 0);
   }
 
   public byte readByte() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int b = read();
+    if (b < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return (byte) b;
   }
 
   public int readUnsignedByte() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int b = read();
+    if (b < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return b;
   }
 
   public short readShort() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int ch1 = read();
+    int ch2 = read();
+    
+    if ((ch1 | ch2) < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return (short) ((ch1 << 8) + ch2);
   }
 
-  public int readUnsignedShort() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public int readUnsignedShort() throws IOException {    
+    int ch1 = read();
+    int ch2 = read();
+    
+    if ((ch1 | ch2) < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return ((ch1 << 8) + ch2);
   }
 
   public char readChar() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int ch1 = read();
+    int ch2 = read();
+    
+    if ((ch1 | ch2) < 0) {
+      throw new EOFException("End of file");
+    }
+    
+    return (char) ((ch1 << 8) + ch2);
   }
 
   public int readInt() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int b1 = read();
+    int b2 = read();
+    int b3 = read();
+    int b4 = read();
+    
+    if ((b1 | b2 | b3 | b4) < 0) {
+      throw new EOFException("End of file");
+    }
+    return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
   }
 
   public long readLong() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return ((long)(readInt()) << 32) + (readInt() & 0xFFFFFFFFL);
   }
 
   public float readFloat() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return Float.intBitsToFloat(readInt());
   }
 
   public double readDouble() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return Double.longBitsToDouble(readLong());
   }
 
   public String readLine() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    System.out.println("RAF.readLine()");
+    StringBuilder sb = new StringBuilder();
+    int c = -1;
+    boolean eol = false;
+    
+    while (!eol) {
+      c = read();
+      System.out.println("Read = " + c);
+      
+      switch(c) {
+        case -1:
+        case '\n':          
+          sb.append(c);
+          eol = true;
+          break;
+        
+        case '\r':
+          sb.append(c);
+          
+          long oldPos = getFilePointer();
+          c = read();
+          if (c != '\n') {
+            seek(oldPos);
+          }
+          
+          eol = true;
+          break;
+          
+        default:
+          sb.append(c);
+          break;
+      }
+    }
+    
+    if (c == -1 && sb.length() == 0) {
+      return null;
+    }
+    
+    return sb.toString();
   }
 
   public String readUTF() throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return DataInputStream.readUTF(this);
   }
 
   public void write(int i) throws IOException {
@@ -197,47 +282,74 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void writeBoolean(boolean bln) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write(bln ? 1 : 0);
   }
 
   public void writeByte(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write(i);
   }
 
   public void writeShort(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write((i >>> 8) & 0xFF);
+    write(i & 0xFF);
   }
 
   public void writeChar(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write((i >>> 8) & 0xFF);
+    write(i & 0xFF);
   }
 
   public void writeInt(int i) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write((i >>> 24) & 0xFF);
+    write((i >>> 16) & 0xFF);
+    write((i >>> 8) & 0xFF);
+    write((i >>> 0) & 0xFF);
   }
 
   public void writeLong(long l) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    write((int)(l >>> 56) & 0xFF);
+    write((int)(l >>> 48) & 0xFF);
+    write((int)(l >>> 40) & 0xFF);
+    write((int)(l >>> 32) & 0xFF);
+    write((int)(l >>> 24) & 0xFF);
+    write((int)(l >>> 16) & 0xFF);
+    write((int)(l >>> 8) & 0xFF);
+    write((int)(l >>> 0) & 0xFF);
   }
 
   public void writeFloat(float f) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    writeInt(Float.floatToIntBits(f));
+     
   }
 
   public void writeDouble(double d) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    writeLong(Double.doubleToLongBits(d));
   }
 
   public void writeBytes(String string) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    byte[] buffer = string.getBytes(); 
+    write(buffer);
   }
 
   public void writeChars(String string) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    int cLen = string.length();
+    char[] chars = new char[cLen];
+    string.getChars(0, string.length(), chars, 0);
+    
+    byte[] bytes = new byte[cLen * 2];
+    
+    int j = 0;
+    for (int i = 0; i < cLen; i++) {
+      char c = chars[i];
+      bytes[j++] = (byte) (c >>> 8);      
+      bytes[j++] = (byte) (c);
+    }
+    
+    write(bytes);
   }
 
   public void writeUTF(String string) throws IOException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    DataOutputStream.writeUTF(string, this);
   }
 
   

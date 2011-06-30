@@ -464,4 +464,227 @@ public class RandomAccessFileTest extends TestJPF {
       RandomAccessFile raf = new RandomAccessFile(testFile, "r");
     }
   }
+  
+  @Test
+  public void testReadFully() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+    
+    if (verifyUnhandledException("java.io.EOFException")) {      
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      raf.readFully(new byte[200]);
+    }
+  }
+  
+  @Test
+  public void testRead() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      
+      Verify.getBoolean();
+      raf.write(201);
+      raf.write(100);
+      raf.write(202);
+      raf.write(99);
+      
+      raf.seek(0);
+      assertEquals(201, raf.read());
+      assertEquals(100, raf.read());
+      assertEquals(202, raf.read());
+      assertEquals(99, raf.read());
+      assertEquals(-1, raf.read());
+      
+    }
+  }
+  
+  @Test
+  public void testSkipBytes() throws Exception {
+    if (!isJPFRun()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+    
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      
+      Verify.getBoolean();
+      assertEquals(4, raf.skipBytes(4));
+      assertEquals(4, raf.getFilePointer());
+      
+      assertEquals(3, raf.skipBytes(4));
+      assertEquals(7, raf.getFilePointer());
+      
+      assertEquals(0, raf.skipBytes(4));
+      assertEquals(7, raf.getFilePointer());
+      
+    }
+  }
+  
+  @Test
+  public void testReadWriteBoolean() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      
+      raf.writeBoolean(true);
+      raf.writeBoolean(false);
+      raf.writeBoolean(true);
+      
+      raf.seek(0);
+      assertTrue(raf.readBoolean());
+      assertFalse(raf.readBoolean());
+      assertTrue(raf.readBoolean());
+    }
+  }
+  
+  @Test
+  public void testReadBooleanFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readBoolean();
+    }
+  }
+  
+  @Test
+  public void testReadWriteByte() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      
+      raf.writeByte(10);
+      raf.writeByte(20);
+      raf.writeByte(30);
+      
+      raf.seek(0);
+      assertEquals(10, raf.readByte());
+      assertEquals(20, raf.readByte());
+      assertEquals(30, raf.readByte());
+    }
+  }
+  
+  @Test
+  public void testReadByteFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readByte();
+    }
+  }
+  
+  @Test
+  public void testReadWriteShort() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      raf.writeShort(1042);
+      raf.writeShort(2042);
+      raf.writeShort(3042);
+
+      raf.seek(0);
+      assertEquals(1042, raf.readShort());
+      assertEquals(2042, raf.readShort());
+      assertEquals(3042, raf.readShort());
+    }
+  }
+  
+  @Test
+  public void testReadShortFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readShort();
+    }
+  }
+  
+  @Test
+  public void testReadWriteChar() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      raf.writeChar('s');
+      raf.writeChar('t');
+      raf.writeChar('r');
+
+      raf.seek(0);
+      assertEquals('s', raf.readChar());
+      assertEquals('t', raf.readChar());
+      assertEquals('r', raf.readChar());
+    }
+  }
+  
+  @Test
+  public void testReadCharFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readChar();
+    }
+  }
+  
+  @Test
+  public void testReadWriteInt() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      raf.writeInt(Integer.MAX_VALUE - 1);
+      raf.writeInt(Integer.MAX_VALUE - 2);
+      raf.writeInt(Integer.MAX_VALUE - 3);
+
+      raf.seek(0);
+      assertEquals(Integer.MAX_VALUE - 1, raf.readInt());
+      assertEquals(Integer.MAX_VALUE - 2, raf.readInt());
+      assertEquals(Integer.MAX_VALUE - 3, raf.readInt());
+    }
+  }
+  
+  @Test
+  public void testReadIntFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readInt();
+    }
+  }
+  
+  @Test
+  public void testReadWriteLong() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+
+      raf.writeLong(Long.MAX_VALUE - 1);
+      raf.writeLong(Long.MAX_VALUE - 2);
+      raf.writeLong(Long.MAX_VALUE - 3);
+
+      raf.seek(0);
+      assertEquals(Long.MAX_VALUE - 1, raf.readLong());
+      assertEquals(Long.MAX_VALUE - 2, raf.readLong());
+      assertEquals(Long.MAX_VALUE - 3, raf.readLong());
+    }    
+  }
+  
+  @Test
+  public void testReadLongFromEmptyFile() throws Exception {
+    if (verifyUnhandledException("java.io.EOFException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.readLong();
+    }
+  }
+  
+  @Test
+  public void testWriteBytes() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte bytes[] = new byte[] {1, 2, 3, 4, 5};
+      String str = new String(bytes);
+      
+      raf.writeBytes(str);
+      
+      raf.seek(0);
+      byte buffer[] = new byte[10];
+      int read = raf.read(buffer);
+      assertReadResult(bytes, buffer, read);
+    }
+  }
 }

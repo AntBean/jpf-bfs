@@ -156,7 +156,7 @@ public class JPF_gov_nasa_jpf_FileState {
           addNewReadChunk(iter, rcOff, (int) delta - rcOff);
           addNewReadChunk(iter, (int) delta + wcLength, (int)( readChunkEnd - writeChunkEnd));
 
-        } else if (delta >= rcOff && writeChunkEnd >= readChunkEnd) {
+        } else if (delta >= rcOff && writeChunkEnd >= readChunkEnd && readChunkEnd >= delta) {
           // Left part of a read chunk can't be read from this write chunk
           readData(cacheFileName, 0, data, (int)(offset + delta), (int)(readChunkEnd - delta));
 

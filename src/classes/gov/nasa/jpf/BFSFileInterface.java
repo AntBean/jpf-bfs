@@ -44,7 +44,7 @@ public class BFSFileInterface implements FileInterface {
 
     if (read == 1) {
       filePos += 1;
-      return aByte[0];
+      return aByte[0] & 0xFF;
     }
 
     return -1;
@@ -62,17 +62,15 @@ public class BFSFileInterface implements FileInterface {
   }
 
   public long skip(long shift) throws IOException {
-    System.out.println("BFSFI.skip()");
+    long oldFilePos = filePos;
+    
     if (shift + filePos > fileState.getLength()) {
       filePos = fileState.getLength();
-      System.out.println("Over boundaries jump");
-
     } else {
       filePos = filePos + shift;
-      System.out.println("In file boundaries");
     }
 
-    return shift;
+    return filePos - oldFilePos;
   }
 
   public int available() throws IOException {
