@@ -101,7 +101,6 @@ public class File
 
     return null;
   }
-
   
   public int compareTo(File that) {
     return this.filename.compareTo(that.filename);

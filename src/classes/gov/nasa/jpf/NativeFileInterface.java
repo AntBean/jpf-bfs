@@ -25,8 +25,8 @@ import java.io.IOException;
  * File interface that perform read/write operations with native file system
  * @author Ivan Mushketik
  */
-public class NativeFileInterface implements FileInterface {
-  private long filePos;
+public class NativeFileInterface extends FileInterface {
+
   // Canonical path of a file on which read/write should be performed
   private String canonicalPath;
   private FileState fileState;
@@ -35,18 +35,6 @@ public class NativeFileInterface implements FileInterface {
   public NativeFileInterface(FileState fileState, boolean ignoreWriteMode) {}
 
   public native void sync();
-
-  // <2do> Code duplication in BFSFileInterface
-  public int read() throws IOException {
-    byte[] aByte = new byte[1];
-    int read = read(aByte, 0, 1);
-
-    if (read == 1) {
-      return aByte[0]  & 0xFF;
-    }
-
-    return -1;
-  }
 
   public int read(byte[] buf, int off, int len) throws IOException {
     int read = readNative(buf, off, len);
@@ -60,29 +48,7 @@ public class NativeFileInterface implements FileInterface {
 
   private native int readNative(byte[] buf, int off, int len) throws IOException;
 
-  // <2do> Code duplication. Same in BFSFileInterface
-  public long skip(long shift) throws IOException {
-    long oldFilePos = filePos;
-    long fileLength = length();
-
-    if (shift + filePos > fileLength) {
-      filePos = fileLength;
-
-    } else {
-      filePos = filePos + shift;
-    }
-
-    return filePos - oldFilePos;
-  }
-
   public native int available() throws IOException;
-
-  public void write(int b) throws IOException {
-    byte[] aByte = new byte[1];
-    aByte[0] = (byte) b;
-
-    write(aByte, 0, 1);
-  }
 
   public void write(byte[] buf, int off, int len) throws IOException {
     int written = writeNative(buf, off, len);

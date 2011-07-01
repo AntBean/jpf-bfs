@@ -25,19 +25,30 @@ import java.io.IOException;
  * Interface to file that is independent from underlying file access implementation
  * @author Ivan Mushketik
  */
-public interface FileInterface {
+public abstract class FileInterface {
 
+  protected long filePos;
+  
   /**
    * Sync buffers with underlying file system.
    */
-  public void sync();
+  public abstract void sync();
 
   /**
    * Read single byte from a file
    * @return byte's value if it can be read or -1 otherwise.
    * @throws IOException
    */
-  public int read () throws IOException;
+  public int read () throws IOException {
+    byte[] aByte = new byte[1];
+    int read = read(aByte, 0, 1);
+
+    if (read == 1) {
+      return aByte[0]  & 0xFF;
+    }
+
+    return -1;
+  }
 
   /**
    * Read file content to a buffer
@@ -46,29 +57,46 @@ public interface FileInterface {
    * @param len - length of a space in a buffer
    * @return number of read bytes
    */
-  public int read (byte[] buf, int off, int len) throws IOException;
+  public abstract int read (byte[] buf, int off, int len) throws IOException;
 
   /**
    * Skip bytes in a file
    * @param n - number of bytes to skip
    * @return number of skiped bytes
    * @throws IOException
-   */
-  public long skip(long n) throws IOException;
+   */  
+  public long skip(long shift) throws IOException {
+    long oldFilePos = filePos;
+    long fileLength = length();
+
+    if (shift + filePos > fileLength) {
+      filePos = fileLength;
+
+    } else {
+      filePos = filePos + shift;
+    }
+
+    return filePos - oldFilePos;
+  }
 
   /**
    * Return number of bytes that can be read from a file
    * @return number of bytes that can be read
    * @throws IOException
    */
-  public int available () throws IOException;
+  public abstract int available () throws IOException;
 
   /**
    * Write single byte to a file
    * @param b - byte to write
    * @throws IOException
    */
-  public void write (int b) throws IOException;
+  public void write(int b) throws IOException {
+    byte[] aByte = new byte[1];
+    aByte[0] = (byte) b;
+
+    write(aByte, 0, 1);
+  }
 
   /**
    * Write buffer's content to a file
@@ -77,35 +105,35 @@ public interface FileInterface {
    * @param len - length of a data in buffer
    * @throws IOException
    */
-  public void write (byte[] buf, int off, int len) throws IOException;
+  public abstract void write (byte[] buf, int off, int len) throws IOException;
 
   /**
    * Close file
    * @throws IOException
    */
-  public void close () throws IOException;
+  public abstract void close () throws IOException;
 
   /**
    * Set new file length
    * @param newLength - new file length
    */
-  public void setLength(long newLength) throws IOException;
+  public abstract void setLength(long newLength) throws IOException;
 
   /**
    * Set file pointer.
    * @param pos - new file pointer position
    */
-  public void seek(long pos) throws IOException;
+  public abstract void seek(long pos) throws IOException;
 
   /**
    * Get file's length
    * @return
    */
-  public long length();
+  public abstract long length();
 
   /**
    * Get current position of file pointer
    * @return file pointer position
    */
-  public long getFilePointer();
+  public abstract long getFilePointer();
 }

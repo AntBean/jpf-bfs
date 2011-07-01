@@ -25,10 +25,9 @@ import java.io.IOException;
  *
  * @author Ivan Mushketik
  */
-public class BFSFileInterface implements FileInterface {
+public class BFSFileInterface extends FileInterface {
 
   private FileState fileState;
-  private long filePos;
 
   BFSFileInterface(FileState fileState) {
     this.fileState = fileState;
@@ -36,18 +35,6 @@ public class BFSFileInterface implements FileInterface {
 
   public void sync() {
     // Nothing to do. BFS is always sync
-  }
-
-  public int read() throws IOException {    
-    byte[] aByte = new byte[1];
-    int read = fileState.read(filePos, aByte, 0, 1);
-
-    if (read == 1) {
-      filePos += 1;
-      return aByte[0] & 0xFF;
-    }
-
-    return -1;
   }
 
   public int read(byte[] buffer, int off, int len) throws IOException {
@@ -61,27 +48,8 @@ public class BFSFileInterface implements FileInterface {
     return -1;
   }
 
-  public long skip(long shift) throws IOException {
-    long oldFilePos = filePos;
-    
-    if (shift + filePos > fileState.getLength()) {
-      filePos = fileState.getLength();
-    } else {
-      filePos = filePos + shift;
-    }
-
-    return filePos - oldFilePos;
-  }
-
   public int available() throws IOException {
     return (int) (fileState.getLength() - filePos);
-  }
-
-  public void write(int b) throws IOException {
-    byte toWrite = (byte) b;
-    byte[] writeBuff = new byte[] {toWrite};
-
-    write(writeBuff, 0, 1);
   }
 
   public void write(byte[] buf, int off, int len) throws IOException {
