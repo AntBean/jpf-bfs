@@ -687,4 +687,32 @@ public class RandomAccessFileTest extends TestJPF {
       assertReadResult(bytes, buffer, read);
     }
   }
+  
+  @Test
+  public void testSeekBeyondFileAndWrite() throws Exception {
+    if (!isJPFRun()) {     
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      byte[] toWrite = {1, 2, 3, 4, 5, 6, 7};
+      raf.write(toWrite);
+
+      raf.close();
+    }
+    
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      
+      raf.setLength(0);
+      raf.write(new byte[] {1, 2, 3, 4});
+      raf.seek(7);
+      raf.write(30);
+      assertEquals(8, raf.getFilePointer());
+      
+      raf.seek(0);
+      byte buffer[] = new byte[10];
+      int read = raf.read(buffer);
+      
+      assertReadResult(new byte[] {1, 2, 3, 4, 0, 0, 0, 30}, buffer, read);
+      assertEquals(8, raf.length());
+    }
+  }
 }

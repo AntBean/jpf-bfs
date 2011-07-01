@@ -53,19 +53,30 @@ public class JPF_gov_nasa_jpf_FileState {
     }
 
     File cacheFile = createCacheFile();
-    // Write new data chunk
-    int written = writeCacheData(startPos, cacheFile, data, offset, length);
-    // Add new data chunk in a linked list
-    addNewWriteChunk(env, thisPtr, startPos, length, cacheFile);
-
+    
     long fileLength = env.getLongField(thisPtr, "length");
-
+    
+    int skip = 0;
+    if (startPos > fileLength) {
+      skip = (int) (startPos - fileLength);
+    }
+    
+    // Write new data chunk
+    int written = writeCacheData(skip, cacheFile, data, offset, length);
+    // Add new data chunk in a linked list
+    if (skip == 0) {
+      addNewWriteChunk(env, thisPtr, startPos, length, cacheFile);
+    } else {
+      addNewWriteChunk(env, thisPtr, fileLength, written, cacheFile);
+    }
+    
+    
     // File length was increased
-    if (startPos + written > fileLength) {
-      env.setLongField(thisPtr, "length", startPos + written);
+    if (startPos + length > fileLength) {
+      env.setLongField(thisPtr, "length", startPos + length);
     }
 
-    return written;
+    return length;
   }
 
   // Create new file to write BFS data
@@ -74,11 +85,12 @@ public class JPF_gov_nasa_jpf_FileState {
   }
 
   // Write data chunk in a separate file
-  private static int writeCacheData(long startPos, File cacheFile, byte[] data, int offset, int length) throws Exception {
+  private static int writeCacheData(int skip, File cacheFile, byte[] data, int offset, int length) throws Exception {
     RandomAccessFile raf = new RandomAccessFile(cacheFile, "rws");
+    raf.seek(skip);
     raf.write(data, offset, length);
 
-    return length;
+    return length + skip;
   }
 
   // Create new data chunk object and add it to data chunks' list
