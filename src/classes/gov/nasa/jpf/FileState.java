@@ -44,14 +44,8 @@ public class FileState {
   private FileInfo[] children = null;
   
   private int numberOfChildren = 0;
-  // Rights of SUT on this file
-  private byte sutRights;
-  // Rights of file's owner on this file
-  private byte ownerRights;
-  // Rights of file's group on this file
-  private byte groupRights;
-  // Rights of other on this file
-  private byte allRights;
+  private static final int INITIAL_CHILDREN_SIZE = 1;
+  
   // Time of last modification
   private long lastModified;
   // Access mode to a file
@@ -60,13 +54,22 @@ public class FileState {
   private int lastOperation = FileOperations.READ;
 
   private WriteChunk lastWriteChunk;
-
-  private static final byte READ_FLAG = 4;
-  private static final byte WRITE_FLAG = 2;
-  private static final byte EXECUTE_FLAG = 1;
-
-
-  private static final int INITIAL_CHILDREN_SIZE = 1;
+  
+  private boolean isReadableForSUT;
+  private boolean isWritableForSUT;
+  private boolean isExecutableForSUT;
+    
+  private boolean isReadableForAll;
+  private boolean isWritableForAll;
+  private boolean isExecutableForAll;
+  
+  private boolean isReadableForGroup;
+  private boolean isWritableForGroup;
+  private boolean isExecutableForGroup;  
+  
+  private boolean isReadalbeForOwner;
+  private boolean isWritableForOwner;
+  private boolean isExecutableForOwner;
   
   public FileState(boolean isDir) { 
     this.isDir = isDir;
@@ -83,10 +86,12 @@ public class FileState {
     openCnt = fs.openCnt;
     nativeFSFileName = fs.nativeFSFileName;
     doesExist = fs.doesExist;
-    sutRights = fs.sutRights;
-    ownerRights = fs.ownerRights;
-    groupRights = fs.groupRights;
-    allRights = fs.allRights;
+    
+    isReadableForSUT = fs.isReadableForSUT;
+    isWritableForSUT = fs.isWritableForSUT;
+    isExecutableForSUT = fs.isExecutableForSUT;
+    // <2do> Add other rights coping
+    
     lastModified = fs.lastModified;
     fileMode = fs.fileMode;
     
@@ -203,159 +208,99 @@ public class FileState {
   }
 
   public boolean isReadableForSUT() {
-    return (sutRights & READ_FLAG) > 0;
+    return isReadableForSUT;
   }
 
   public void setReadableForSUT(boolean readableForSUT) {
-    if (readableForSUT) {
-      sutRights |= READ_FLAG;
-    }
-    else {
-      sutRights &= (~READ_FLAG);
-    }
+    isReadableForSUT = readableForSUT;
   }
 
   public boolean isWritableForSUT() {
-    return (sutRights & WRITE_FLAG) > 0;
+    return isWritableForSUT;
   }
 
   public void setWritableForSUT(boolean writableForSUT) {
-    if (writableForSUT) {
-      sutRights |= WRITE_FLAG;
-    }
-    else {
-      sutRights &= (~WRITE_FLAG);
-    }
+    isWritableForSUT = writableForSUT;
   }
 
   public boolean isExecutableForSUT() {
-    return (sutRights & EXECUTE_FLAG) > 0;
+    return isExecutableForSUT;
   }
 
   public void setExecutableForSUT(boolean executableForSUT) {
-    if (executableForSUT) {
-      sutRights |= EXECUTE_FLAG;
-    }
-    else {
-      sutRights &= (~EXECUTE_FLAG);
-    }
+    isExecutableForSUT = executableForSUT;
   }
 
   public boolean isReadableForOwner() {
-    return (ownerRights & READ_FLAG) > 0;
+    return isReadalbeForOwner;
   }
 
   public void setReadableForOwner(boolean readableForOwner) {
-    if (readableForOwner) {
-      ownerRights |= READ_FLAG;
-    }
-    else {
-      ownerRights &= (~READ_FLAG);
-    }
+    isReadalbeForOwner = readableForOwner;
   }
 
   public boolean isWritableForOwner() {
-    return (ownerRights & WRITE_FLAG) > 0;
+    return isWritableForOwner;
   }
 
   public void setWritableForOwner(boolean writableForOwner) {
-    if (writableForOwner) {
-      ownerRights |= WRITE_FLAG;
-    }
-    else {
-      ownerRights &= (~WRITE_FLAG);
-    }
+    isWritableForOwner = writableForOwner;
   }
 
   public boolean isExecutableForOwner() {
-    return (ownerRights & EXECUTE_FLAG) > 0;
+    return isExecutableForOwner;
   }
 
   public void setExecutableForOwner(boolean executableForOwner) {
-    if (executableForOwner) {
-      ownerRights |= EXECUTE_FLAG;
-    }
-    else {
-      ownerRights &= (~EXECUTE_FLAG);
-    }
+    isExecutableForOwner = executableForOwner;
   }
 
   public boolean isReadableForGroup() {
-    return (groupRights & READ_FLAG) > 0;
+    return isReadableForGroup;
   }
 
   public void setReadableForGroup(boolean readableForGroup) {
-    if (readableForGroup) {
-      groupRights |= READ_FLAG;
-    }
-    else {
-      groupRights &= (~READ_FLAG);
-    }
+    isReadableForGroup = readableForGroup;
   }
 
   public boolean isWritableForGroup() {
-    return (groupRights & WRITE_FLAG) > 0;
+    return isWritableForGroup;
   }
 
   public void setWritableForGroup(boolean writableForGroup) {
-    if (writableForGroup) {
-      groupRights |= WRITE_FLAG;
-    }
-    else {
-      groupRights &= (~WRITE_FLAG);
-    }
+    isWritableForGroup = writableForGroup;
   }
 
   public boolean isExecutableForGroup() {
-    return (groupRights & EXECUTE_FLAG) > 0;
+    return isExecutableForGroup;
   }
 
   public void setExecutableForGroup(boolean executableForGroup) {
-    if (executableForGroup) {
-      groupRights |= EXECUTE_FLAG;
-    }
-    else {
-      groupRights &= (~EXECUTE_FLAG);
-    }
+    isExecutableForGroup = executableForGroup;
   }
 
   public boolean isReadableForAll() {
-    return (allRights & READ_FLAG) > 0;
+    return isReadableForAll;
   }
 
   public void setReadableForAll(boolean readableForAll) {
-    if (readableForAll) {
-      allRights |= READ_FLAG;
-    }
-    else {
-      allRights &= (~READ_FLAG);
-    }
+    isReadableForAll = readableForAll;
   }
 
   public boolean isWritableForAll() {
-    return (allRights & WRITE_FLAG) > 0;
+    return isWritableForAll;
   }
 
   public void setWritableForAll(boolean writableForAll) {
-    if (writableForAll) {
-      allRights |= WRITE_FLAG;
-    }
-    else {
-      allRights &= (~WRITE_FLAG);
-    }
+    isWritableForAll = writableForAll;
   }
 
   public boolean isExecutableForAll() {
-    return (allRights & EXECUTE_FLAG) > 0;
+    return isExecutableForAll;
   }
 
   public void setExecutableForAll(boolean executableForAll) {
-    if (executableForAll) {
-      allRights |= EXECUTE_FLAG;
-    }
-    else {
-      allRights &= (~EXECUTE_FLAG);
-    }
+    isExecutableForAll = executableForAll;
   }
 
   /**
@@ -453,8 +398,9 @@ public class FileState {
     result += "; exists = " + doesExist;
     result += "; openCnt = " + openCnt;
     result += "; nativeFSName = " + nativeFSFileName;
-    result += "; rights = " + ownerRights + "" + groupRights + "" + allRights;
-    result += "; SUT rights = " + sutRights;
+    result += "; canRead = " + isReadableForSUT;
+    result += "; canWrite = " + isWritableForSUT;
+    result += "; canExecute = " + isExecutableForSUT;
     result += "; file mode = " + fileMode;
     result += "; number of children = " + numberOfChildren;
 

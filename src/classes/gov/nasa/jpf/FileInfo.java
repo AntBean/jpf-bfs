@@ -71,8 +71,7 @@ public class FileInfo {
    * @return true if operation successfully finished, false otherwise.
    */
   public boolean delete() {
-    System.out.println("FileInfo.delete() " + this);    
-    
+
     // File can be deleted if it exists or it's not a file system root
     if (fileState.exists() && !isFSRoot(canonicalPath)) {  
       String parentCP = getParent(canonicalPath);
@@ -135,60 +134,7 @@ public class FileInfo {
    * @return if file represented by a FileInfo is a directory, it returns an array
    * of canonical paths of files in this directory. Otherwise it returns null.
    */
-  public String[] list() {
-    System.out.println("FileInfo.list() for " + this);
-
-    if (fileState.isDir() && fileState.exists()) {
-      if (fileState.isReadableForSUT()) {// && fileState.isExecutableForSUT()) {
-        String[] nativeFSChildren = {};
-
-        // If directory existed on a filesystem before SUT run, we can read child files
-        // that exist on a native FS
-        if (fileState.getNativeFSFileName() != null) {
-          nativeFSChildren = getChildrenCPs(fileState.getNativeFSFileName());
-        }
-
-        System.out.println("Native FS children: ");
-        for (String childName : nativeFSChildren) {
-          System.out.print(childName + ", ");
-        }
-        System.out.println(";");
-
-        HashSet<String> set = new HashSet<String>();
-
-        for (String fsChild : nativeFSChildren) {
-          set.add(fsChild);
-        }
-        
-        FileInfo[] children = fileState.getChildren();
-        int numberOfChidren = fileState.numberOfChildren();
-        // Add new children to child's set remove children that were deleted by SUT
-        for (int i = 0; i < numberOfChidren; i++) {
-          FileInfo child = children[i];
-          
-          if (child.fileState.exists()) {
-            set.add(child.canonicalPath);
-            System.out.println("Found new existing child " + child.canonicalPath);
-          } else {
-            set.remove(child.canonicalPath);
-            System.out.println("Found new deleted child " + child.canonicalPath);
-          }
-        }
-
-        System.out.println("Current children: ");
-        for (String childName : set) {
-          System.out.print(childName + ", ");
-        }
-        System.out.println(";");
-
-        String[] currentChildren = new String[set.size()];
-        return set.toArray(currentChildren);
-      }
-    }
-
-    // FileInfo represents not a directory, or doesn't exist, or SUT has no rights
-    return null;
-  }
+  public native String[] list();
 
   /**
    * Move a file represented by this FileInfo.
@@ -486,10 +432,7 @@ public class FileInfo {
    * @return FileInfo if one for a file with specified canonical path was created,
    * null otherwise.
    */
-  private static FileInfo getFileInfoByCanonicalPath(String canonicalPath) {
-    int pos = findFileInfo(canonicalPath);
-    return (pos > 0) ? fileInfos[pos] : null;
-  }
+  private static native FileInfo getFileInfoByCanonicalPath(String canonicalPath);
 
   /**
    * Create new temporary file.
@@ -590,26 +533,7 @@ public class FileInfo {
    * @return if FileInfo found, return it's index in array. otherwise it returns
    * -pos - 1; where pos - is a place where new element should be inserted.
    */
-  private static int findFileInfo(String cannonicalPath) {    
-    int l = 0;
-    int r = numberOfFileInfos - 1;
-    
-    while (l <= r) {
-      int m = (l + r) /2;
-      
-      int sign = fileInfos[m].canonicalPath.compareTo(cannonicalPath);
-      
-      if (sign > 0) {
-        r = m - 1;
-      } else if (sign < 0) {
-        l = m + 1;
-      } else {
-        return m;
-      }
-    }
-    
-    return -l - 1;
-  }
+  private native static int findFileInfo(String cannonicalPath);
   
   @Override
   public String toString() {
