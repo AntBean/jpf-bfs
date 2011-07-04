@@ -49,13 +49,9 @@ public class FileInfo {
   private FileInfo(String filename, boolean isDir, boolean exists) {
     canonicalPath = filename;
     
-    fileState = new FileState();
-    fileState.setIsDir(isDir);
+    fileState = new FileState(isDir);
     fileState.setDoesExist(exists);
     
-    if (isDir) {
-      fileState.setChildren(new ArrayList<FileInfo>());
-    }
     
     if (exists) {
       fileState.setReadableForSUT(true);
@@ -162,9 +158,13 @@ public class FileInfo {
         for (String fsChild : nativeFSChildren) {
           set.add(fsChild);
         }
-
+        
+        FileInfo[] children = fileState.getChildren();
+        int numberOfChidren = fileState.numberOfChildren();
         // Add new children to child's set remove children that were deleted by SUT
-        for (FileInfo child : fileState.getChildren()) {
+        for (int i = 0; i < numberOfChidren; i++) {
+          FileInfo child = children[i];
+          
           if (child.fileState.exists()) {
             set.add(child.canonicalPath);
             System.out.println("Found new existing child " + child.canonicalPath);
@@ -285,7 +285,6 @@ public class FileInfo {
     newFI = createNewFileInfo(canonicaPath);
     if (newFI != null) {
       System.out.println("Found in native FS");
-      newFI.fileState.setChildren(new ArrayList<FileInfo>());
     }
     else {
       System.out.println("Found no FileInfo");
@@ -435,7 +434,7 @@ public class FileInfo {
           parentFI.fileState.isWritableForSUT()) {        
         
         setNewFileState(true);
-        //fileState.setChildren(new ArrayList<FileInfo>());
+        //fileState.clearChildren(new ArrayList<FileInfo>());
         
         return true;
       }
@@ -464,7 +463,7 @@ public class FileInfo {
       if (parentFI.mkdirs(false)) {
         setNewFileState(true);
         
-        fileState.setChildren(new ArrayList<FileInfo>());
+        fileState.clearChildren();
         
         parentFI.fileState.addChild(this);
 

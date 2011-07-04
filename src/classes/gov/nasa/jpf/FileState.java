@@ -41,7 +41,9 @@ public class FileState {
   // True if file/directory exists
   private boolean doesExist;
   // Children of this file
-  private ArrayList<FileInfo> children = new ArrayList<FileInfo>();
+  private FileInfo[] children = null;
+  
+  private int numberOfChildren = 0;
   // Rights of SUT on this file
   private byte sutRights;
   // Rights of file's owner on this file
@@ -64,7 +66,15 @@ public class FileState {
   private static final byte EXECUTE_FLAG = 1;
 
 
-  public FileState() { }
+  private static final int INITIAL_CHILDREN_SIZE = 1;
+  
+  public FileState(boolean isDir) { 
+    this.isDir = isDir;
+    
+    if (isDir) {
+      children = new FileInfo[INITIAL_CHILDREN_SIZE];
+    }
+  }
 
   // <2do> add write chunks coping
   public FileState(FileState fs) {
@@ -79,6 +89,10 @@ public class FileState {
     allRights = fs.allRights;
     lastModified = fs.lastModified;
     fileMode = fs.fileMode;
+    
+    if (isDir) {
+      children = new FileInfo[INITIAL_CHILDREN_SIZE];
+    }
   }
 
   /**
@@ -155,27 +169,37 @@ public class FileState {
    * @param child - new child to add
    */
   public void addChild(FileInfo child) {
-    children.add(child);
+    if (numberOfChildren == children.length) {
+      FileInfo[] newChildren = new FileInfo[children.length * 2];
+      System.arraycopy(children, 0, newChildren, 0, children.length);
+      
+      children = newChildren;
+    }
+    
+    children[numberOfChildren] = child;
+    numberOfChildren++;
   }
 
   /**
    * Get children of this directory
    * @return
    */
-  public ArrayList<FileInfo> getChildren() {
+  public FileInfo[] getChildren() {
     return children;
   }
 
   public int numberOfChildren() {
-    return children.size();
+    return numberOfChildren;
   }
   
   /**
    * Set children of this directory
    * @param children
    */
-  void setChildren(ArrayList<FileInfo> children) {
-    this.children = children;
+  void clearChildren() {
+    numberOfChildren = 0;
+    // This should help to decrease amount of memory that is used for chidren arrays
+    children = new FileInfo[INITIAL_CHILDREN_SIZE];
   }
 
   public boolean isReadableForSUT() {
@@ -432,6 +456,7 @@ public class FileState {
     result += "; rights = " + ownerRights + "" + groupRights + "" + allRights;
     result += "; SUT rights = " + sutRights;
     result += "; file mode = " + fileMode;
+    result += "; number of children = " + numberOfChildren;
 
     return result;
   }

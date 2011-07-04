@@ -52,6 +52,8 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
     cacheDir = BFSUtils.getCacheDir();
   }
+  
+  private static final int INITIAL_SIZE = 1;
 
   public static int createNewFileInfo__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(MJIEnv env, int clsRef, int fileNameRef) {
     
@@ -64,28 +66,40 @@ public class JPF_gov_nasa_jpf_FileInfo {
       int fiRef = env.newObject("gov.nasa.jpf.FileInfo");
       int cpRef = env.newString(fileName);
       env.setReferenceField(fiRef, "canonicalPath", cpRef);
-
-      int fsRef = env.newObject("gov.nasa.jpf.FileState");
-      env.setLongField(fsRef, "length", file.length());
-      env.setBooleanField(fsRef, "isDir", file.isDirectory());
-      env.setBooleanField(fsRef, "doesExist", true);
-      env.setIntField(fsRef, "openCnt", 0);
-      env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
-      env.setLongField(fsRef, "lastModified", file.lastModified());
-
-      byte sutRWX = 0;
-
-      sutRWX = (byte) ((file.canRead()) ? (sutRWX | 1) : sutRWX); sutRWX <<= 1;
-      sutRWX = (byte) ((file.canWrite()) ? (sutRWX | 1) : sutRWX); sutRWX <<= 1;
-      sutRWX = (byte) ((file.canExecute()) ? (sutRWX | 1) : sutRWX);
-
-      env.setByteField(fsRef, "sutRights", sutRWX);
+      int fsRef = createFileState(env, file, cpRef);
 
       env.setReferenceField(fiRef, "fileState", fsRef);
 
       return fiRef;
     }
     return MJIEnv.NULL;
+  }
+
+  private static int createFileState(MJIEnv env, File file, int cpRef) {
+    int fsRef = env.newObject("gov.nasa.jpf.FileState");
+    
+    boolean isDir = file.isDirectory();
+    if (isDir) {
+      int fis = env.newObjectArray("gov.nasa.jpf.FileInfo", INITIAL_SIZE);
+      env.setReferenceField(fsRef, "children", fis);
+    }
+    
+    env.setBooleanField(fsRef, "isDir", isDir);
+    env.setLongField(fsRef, "length", file.length());
+    env.setBooleanField(fsRef, "doesExist", true);
+    env.setIntField(fsRef, "openCnt", 0);
+    env.setReferenceField(fsRef, "nativeFSFileName", cpRef);
+    env.setLongField(fsRef, "lastModified", file.lastModified());
+    
+    byte sutRWX = 0;
+    sutRWX = (byte) ((file.canRead()) ? (sutRWX | 1) : sutRWX);
+    sutRWX <<= 1;
+    sutRWX = (byte) ((file.canWrite()) ? (sutRWX | 1) : sutRWX);
+    sutRWX <<= 1;
+    sutRWX = (byte) ((file.canExecute()) ? (sutRWX | 1) : sutRWX);
+    env.setByteField(fsRef, "sutRights", sutRWX);
+    
+    return fsRef;
   }
 
   public static int getParent__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int clsRef, int fileNameRef) {
