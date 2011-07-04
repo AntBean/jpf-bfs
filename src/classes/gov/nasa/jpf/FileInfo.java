@@ -20,7 +20,6 @@
 package gov.nasa.jpf;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -38,8 +37,11 @@ import java.util.Random;
  */
 public class FileInfo {
 
-  private static ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
-
+  private static final int INITIAL_FILE_INFOS_SIZE = 1;
+  
+  private static FileInfo[] fileInfos = new FileInfo[INITIAL_FILE_INFOS_SIZE];
+  private static int numberOfFileInfos;
+  
   // Canonical path of a file
   private String canonicalPath;
   // Current state of a file
@@ -50,8 +52,7 @@ public class FileInfo {
     canonicalPath = filename;
     
     fileState = new FileState(isDir);
-    fileState.setDoesExist(exists);
-    
+    fileState.setDoesExist(exists);    
     
     if (exists) {
       fileState.setReadableForSUT(true);
@@ -326,8 +327,10 @@ public class FileInfo {
       }
     }
 
-    // Find this file's parent
-    for (FileInfo potentialParent : fileInfos) {
+    // Find this file's parent    
+    for (int i = 0; i < numberOfFileInfos; i++) {
+      FileInfo potentialParent = fileInfos[i];
+      
       if (potentialParent.canonicalPath.equals(parentCP)) {
         System.out.println("Found parent " + potentialParent.canonicalPath + " for " + newFI.canonicalPath);
 
@@ -337,7 +340,8 @@ public class FileInfo {
     }
 
     // Find this file's children
-    for (FileInfo potentialChild : fileInfos) {
+    for (int i = 0; i < numberOfFileInfos; i++) {
+      FileInfo potentialChild = fileInfos[i];
       String potentialChildParentCP = getParent(potentialChild.canonicalPath);
 
       if (newFI.canonicalPath.equals(potentialChildParentCP)) {
@@ -346,7 +350,7 @@ public class FileInfo {
       }
     }
 
-    fileInfos.add(newFI);
+    addFileInfoToArray(newFI);
   }
 
   /**
@@ -408,15 +412,6 @@ public class FileInfo {
    * @return file name of a parent or null.
    */
   private static native String getParent(String filename);
-
-  /**
-   *
-   * @param canonicalPath
-   */
-  private static void createNewFileFI(String canonicalPath) {
-    FileInfo fi = new FileInfo(canonicalPath, false, true);
-    fileInfos.add(fi);
-  }
 
   /**
    * Create a directory with specified canonical path.
@@ -492,13 +487,8 @@ public class FileInfo {
    * null otherwise.
    */
   private static FileInfo getFileInfoByCanonicalPath(String canonicalPath) {
-    for (FileInfo fi : fileInfos) {
-      if (fi.canonicalPath.equals(canonicalPath)) {
-        return fi;
-      }
-    }
-
-    return null;
+    int pos = findFileInfo(canonicalPath);
+    return (pos > 0) ? fileInfos[pos] : null;
   }
 
   /**
@@ -514,9 +504,9 @@ public class FileInfo {
     FileInfo fi = getFileInfo(tempDir);
 
     if (fi != null && fi.fileState.exists() && fi.fileState.isDir()) {
-      
+
       Random rand = new Random();
-      while(true) {
+      while (true) {
         // <2do> This should create new ChoiceGenerator. Maybe replace it with UUID?
         String uuid = Long.toString(rand.nextLong());
         String tempFileName = prefix + uuid + suffix;
@@ -536,13 +526,10 @@ public class FileInfo {
 
     return null;
   }
-
-  // <2do> REMOVE WHEN DEVELOPING IS DONE
-  private static void printCurrentFileInfos() {
-    System.out.println("\nCurrent FIs:");
-    for (FileInfo fileI : fileInfos) {
-       System.out.println(fileI);
-    }
+  
+  private static void createNewFileFI(String newFileCP) {
+    FileInfo newFI = new FileInfo(newFileCP, false, true);
+    addNewFI(newFI);
   }
 
   /**
@@ -570,6 +557,60 @@ public class FileInfo {
    */
   private static native String[] getChildrenCPs(String canonicalPath);
 
+  /**
+   * Add new FileInfo to fileInfos array
+   * @param fi - FileInfo to add.
+   */
+  private static void addFileInfoToArray(FileInfo fi) {
+    int pos = findFileInfo(fi.canonicalPath);
+    
+    assert pos < 0;
+    int insertPos = -(pos + 1);
+    
+    if (numberOfFileInfos == fileInfos.length) {
+      FileInfo[] newFileInfos = new FileInfo[fileInfos.length * 2];
+      System.arraycopy(fileInfos, 0, newFileInfos, 0, fileInfos.length);
+      
+      fileInfos = newFileInfos;
+    }
+    
+    for (int i = numberOfFileInfos; i != insertPos; i--) {
+      fileInfos[i] = fileInfos[i - 1];
+    }
+    
+    fileInfos[insertPos] = fi;
+    numberOfFileInfos++;
+  }
+  
+  /**
+   * Find file info with a specified canonical path. This method return object pos
+   * in the same fasion as Arrrays.binarySearch() does.
+   * 
+   * @param cannonicalPath
+   * @return if FileInfo found, return it's index in array. otherwise it returns
+   * -pos - 1; where pos - is a place where new element should be inserted.
+   */
+  private static int findFileInfo(String cannonicalPath) {    
+    int l = 0;
+    int r = numberOfFileInfos - 1;
+    
+    while (l <= r) {
+      int m = (l + r) /2;
+      
+      int sign = fileInfos[m].canonicalPath.compareTo(cannonicalPath);
+      
+      if (sign > 0) {
+        r = m - 1;
+      } else if (sign < 0) {
+        l = m + 1;
+      } else {
+        return m;
+      }
+    }
+    
+    return -l - 1;
+  }
+  
   @Override
   public String toString() {
     String result = "CP: " + canonicalPath + "; ";
@@ -577,4 +618,6 @@ public class FileInfo {
 
     return result;
   }
+  
+  
 }
