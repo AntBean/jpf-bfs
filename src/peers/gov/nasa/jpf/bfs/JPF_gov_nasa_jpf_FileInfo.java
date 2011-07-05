@@ -150,7 +150,9 @@ public class JPF_gov_nasa_jpf_FileInfo {
     if (fileExists(env, fsRef) && !isFSRoot(canonicalPath)) {         
       String parentCP = getParent(canonicalPath);
       // FileInfo parentFI = getFileInfoByCanonicalPath(parentCP);
-      int parentFIRef = getFileInfoByCanonicalPath__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(env, objRef, env.newString(parentCP));
+      ClassInfo ci = env.getClassInfo(objRef);
+      int clsObjRef = ci.getClassObjectRef();
+      int parentFIRef = getFileInfoByCanonicalPath__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(env, clsObjRef, env.newString(parentCP));
       int parentFIFSRef = env.getReferenceField(parentFIRef, "fileState");
       
       if (isWrittableForSUT(env, parentFIFSRef)) {
