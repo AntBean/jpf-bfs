@@ -70,40 +70,7 @@ public class FileInfo {
    * Delete file/directory from BFS.
    * @return true if operation successfully finished, false otherwise.
    */
-  public boolean delete() {
-
-    // File can be deleted if it exists or it's not a file system root
-    if (fileState.exists() && !isFSRoot(canonicalPath)) {  
-      String parentCP = getParent(canonicalPath);
-      FileInfo parentFI = getFileInfoByCanonicalPath(parentCP);
-      
-      // <2do> Not sure how to check rights for removing file withouth knowledge
-      // about if SUT is a file owner (requires JDK7)
-      if (parentFI.fileState.isWritableForSUT()) {
-        boolean toDelete = false;
-        
-        // If it's a file we need only to check if deleting opened files is
-        // permited
-        if (!fileState.isDir()) { 
-          checkDeleteConfig();
-          toDelete = true;
-        } else {
-          // Only empty directories can be deleted
-          String[] childs = list();
-          if (childs.length == 0) {
-            toDelete = true;
-          }
-        }
-        
-        if (toDelete) {
-          fileState.setDoesExist(false);
-          return true;
-        }        
-      }
-    }
-
-    return false;
-  }
+  public native boolean delete();
 
   /**
    * According to jpf-bfs configuration deleting of an opened file should either

@@ -138,8 +138,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
   //
   //    return false;
   //  }
-  // <2do> This native method isn't finished. It's broken.
-  public boolean delete____Z(MJIEnv env, int objRef) {         
+  public static boolean delete____Z(MJIEnv env, int objRef) {         
     int fsRef = env.getReferenceField(objRef, "fileState");    
     String canonicalPath = env.getStringField(objRef, "canonicalPath"); 
     
