@@ -103,20 +103,8 @@ public class JPF_gov_nasa_jpf_FileInfo {
     return fsRef;
   }
   
-  private static void deleteFile(MJIEnv env, int fsRef) {
-    env.setBooleanField(fsRef, "doesExist", false);
-  }
-  
   private static boolean isReadableForSUT(MJIEnv env, int fiRef) {
     return env.getBooleanField(fiRef, "isReadableForSUT");
-  }
-  
-  private static boolean isWrittableForSUT(MJIEnv env, int fiRef) {
-    return env.getBooleanField(fiRef, "isWritableForSUT");
-  }
-  
-  private static boolean isExecutableForSUT(MJIEnv env, int fiRef) {
-    return env.getBooleanField(fiRef, "isExecutableForSUT");
   }
   
   private static boolean isDir(MJIEnv env, int fiRef) {
@@ -262,12 +250,6 @@ public class JPF_gov_nasa_jpf_FileInfo {
     File file = new File(fileName);
 
     return env.newString(file.getParent());
-  }
-  
-  private static String getParent(String canonicalPath) {
-    File file = new File(canonicalPath);
-
-    return file.getParent();
   }
 
   public static boolean isFSRoot(String canonicalPath) {

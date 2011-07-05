@@ -20,7 +20,6 @@
 package gov.nasa.jpf;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Random;
 
 /**
@@ -40,6 +39,7 @@ public class FileInfo {
   private static final int INITIAL_FILE_INFOS_SIZE = 1;  
   private static final int INITIAL_CHILDREN_SIZE = 1;
   
+  // This fields is used on the peer side
   private static FileInfo[] fileInfos = new FileInfo[INITIAL_FILE_INFOS_SIZE];
   private static int numberOfFileInfos;
   
@@ -50,7 +50,7 @@ public class FileInfo {
   
   // Children of this file
   private FileInfo[] children = null;
-  
+  // Number of the childrens in array
   private int numberOfChildren = 0;
 
   // Create new file in BFS
@@ -325,17 +325,6 @@ public class FileInfo {
       }
       
       parentFI.addChild(newFI);
-    }
-
-    // Find this file's children
-    for (int i = 0; i < numberOfFileInfos; i++) {
-      FileInfo potentialChild = fileInfos[i];
-      String potentialChildParentCP = getParent(potentialChild.canonicalPath);
-
-      if (newFI.canonicalPath.equals(potentialChildParentCP)) {
-        System.out.println("Found child " + potentialChild.canonicalPath + " for " + newFI.canonicalPath);
-        newFI.addChild(potentialChild);
-      }
     }
 
     addFileInfoToArray(newFI);
