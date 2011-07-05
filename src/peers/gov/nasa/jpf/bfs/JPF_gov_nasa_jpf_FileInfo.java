@@ -24,8 +24,10 @@ import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.jvm.ClassInfo;
 import gov.nasa.jpf.jvm.ElementInfo;
+import gov.nasa.jpf.jvm.Fields;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.ReferenceArrayFields;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -342,6 +344,63 @@ public class JPF_gov_nasa_jpf_FileInfo {
       return MJIEnv.NULL;
     }
     
+  }
+    
+//  private static void addFileInfoToArray(FileInfo fi) {
+//    int pos = findFileInfo(fi.canonicalPath);   
+//  
+//    int insertPos = -(pos + 1);
+//    
+//    if (numberOfFileInfos == fileInfos.length) {
+//      FileInfo[] newFileInfos = new FileInfo[fileInfos.length * 2];
+//      System.arraycopy(fileInfos, 0, newFileInfos, 0, fileInfos.length);
+//      
+//      fileInfos = newFileInfos;
+//    }
+//    
+//    for (int i = numberOfFileInfos; i != insertPos; i--) {
+//      fileInfos[i] = fileInfos[i - 1];
+//    }
+//    
+//    fileInfos[insertPos] = fi;
+//    numberOfFileInfos++;
+//  }
+  public static void addFileInfoToArray__Lgov_nasa_jpf_FileInfo_2__V(MJIEnv env, int classRef, int fileInfoRef) {
+    int canonicalPathRef = env.getReferenceField(fileInfoRef, "canonicalPath");
+    
+    int pos = findFileInfo__Ljava_lang_String_2__I(env, classRef, canonicalPathRef);
+    
+    if (pos < 0) {
+      int insertPos = -(pos + 1);
+      
+      int fileInfosArrayRef = env.getStaticReferenceField(classRef, "fileInfos");
+      Fields fields = env.getHeap().get(fileInfosArrayRef).getFields();
+      int fileInfosFields[] = ((ReferenceArrayFields) fields).asReferenceArray();
+      
+      int fileInfosArrayLength = env.getArrayLength(fileInfosArrayRef);
+      int numberOfFileInfos = env.getStaticIntField(classRef, "numberOfFileInfos");
+      
+      if (numberOfFileInfos == fileInfosArrayLength) {       
+        
+        int newFileInfosRef = env.newObjectArray("gov.nasa.jpf.FileInfo", numberOfFileInfos * 2);
+        Fields newFields = env.getHeap().get(newFileInfosRef).getFields();
+        int newFileInfosFields[] = ((ReferenceArrayFields) newFields).asReferenceArray();
+        
+        System.arraycopy(fileInfosFields, 0, newFileInfosFields, 0, numberOfFileInfos);
+        env.setStaticReferenceField(classRef, "fileInfos", newFileInfosRef);
+        
+        fileInfosArrayRef = newFileInfosRef;
+        fileInfosFields = newFileInfosFields;
+      }
+      
+      for (int i = numberOfFileInfos; i != insertPos; i--) {
+        fileInfosFields[i] = fileInfosFields[i - 1];
+      }
+      
+      fileInfosFields[insertPos] = fileInfoRef;
+      env.setStaticIntField(classRef, "numberOfFileInfos", numberOfFileInfos + 1);
+      
+    }
   }
   
 //  static int findFileInfo(String cannonicalPath) {    

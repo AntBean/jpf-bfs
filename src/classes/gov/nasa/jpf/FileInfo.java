@@ -546,26 +546,7 @@ public class FileInfo {
    * Add new FileInfo to fileInfos array
    * @param fi - FileInfo to add.
    */
-  private static void addFileInfoToArray(FileInfo fi) {
-    int pos = findFileInfo(fi.canonicalPath);
-    
-    assert pos < 0;
-    int insertPos = -(pos + 1);
-    
-    if (numberOfFileInfos == fileInfos.length) {
-      FileInfo[] newFileInfos = new FileInfo[fileInfos.length * 2];
-      System.arraycopy(fileInfos, 0, newFileInfos, 0, fileInfos.length);
-      
-      fileInfos = newFileInfos;
-    }
-    
-    for (int i = numberOfFileInfos; i != insertPos; i--) {
-      fileInfos[i] = fileInfos[i - 1];
-    }
-    
-    fileInfos[insertPos] = fi;
-    numberOfFileInfos++;
-  }
+  private static native void addFileInfoToArray(FileInfo fi);
   
   /**
    * Find file info with a specified canonical path. This method return object pos
@@ -580,7 +561,7 @@ public class FileInfo {
   @Override
   public String toString() {
     String result = "CP: " + canonicalPath + "; ";
-    result += "Number of children: " + numberOfChildren;
+    result += "Number of children: " + numberOfChildren + "; ";
     result += "FS: " + fileState;
 
     return result;
