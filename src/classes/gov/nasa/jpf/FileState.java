@@ -40,11 +40,6 @@ public class FileState {
   private String nativeFSFileName;
   // True if file/directory exists
   private boolean doesExist;
-  // Children of this file
-  private FileInfo[] children = null;
-  
-  private int numberOfChildren = 0;
-  private static final int INITIAL_CHILDREN_SIZE = 1;
   
   // Time of last modification
   private long lastModified;
@@ -73,10 +68,6 @@ public class FileState {
   
   public FileState(boolean isDir) { 
     this.isDir = isDir;
-    
-    if (isDir) {
-      children = new FileInfo[INITIAL_CHILDREN_SIZE];
-    }
   }
 
   // <2do> add write chunks coping
@@ -94,10 +85,6 @@ public class FileState {
     
     lastModified = fs.lastModified;
     fileMode = fs.fileMode;
-    
-    if (isDir) {
-      children = new FileInfo[INITIAL_CHILDREN_SIZE];
-    }
   }
 
   /**
@@ -167,44 +154,6 @@ public class FileState {
    */
   public void setDoesExist(boolean exists) {
     this.doesExist = exists;
-  }
-
-  /**
-   * Add child for this directory
-   * @param child - new child to add
-   */
-  public void addChild(FileInfo child) {
-    if (numberOfChildren == children.length) {
-      FileInfo[] newChildren = new FileInfo[children.length * 2];
-      System.arraycopy(children, 0, newChildren, 0, children.length);
-      
-      children = newChildren;
-    }
-    
-    children[numberOfChildren] = child;
-    numberOfChildren++;
-  }
-
-  /**
-   * Get children of this directory
-   * @return
-   */
-  public FileInfo[] getChildren() {
-    return children;
-  }
-
-  public int numberOfChildren() {
-    return numberOfChildren;
-  }
-  
-  /**
-   * Set children of this directory
-   * @param children
-   */
-  void clearChildren() {
-    numberOfChildren = 0;
-    // This should help to decrease amount of memory that is used for chidren arrays
-    children = new FileInfo[INITIAL_CHILDREN_SIZE];
   }
 
   public boolean isReadableForSUT() {
@@ -402,7 +351,6 @@ public class FileState {
     result += "; canWrite = " + isWritableForSUT;
     result += "; canExecute = " + isExecutableForSUT;
     result += "; file mode = " + fileMode;
-    result += "; number of children = " + numberOfChildren;
 
     return result;
   }

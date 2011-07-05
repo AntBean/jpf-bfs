@@ -37,7 +37,8 @@ import java.util.Random;
  */
 public class FileInfo {
 
-  private static final int INITIAL_FILE_INFOS_SIZE = 1;
+  private static final int INITIAL_FILE_INFOS_SIZE = 1;  
+  private static final int INITIAL_CHILDREN_SIZE = 1;
   
   private static FileInfo[] fileInfos = new FileInfo[INITIAL_FILE_INFOS_SIZE];
   private static int numberOfFileInfos;
@@ -45,7 +46,12 @@ public class FileInfo {
   // Canonical path of a file
   private String canonicalPath;
   // Current state of a file
-  private FileState fileState;
+  private FileState fileState;  
+  
+  // Children of this file
+  private FileInfo[] children = null;
+  
+  private int numberOfChildren = 0;
 
   // Create new file in BFS
   private FileInfo(String filename, boolean isDir, boolean exists) {
@@ -53,6 +59,10 @@ public class FileInfo {
     
     fileState = new FileState(isDir);
     fileState.setDoesExist(exists);    
+    
+    if (isDir) {
+      children = new FileInfo[INITIAL_CHILDREN_SIZE];
+    }
     
     if (exists) {
       fileState.setReadableForSUT(true);
@@ -64,8 +74,50 @@ public class FileInfo {
   private FileInfo(String canonicalPath, FileState state) {
     this.canonicalPath = canonicalPath;
     fileState = state;
+    
+    if (state.isDir()) {
+      children = new FileInfo[INITIAL_CHILDREN_SIZE];
+    }
   }
 
+   /**
+   * Add child for this directory
+   * @param child - new child to add
+   */
+  public void addChild(FileInfo child) {
+    if (numberOfChildren == children.length) {
+      FileInfo[] newChildren = new FileInfo[children.length * 2];
+      System.arraycopy(children, 0, newChildren, 0, children.length);
+      
+      children = newChildren;
+    }
+    
+    children[numberOfChildren] = child;
+    numberOfChildren++;
+  }
+
+  /**
+   * Get children of this directory
+   * @return
+   */
+  public FileInfo[] getChildren() {
+    return children;
+  }
+
+  public int numberOfChildren() {
+    return numberOfChildren;
+  }
+  
+  /**
+   * Set children of this directory
+   * @param children
+   */
+  void clearChildren() {
+    numberOfChildren = 0;
+    // This should help to decrease amount of memory that is used for chidren arrays
+    children = new FileInfo[INITIAL_CHILDREN_SIZE];
+  }
+  
   /**
    * Delete file/directory from BFS.
    * @return true if operation successfully finished, false otherwise.
@@ -267,22 +319,12 @@ public class FileInfo {
        * If parent doesn't exist or was deleted or removed current file should be
        * marked as deleted.
        */
-      if (parentFI == null || !parentFI.exists()) {
+      if (!parentFI.exists()) {
         System.out.println(parentFI.canonicalPath + " was deleted, so " + newFI.canonicalPath + " is deleted too");
         newFI.fileState.setDoesExist(false);
       }
-    }
-
-    // Find this file's parent    
-    for (int i = 0; i < numberOfFileInfos; i++) {
-      FileInfo potentialParent = fileInfos[i];
       
-      if (potentialParent.canonicalPath.equals(parentCP)) {
-        System.out.println("Found parent " + potentialParent.canonicalPath + " for " + newFI.canonicalPath);
-
-        potentialParent.fileState.addChild(newFI);
-        break;
-      }
+      parentFI.addChild(newFI);
     }
 
     // Find this file's children
@@ -292,7 +334,7 @@ public class FileInfo {
 
       if (newFI.canonicalPath.equals(potentialChildParentCP)) {
         System.out.println("Found child " + potentialChild.canonicalPath + " for " + newFI.canonicalPath);
-        newFI.fileState.addChild(potentialChild);
+        newFI.addChild(potentialChild);
       }
     }
 
@@ -404,9 +446,9 @@ public class FileInfo {
       if (parentFI.mkdirs(false)) {
         setNewFileState(true);
         
-        fileState.clearChildren();
+        this.clearChildren();
         
-        parentFI.fileState.addChild(this);
+        parentFI.addChild(this);
 
         return true;
       } else {
@@ -538,6 +580,7 @@ public class FileInfo {
   @Override
   public String toString() {
     String result = "CP: " + canonicalPath + "; ";
+    result += "Number of children: " + numberOfChildren;
     result += "FS: " + fileState;
 
     return result;

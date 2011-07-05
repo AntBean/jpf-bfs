@@ -69,9 +69,15 @@ public class JPF_gov_nasa_jpf_FileInfo {
       int fiRef = env.newObject("gov.nasa.jpf.FileInfo");
       int cpRef = env.newString(fileName);
       env.setReferenceField(fiRef, "canonicalPath", cpRef);
+      
       int fsRef = createFileState(env, file, cpRef);
-
       env.setReferenceField(fiRef, "fileState", fsRef);
+      
+      boolean isDir = file.isDirectory();
+      if (isDir) {
+        int fis = env.newObjectArray("gov.nasa.jpf.FileInfo", INITIAL_SIZE);
+        env.setReferenceField(fiRef, "children", fis);
+      }
 
       return fiRef;
     }
@@ -81,13 +87,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
   private static int createFileState(MJIEnv env, File file, int cpRef) {
     int fsRef = env.newObject("gov.nasa.jpf.FileState");
     
-    boolean isDir = file.isDirectory();
-    if (isDir) {
-      int fis = env.newObjectArray("gov.nasa.jpf.FileInfo", INITIAL_SIZE);
-      env.setReferenceField(fsRef, "children", fis);
-    }
-    
-    env.setBooleanField(fsRef, "isDir", isDir);
+    env.setBooleanField(fsRef, "isDir", file.isDirectory());
     env.setLongField(fsRef, "length", file.length());
     env.setBooleanField(fsRef, "doesExist", true);
     env.setIntField(fsRef, "openCnt", 0);
@@ -221,9 +221,9 @@ public class JPF_gov_nasa_jpf_FileInfo {
         }
 
         // FileInfo[] children = fileState.getChildren();
-        int childrenRef = env.getReferenceField(fsRef, "children");
+        int childrenRef = env.getReferenceField(objRef, "children");
         // int numberOfChidren = fileState.numberOfChildren();
-        int numberOfChildren = env.getIntField(fsRef, "numberOfChildren");
+        int numberOfChildren = env.getIntField(objRef, "numberOfChildren");
         // Add new children to child's set remove children that were deleted by SUT
         for (int i = 0; i < numberOfChildren; i++) {
           // FileInfo child = children[i];
