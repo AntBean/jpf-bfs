@@ -19,7 +19,6 @@
 package java.io;
 
 import gov.nasa.jpf.FileInterface;
-import gov.nasa.jpf.FileOperations;
 import gov.nasa.jpf.FileState;
 
 /**
@@ -103,7 +102,7 @@ public class FileDescriptor {
   void write (int b) throws IOException {
     if (isOpened) {
       if (fileState.isWritableForSUT()) {
-        fileState.markWrite(FileOperations.WRITE);
+        fileState.markWrite();
         fileInterface.write(b);
         
         fileState.updateLastModified();
@@ -118,7 +117,7 @@ public class FileDescriptor {
   void write (byte[] buf, int off, int len) throws IOException {
     if (isOpened) {
       if (fileState.isWritableForSUT()) {
-        fileState.markWrite(FileOperations.WRITE);
+        fileState.markWrite();
         fileInterface.write(buf, off, len);
         
         fileState.updateLastModified();
@@ -132,7 +131,7 @@ public class FileDescriptor {
 
   void setLength(long newLength) throws IOException {
     if (isOpened) {
-      fileState.markWrite(FileOperations.WRITE);
+      fileState.markWrite();
       fileInterface.setLength(newLength);
       
       fileState.updateLastModified();

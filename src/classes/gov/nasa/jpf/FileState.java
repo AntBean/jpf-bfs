@@ -42,7 +42,7 @@ public class FileState {
   // Access mode to a file
   private int fileMode;
 
-  private int lastOperation = FileOperations.READ;
+  private int lastOperation;
 
   private WriteChunk lastWriteChunk;
   
@@ -311,8 +311,8 @@ public class FileState {
   // same time with no synchronization this will be detected by
   // PreciseRaceDetector
 
-  public void markWrite(int operation) {
-    lastOperation = operation;
+  public void markWrite() {
+    lastOperation++;
   }
 
   public int markRead() {
