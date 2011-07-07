@@ -740,4 +740,23 @@ public class RandomAccessFileTest extends TestJPF {
       RandomAccessFile raf = new RandomAccessFile("fileSandbox", "r");
     }
   }
+  
+  
+  @Test
+  public void testReadAfterFileRenamed() throws Exception {
+    if (verifyNoPropertyViolation()) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
+      raf.setLength(0);
+      raf.write(new byte[] {1, 2, 3, 4, 5, 6});
+      File testFile = new File("fileSandbox/testFile");
+      File newFile = new File("fileSandbox/newFile");
+      testFile.renameTo(newFile);
+      
+      raf.seek(0);
+      byte buffer[] = new byte[10];
+      int read = raf.read(buffer);
+      
+      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6}, buffer, read);
+    }
+  }
 }

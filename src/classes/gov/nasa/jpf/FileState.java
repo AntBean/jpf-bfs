@@ -20,13 +20,9 @@
 package gov.nasa.jpf;
 
 import java.io.FileDescriptor;
-import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * This class stores state of a file in BFS
- * <2do> Check SUT rights before writing/reading any data
- * <2do> Set lasModified field with every write operation
  * @author Ivan Mushketik
  */
 public class FileState {
@@ -69,8 +65,7 @@ public class FileState {
   public FileState(boolean isDir) { 
     this.isDir = isDir;
   }
-
-  // <2do> add write chunks coping
+  
   public FileState(FileState fs) {
     length = fs.length;
     isDir = fs.isDir;
@@ -83,6 +78,7 @@ public class FileState {
     isExecutableForSUT = fs.isExecutableForSUT;
     // <2do> Add other rights coping
     
+    lastWriteChunk = fs.lastWriteChunk;
     lastModified = fs.lastModified;
     fileMode = fs.fileMode;
   }
@@ -275,6 +271,10 @@ public class FileState {
   void setFileAccessMode(int fileMode) {
     this.fileMode = fileMode;
   }
+  
+  public void updateLastModified() {
+    lastModified = System.currentTimeMillis();
+  }
 
   public synchronized FileDescriptor open() {
     if (exists() && !isDir()) {
@@ -293,7 +293,7 @@ public class FileState {
         fi = new NativeFileInterface(this, true);
 
       } else {
-        throw new JPFException("Not supported file access mode " + fileMode);
+        throw new UnsupportedOperationException("Not supported file access mode " + fileMode);
       }
 
       return new FileDescriptor(fi, this);
@@ -351,7 +351,10 @@ public class FileState {
     result += "; canWrite = " + isWritableForSUT;
     result += "; canExecute = " + isExecutableForSUT;
     result += "; file mode = " + fileMode;
+    result += "; last modified = " + lastModified;
 
     return result;
   }
+
+  
 }

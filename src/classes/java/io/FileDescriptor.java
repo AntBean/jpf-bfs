@@ -105,6 +105,8 @@ public class FileDescriptor {
       if (fileState.isWritableForSUT()) {
         fileState.markWrite(FileOperations.WRITE);
         fileInterface.write(b);
+        
+        fileState.updateLastModified();
       } else {
         throw new IOException("No rights to write to file");
       }
@@ -118,6 +120,8 @@ public class FileDescriptor {
       if (fileState.isWritableForSUT()) {
         fileState.markWrite(FileOperations.WRITE);
         fileInterface.write(buf, off, len);
+        
+        fileState.updateLastModified();
       } else {
         throw new IOException("No rights to write to file");
       }
@@ -130,6 +134,8 @@ public class FileDescriptor {
     if (isOpened) {
       fileState.markWrite(FileOperations.WRITE);
       fileInterface.setLength(newLength);
+      
+      fileState.updateLastModified();
     } else {
       throw new IOException("Attempt to set file length with closed descriptor");
     }

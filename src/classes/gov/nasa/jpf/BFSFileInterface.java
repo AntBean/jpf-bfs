@@ -27,8 +27,6 @@ import java.io.IOException;
  */
 public class BFSFileInterface extends FileInterface {
 
-  private FileState fileState;
-
   BFSFileInterface(FileState fileState) {
     this.fileState = fileState;
   }

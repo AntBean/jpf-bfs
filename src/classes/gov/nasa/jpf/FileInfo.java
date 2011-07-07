@@ -31,7 +31,6 @@ import java.util.Random;
  * FileXStream and RandomAccessFile should still be able to read/write to this file.
  * This class also stores all FileInfos that was created during SUT work.
  *
- * <2do> it's not optimized at all. Some methods can be easily moved to a peer side.
  * @author Ivan Mushketik
  */
 public class FileInfo {

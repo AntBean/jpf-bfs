@@ -27,12 +27,17 @@ import org.junit.Ignore;
  */
 @Ignore
 public class BFSTestUtils extends TestJPF {
-  public static void assertReadResult(byte[] expected, byte[] buffer, int bufferLength) {
+  public static void assertReadResult(byte[] expected, byte[] buffer, int read) {
+    assertEquals("Expected to read " + expected.length + " but read " + read, 
+                 expected.length, read);
+    
+    
     String expectedStr = byteArrayToStr(expected, expected.length);
-    String bufferStr = byteArrayToStr(buffer, bufferLength);
+    String bufferStr = byteArrayToStr(buffer, read);    
     String errorMsg = "Expected " + expectedStr + " but read " + bufferStr;
 
-    for (int i = 0; i < bufferLength; i++) {
+    
+    for (int i = 0; i < read; i++) {
       assertEquals(errorMsg, expected[i], buffer[i]);
     }
   }

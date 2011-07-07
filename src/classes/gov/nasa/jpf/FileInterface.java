@@ -28,6 +28,7 @@ import java.io.IOException;
 public abstract class FileInterface {
 
   protected long filePos;
+  protected FileState fileState;
   
   /**
    * Sync buffers with underlying file system.
@@ -105,7 +106,7 @@ public abstract class FileInterface {
    * @param len - length of a data in buffer
    * @throws IOException
    */
-  public abstract void write (byte[] buf, int off, int len) throws IOException;
+  public abstract void write(byte[] buf, int off, int len) throws IOException;
 
   /**
    * Close file

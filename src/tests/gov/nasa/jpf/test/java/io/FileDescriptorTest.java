@@ -288,4 +288,24 @@ public class FileDescriptorTest extends TestJPF {
                   fd2.valid());
     }
   }
+  
+  @Test
+  public void testLastModifiedTimeSetting() throws Exception {
+    if (verifyNoPropertyViolation()) {
+     File testFile = new File("fileSandbox/testFile");
+     
+     RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
+     long t1 = testFile.lastModified();
+     raf.setLength(0);
+     
+     long t2 = testFile.lastModified();
+     Thread.sleep(10000);
+     raf.write(new byte[] {1, 2, 3, 4, 5, 6});
+     
+     long t3 = testFile.lastModified();
+     
+     assertTrue(t1 < t2);
+     assertTrue(t2 < t3);
+    }
+  }
 }

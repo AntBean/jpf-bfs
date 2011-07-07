@@ -29,7 +29,6 @@ public class NativeFileInterface extends FileInterface {
 
   // Canonical path of a file on which read/write should be performed
   private String canonicalPath;
-  private FileState fileState;
   boolean ignoreWriteMode;
 
   public NativeFileInterface(FileState fileState, boolean ignoreWriteMode) {}
@@ -56,6 +55,7 @@ public class NativeFileInterface extends FileInterface {
     if (written > 0) {
       filePos += written;
     }
+    fileState.updateLastModified();
   }
 
   private native int writeNative(byte[] buf, int off, int len) throws IOException;

@@ -28,9 +28,6 @@ package gov.nasa.jpf;
  */
 class FileAccessInfo {
 
-  // <2do> This should check JPF config
-  static int getFileAccessMode(String cannonicalPath) {
-    return FileAccessMode.BFS_FILE_ACCESS;
-  }
+  static native int getFileAccessMode(String cannonicalPath);
 
 }

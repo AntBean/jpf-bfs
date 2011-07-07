@@ -426,7 +426,7 @@ public class File
   }
 
   public long lastModified() {
-    System.out.println("File.setLastModified()");
+    System.out.println("File.lastModified()");
 
     if (fileInfo.exists()) {
       return fileInfo.getFileState().getLastModified();

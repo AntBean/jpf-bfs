@@ -53,7 +53,7 @@ public class JPF_gov_nasa_jpf_FileAccessInfo {
     }
   }
 
-  public static int getFileAccessMode__Ljava_lang_String_2__I(MJIEnv env, int objref, int canonicalPathRef) {
+  public static int getFileAccessMode__Ljava_lang_String_2__I(MJIEnv env, int classRef, int canonicalPathRef) {
     String canonicalPath = env.getStringObject(canonicalPathRef);
 
     if (bfsExcludeMatcher != null && bfsExcludeMatcher.matchesAny(canonicalPath)) {
