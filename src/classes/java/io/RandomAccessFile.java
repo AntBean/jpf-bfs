@@ -227,14 +227,12 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public String readLine() throws IOException {
-    System.out.println("RAF.readLine()");
     StringBuilder sb = new StringBuilder();
     int c = -1;
     boolean eol = false;
     
     while (!eol) {
       c = read();
-      System.out.println("Read = " + c);
       
       switch(c) {
         case -1:

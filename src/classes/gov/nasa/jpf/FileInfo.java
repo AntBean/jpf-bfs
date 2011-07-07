@@ -193,8 +193,6 @@ public class FileInfo {
    * @return - true if file was moved successfully, false otherwise.
    */
   public boolean renameTo(String destCanonicalPath) {
-    System.out.println("Renaming " + canonicalPath + " to " + destCanonicalPath);
-
     // If file doesn't exist it can't be moved
     if (fileState.exists()) {
       FileInfo destFI = getFileInfo(destCanonicalPath);
@@ -272,21 +270,13 @@ public class FileInfo {
    * a native FS and wasn't deleted. Otherwise return null.
    */
   public static synchronized FileInfo getFileInfo(String canonicaPath) {
-    System.out.println("Request for " + canonicaPath + " FileInfo");
     FileInfo newFI = getFileInfoByCanonicalPath(canonicaPath);
 
     if (newFI != null) {
-      System.out.println("Found in FileInfo DS");
       return newFI;
     }
 
     newFI = createNewFileInfo(canonicaPath);
-    if (newFI != null) {
-      System.out.println("Found in native FS");
-    }
-    else {
-      System.out.println("Found no FileInfo");
-    }
     
     if (newFI == null) {
       newFI = new FileInfo(canonicaPath, true, false);
@@ -297,7 +287,6 @@ public class FileInfo {
     newFI.fileState.setFileAccessMode(fileMode);
     addNewFI(newFI);
     
-    System.out.println("New FI is " + newFI);
     
     return newFI;
 
@@ -319,7 +308,6 @@ public class FileInfo {
        * marked as deleted.
        */
       if (!parentFI.exists()) {
-        System.out.println(parentFI.canonicalPath + " was deleted, so " + newFI.canonicalPath + " is deleted too");
         newFI.fileState.setDoesExist(false);
       }
       
@@ -334,8 +322,7 @@ public class FileInfo {
    * @param canonicalPath - canonical path of a new file
    * @return true if file was created, false otherwise.
    */
-  public boolean createNewFile(String canonicalPath) throws IOException {
-    System.out.println("Attempt to create new FileInfo for a file " + canonicalPath);    
+  public boolean createNewFile(String canonicalPath) throws IOException {   
 
     if (!fileState.exists()) {
       String parentCP = getParent(canonicalPath);
@@ -352,7 +339,6 @@ public class FileInfo {
             fileState.setNativeFSFileName(tempFile);
           }
 
-          System.out.println("New file is " + this);
 
           return true;
 
@@ -395,8 +381,6 @@ public class FileInfo {
    * @return true if directory was created, false otherwise
    */
   public boolean mkdir() {
-    System.out.println("Attempt to create new FileInfo for a dir " + canonicalPath);
-
     if (!fileState.exists()) {
       String parentCP = getParent(canonicalPath);
       FileInfo parentFI = getFileInfo(parentCP);
@@ -423,7 +407,6 @@ public class FileInfo {
    * @return true if all directories were created, false otherwise.
    */
   public boolean mkdirs(boolean firstCall) {
-    System.out.println("FileInfo.mkdirs " + this);
     
     // File not exists    
     if (!fileState.exists()) {
@@ -473,7 +456,6 @@ public class FileInfo {
    * @return canonical path of a new file. If file can't be created returns null.
    */
   public static String createTempFile(String tempDir, char separatorChar, String prefix, String suffix) {
-    System.out.println("Creating tempFile in " + tempDir + "; with prefix '" + prefix + "' and suffix '" + suffix + "'");
     FileInfo fi = getFileInfo(tempDir);
 
     if (fi != null && fi.fileState.exists() && fi.fileState.isDir()) {

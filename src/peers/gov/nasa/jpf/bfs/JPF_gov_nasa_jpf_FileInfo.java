@@ -24,11 +24,10 @@ import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.Fields;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ReferenceArrayFields;
+import gov.nasa.jpf.util.JPFLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -36,7 +35,7 @@ import java.util.logging.Logger;
  */
 public class JPF_gov_nasa_jpf_FileInfo {
 
-  private static final Logger logger = JPF.getLogger("gov.nasa.jpf.FileInfo");
+  private static final JPFLogger logger = JPF.getLogger("gov.nasa.jpf.FileInfo");
 
   private static final String OPENED_DELETE_KEY = "jpf-bfs.opened_delete";
   private static final String OPENED_RENAME_KEY = "jpf-bfs.opened_rename";
@@ -63,12 +62,13 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
   public static int createNewFileInfo__Ljava_lang_String_2__Lgov_nasa_jpf_FileInfo_2(MJIEnv env, int clsRef, int fileNameRef) {
     
-    String fileName = env.getStringObject(fileNameRef);
-
-    System.out.println("Searching for info for " + fileName + " on native FS");
+    String fileName = env.getStringObject(fileNameRef);    
+    logger.info("Searching for info for ", fileName, " on native FS");
+    
     File file = new File(fileName);
 
     if (file.exists()) {
+      logger.info("Found file on a native file system");
       int fiRef = env.newObject("gov.nasa.jpf.FileInfo");
       int cpRef = env.newString(fileName);
       env.setReferenceField(fiRef, "canonicalPath", cpRef);
@@ -121,7 +121,6 @@ public class JPF_gov_nasa_jpf_FileInfo {
   }
   
   //  public String[] list() {
-  //    System.out.println("FileInfo.list() for " + this);
   //
   //    if (fileState.isDir() && fileState.exists()) {
   //      if (fileState.isReadableForSUT()) {// && fileState.isExecutableForSUT()) {
@@ -132,12 +131,6 @@ public class JPF_gov_nasa_jpf_FileInfo {
   //        if (fileState.getNativeFSFileName() != null) {
   //          nativeFSChildren = getChildrenCPs(fileState.getNativeFSFileName());
   //        }
-  //
-  //        System.out.println("Native FS children: ");
-  //        for (String childName : nativeFSChildren) {
-  //          System.out.print(childName + ", ");
-  //        }
-  //        System.out.println(";");
   //
   //        HashSet<String> set = new HashSet<String>();
   //
@@ -153,18 +146,10 @@ public class JPF_gov_nasa_jpf_FileInfo {
   //          
   //          if (child.fileState.exists()) {
   //            set.add(child.canonicalPath);
-  //            System.out.println("Found new existing child " + child.canonicalPath);
   //          } else {
   //            set.remove(child.canonicalPath);
-  //            System.out.println("Found new deleted child " + child.canonicalPath);
   //          }
   //        }
-  //
-  //        System.out.println("Current children: ");
-  //        for (String childName : set) {
-  //          System.out.print(childName + ", ");
-  //        }
-  //        System.out.println(";");
   //
   //        String[] currentChildren = new String[set.size()];
   //        return set.toArray(currentChildren);
@@ -198,13 +183,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
         if (nativeFileExists(env, fsRef)) {
           nativeFSChildren = getChildrenCPs(canonicalPath);
         }
-
-        System.out.println("Native FS children: ");
-        for (String childName : nativeFSChildren) {
-          System.out.print(childName + ", ");
-        }
-        System.out.println(";");
-
+        
         HashSet<String> set = new HashSet<String>();
 
         for (String fsChild : nativeFSChildren) {
@@ -225,18 +204,10 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
           if (fileExists(env, childFSRef)) {
             set.add(childCanonicalPath);
-            System.out.println("Found new existing child " + childCanonicalPath);
           } else {
             set.remove(childCanonicalPath);
-            System.out.println("Found new deleted child " + childCanonicalPath);
           }          
         }
-        
-        System.out.println("Current children: ");
-        for (String childName : set) {
-          System.out.print(childName + ", ");
-        }
-        System.out.println(";");
 
         String[] currentChildren = new String[set.size()];
         return set.toArray(currentChildren);
@@ -288,7 +259,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       String fileCP = env.getStringField(objRef, "canonicalPath");
 
       if (onOpenedDelete == FSMode.WARNING) {
-        logger.log(Level.WARNING, "File {0} deleted while opened", fileCP);
+        logger.warning("File ", fileCP, " deleted while opened");
       } else if (onOpenedDelete == FSMode.ERROR) {
         env.throwException("java.io.IOException", "File " + fileCP + " deleted while opened");
       }
@@ -304,7 +275,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       String fileCP = env.getStringField(objRef, "canonicalPath");
 
       if (onOpenedRename == FSMode.WARNING) {
-        logger.log(Level.WARNING, "File {0} renamed while opened", fileCP);
+        logger.warning("File ", fileCP, " renamed while opened");
       } else if (onOpenedRename == FSMode.ERROR) {
         env.throwException("java.io.IOException", "File " + fileCP + " renamed while opened");
       }
