@@ -27,9 +27,9 @@ import java.io.File;
  * @author Ivan Mushketik
  */
 public class BFSUtils {
-  public static File getCacheDir() throws RuntimeException {
-    JVM jvm = JVM.getVM();
-    Config config = jvm.getConfig();
+  
+  public static File getCacheDir(Config config) throws RuntimeException {
+    
     String fsCacheDirName = config.getString("jpf-bfs.writecache_dir");
     File fsCacheDir = new File(fsCacheDirName);
     // Create directory where data, that will be written on BFS during SUT run will be save

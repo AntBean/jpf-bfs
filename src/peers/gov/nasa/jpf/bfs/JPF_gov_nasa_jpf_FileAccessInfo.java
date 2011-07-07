@@ -39,8 +39,7 @@ public class JPF_gov_nasa_jpf_FileAccessInfo {
   private static StringSetMatcher bfsExcludeMatcher;
   private static StringSetMatcher bfsIgnoreWriteMatcher;
 
-  static {
-    Config config = JVM.getVM().getConfig();
+  public static void init (Config config) {
     String[] bfsExclude = config.getStringArray(BFS_EXCLUDE_KEY);
     String[] bfsIgnoreWrite = config.getStringArray(BFS_IGNORE_WRITE_KEY);
 

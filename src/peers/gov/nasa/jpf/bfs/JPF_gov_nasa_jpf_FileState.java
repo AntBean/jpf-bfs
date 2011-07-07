@@ -19,6 +19,7 @@
 
 package gov.nasa.jpf.bfs;
 
+import gov.nasa.jpf.Config;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.Pair;
 import java.io.File;
@@ -34,10 +35,10 @@ import java.util.ListIterator;
  */
 public class JPF_gov_nasa_jpf_FileState {
 
-  private static final File fsCacheDir;
+  private static File fsCacheDir;
 
-  static {
-    fsCacheDir = BFSUtils.getCacheDir();
+  public static void init(Config config) {
+    fsCacheDir = BFSUtils.getCacheDir(config);
   }
   
   public static int write__J_3BII__I(MJIEnv env, int thisPtr, long startPos, int dataPtr, int offset, int length) throws Exception {

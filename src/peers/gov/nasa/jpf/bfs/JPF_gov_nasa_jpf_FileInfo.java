@@ -50,12 +50,11 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
   private static File cacheDir;
 
-  static {
-    Config config = JVM.getVM().getConfig();
+  public static void init(Config config) {
     onOpenedDelete = FSMode.parseOnOpened(config, OPENED_DELETE_KEY);
     onOpenedRename = FSMode.parseOnOpened(config, OPENED_RENAME_KEY);
 
-    cacheDir = BFSUtils.getCacheDir();
+    cacheDir = BFSUtils.getCacheDir(config);
   }
   
   private static final int INITIAL_SIZE = 1;
