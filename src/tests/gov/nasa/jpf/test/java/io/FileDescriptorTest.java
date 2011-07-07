@@ -20,7 +20,6 @@ package gov.nasa.jpf.test.java.io;
 
 import java.io.FileDescriptor;
 import gov.nasa.jpf.jvm.Verify;
-import gov.nasa.jpf.util.ClassSpec;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
@@ -162,7 +161,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyJPFException(new ClassSpec("gov.nasa.jpf.JPFException"),
+    if (verifyUnhandledException("java.io.IOException",
                            "+jpf-bfs.opened-delete = error")) {
       File testFile = new File("fileSandbox/testFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
@@ -235,7 +234,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyJPFException(new ClassSpec("gov.nasa.jpf.JPFException"),
+    if (verifyUnhandledException("java.io.IOException",
                            "+jpf-bfs.opened-rename = error")) {
       File testFile = new File("fileSandbox/testFile");
       File newFile = new File("fileSandbox/newFile");

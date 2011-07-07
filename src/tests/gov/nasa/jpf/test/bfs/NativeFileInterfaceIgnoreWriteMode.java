@@ -19,7 +19,6 @@
 package gov.nasa.jpf.test.bfs;
 
 import gov.nasa.jpf.jvm.Verify;
-import gov.nasa.jpf.util.ClassSpec;
 import gov.nasa.jpf.util.FileUtils;
 import gov.nasa.jpf.util.test.TestJPF;
 import java.io.File;
@@ -104,8 +103,8 @@ public class NativeFileInterfaceIgnoreWriteMode extends TestJPF {
       raf.close();
     }
 
-    if (verifyJPFException(new ClassSpec("gov.nasa.JPFException"),
-            "+jpf-bfs.bfs.ignore-write = *fileSandbox/testFile" +
+    if (verifyUnhandledException("java.io.IOException",
+            "+jpf-bfs.bfs.ignore-write = */testFile",
             "+jpf-bfs.ignore-write-file-read = error")) {
       RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
 
@@ -116,9 +115,9 @@ public class NativeFileInterfaceIgnoreWriteMode extends TestJPF {
 
       raf.seek(0);
       raf.write(new byte[] {42, 42, 42, 42, 42, 42});
-
+      
+      raf.seek(0);
       read = raf.read(buffer);
-      assertReadResult(new byte[] {1, 2, 3, 4, 5, 6, 7}, buffer, read);
     }
   }
 

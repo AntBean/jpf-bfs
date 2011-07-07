@@ -20,9 +20,6 @@ package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.JPFException;
-import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.JPFLogger;
 
@@ -45,8 +42,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   private static final String IGNORE_WRITE_FILE_READ_KEY = "jpf-bfs.ignore-write-file-read";
   private static int onIgnoreWriteFileRead = FSMode.NOTHING;
 
-  static {
-    Config config = JVM.getVM().getConfig();
+  public static void init(Config config) {
     onIgnoreWriteFileRead = FSMode.parseOnOpened(config, IGNORE_WRITE_FILE_READ_KEY);
   }
 
@@ -60,7 +56,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       env.setBooleanField(objref, IGNORE_WRITE_MODE_FIELD, ignoreWriteMode);
 
     } catch (FileNotFoundException ex) {
-      throw new JPFException(ex);
+      env.throwException("java.io.IOException", ex.getMessage());
     }
   }
 
@@ -82,7 +78,7 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   public static int readNative___3BII__I (MJIEnv env, int objref, int bufferRef, int off, int len) {
     boolean ignoreWriteMode = env.getBooleanField(objref, IGNORE_WRITE_MODE_FIELD);
 
-    if (!ignoreWriteMode || onIgnoreWriteFileRead != FSMode.ERROR) {
+    if (!ignoreWriteMode || (ignoreWriteMode && onIgnoreWriteFileRead != FSMode.ERROR)) {
       if (onIgnoreWriteFileRead == FSMode.WARNING) {
         logger.warning("Attempt to read file with ignore write mode");
       }
@@ -108,7 +104,8 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
       }
 
     } else {
-      throw new JPFException("Attempt to read file with ignore write mode");
+      env.throwException("java.io.IOException", "Attempt to read file with ignore write mode");
+      return -1;
     }
   }
  

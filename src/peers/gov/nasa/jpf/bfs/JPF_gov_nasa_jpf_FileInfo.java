@@ -21,11 +21,7 @@ package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.JPFException;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.Fields;
-import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ReferenceArrayFields;
 import java.io.File;
@@ -288,7 +284,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       if (onOpenedDelete == FSMode.WARNING) {
         logger.log(Level.WARNING, "File {0} deleted while opened", fileCP);
       } else if (onOpenedDelete == FSMode.ERROR) {
-        throw new JPFException("File " + fileCP + " deleted while opened");
+        env.throwException("java.io.IOException", "File " + fileCP + " deleted while opened");
       }
     }
   }
@@ -304,7 +300,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
       if (onOpenedRename == FSMode.WARNING) {
         logger.log(Level.WARNING, "File {0} renamed while opened", fileCP);
       } else if (onOpenedRename == FSMode.ERROR) {
-        throw new JPFException("File " + fileCP + " renamed while opened");
+        env.throwException("java.io.IOException", "File " + fileCP + " renamed while opened");
       }
     }
   }
