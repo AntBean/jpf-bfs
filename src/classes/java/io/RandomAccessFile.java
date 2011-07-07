@@ -25,7 +25,6 @@ import java.nio.channels.FileChannel;
  * MJI model class for java.io.RandomAccessFile
  *
  * @author Ivan Mushketik
- * <2do> Check readOnly flag
  */
 public class RandomAccessFile implements DataInput, DataOutput {
 
@@ -46,6 +45,10 @@ public class RandomAccessFile implements DataInput, DataOutput {
           }
         }
       }     
+      
+      if (file.isDirectory()) {
+        throw new FileNotFoundException(file.getCanonicalPath() + " (is directory)");
+      }
       
       FileState fileState = file.getFileInfo().getFileState();
       checkFilePermissions(file, fileState);
@@ -270,7 +273,11 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void write(int i) throws IOException {
-    fd.write(i);
+    if (!readOnly) {
+      fd.write(i);
+    } else {
+      throw new IOException("Attempt to write to a file that was opened for read-only");
+    }
   }
 
   public void write(byte[] bytes) throws IOException {
@@ -278,7 +285,11 @@ public class RandomAccessFile implements DataInput, DataOutput {
   }
 
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    fd.write(bytes, offset, length);
+    if (!readOnly) {
+      fd.write(bytes, offset, length);
+    } else {
+      throw new IOException("Attempt to write to a file that was opened for read-only");
+    }
   }
 
   public void writeBoolean(boolean bln) throws IOException {

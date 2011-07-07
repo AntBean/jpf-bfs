@@ -715,4 +715,29 @@ public class RandomAccessFileTest extends TestJPF {
       assertEquals(8, raf.length());
     }
   }
+  
+  @Test
+  public void testWriteByteWhenFileIsOpenedForReadOnly() throws Exception {
+    if (verifyUnhandledException("java.io.IOException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      
+      raf.write(1);
+    }
+  }
+  
+  @Test
+  public void testWriteBufferWhenFileIsOpenedForReadOnly() throws Exception {
+    if (verifyUnhandledException("java.io.IOException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "r");
+      
+      raf.write(new byte[5]);
+    }
+  }
+  
+  @Test
+  public void testOpenDirectory() throws Exception {
+    if (verifyUnhandledException("java.io.FileNotFoundException")) {
+      RandomAccessFile raf = new RandomAccessFile("fileSandbox", "r");
+    }
+  }
 }
