@@ -79,7 +79,7 @@ public class NativeFileInterfaceIgnoreWriteMode extends TestJPF {
       raf.close();
     }
 
-    if (verifyNoPropertyViolation("+jpf-bfs.bfs.ignore-write = *fileSandbox/testFile")) {
+    if (verifyNoPropertyViolation("+jpf-bfs.bfs.ignore_write = *fileSandbox/testFile")) {
       RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
 
       Verify.getBoolean();
@@ -104,8 +104,8 @@ public class NativeFileInterfaceIgnoreWriteMode extends TestJPF {
     }
 
     if (verifyUnhandledException("java.io.IOException",
-            "+jpf-bfs.bfs.ignore-write = */testFile",
-            "+jpf-bfs.ignore-write-file-read = error")) {
+            "+jpf-bfs.bfs.ignore_write = */testFile",
+            "+jpf-bfs.ignore_write_file_read = error")) {
       RandomAccessFile raf = new RandomAccessFile("fileSandbox/testFile", "rws");
 
       Verify.getBoolean();

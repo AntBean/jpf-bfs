@@ -38,8 +38,8 @@ public class JPF_gov_nasa_jpf_FileInfo {
 
   private static final Logger logger = JPF.getLogger("gov.nasa.jpf.FileInfo");
 
-  private static final String OPENED_DELETE_KEY = "jpf-bfs.opened-delete";
-  private static final String OPENED_RENAME_KEY = "jpf-bfs.opened-rename";
+  private static final String OPENED_DELETE_KEY = "jpf-bfs.opened_delete";
+  private static final String OPENED_RENAME_KEY = "jpf-bfs.opened_rename";
 
   private static int onOpenedDelete = FSMode.NOTHING;
   private static int onOpenedRename = FSMode.NOTHING;
@@ -47,7 +47,13 @@ public class JPF_gov_nasa_jpf_FileInfo {
   private static File cacheDir;
 
   public static void init(Config config) {
+    /** @jpfoption jpf-bfs.opened_delete : String {"error", "warning", "nothing"} - what to do if
+     * if opened file is deleted. "error" - throw java.io.IOException; "warning" - log warning; 
+     * "nothing" - just do nothing */
     onOpenedDelete = FSMode.parseOnOpened(config, OPENED_DELETE_KEY);
+    /** @jpfoption jpf-bfs.opened_rename : String {"error", "warning", "nothing"} - what to do if
+     * if opened file is renamed. "error" - throw java.io.IOException; "warning" - log warning; 
+     * "nothing" - just do nothing */
     onOpenedRename = FSMode.parseOnOpened(config, OPENED_RENAME_KEY);
 
     cacheDir = BFSUtils.getCacheDir(config);

@@ -39,10 +39,13 @@ public class JPF_gov_nasa_jpf_NativeFileInterface {
   static final HashMap<Integer, RandomAccessFile> rafs = new HashMap<Integer, RandomAccessFile>();
 
 
-  private static final String IGNORE_WRITE_FILE_READ_KEY = "jpf-bfs.ignore-write-file-read";
+  private static final String IGNORE_WRITE_FILE_READ_KEY = "jpf-bfs.ignore_write_file_read";
   private static int onIgnoreWriteFileRead = FSMode.NOTHING;
 
   public static void init(Config config) {
+     /** @jpfoption jpf-bfs.bfs.ignore_write_file_read : String {"nothing", "warning", "error"} - what to do if 
+      * a file in "ignore_write" mode is read. "error" - throw an java.io.IOException; "warning" - log warning; 
+      * "nothing" - simply do nothing*/
     onIgnoreWriteFileRead = FSMode.parseOnOpened(config, IGNORE_WRITE_FILE_READ_KEY);
   }
 

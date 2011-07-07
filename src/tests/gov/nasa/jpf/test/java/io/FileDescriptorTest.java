@@ -133,7 +133,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyNoPropertyViolation("+jpf-bfs.opened-delete = warning")) {
+    if (verifyNoPropertyViolation("+jpf-bfs.opened_delete = warning")) {
       File testFile = new File("fileSandbox/testFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
       
@@ -162,7 +162,7 @@ public class FileDescriptorTest extends TestJPF {
     }
 
     if (verifyUnhandledException("java.io.IOException",
-                           "+jpf-bfs.opened-delete = error")) {
+                           "+jpf-bfs.opened_delete = error")) {
       File testFile = new File("fileSandbox/testFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
 
@@ -183,7 +183,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyNoPropertyViolation("+jpf-bfs.opened-delete = error")) {
+    if (verifyNoPropertyViolation("+jpf-bfs.opened_delete = error")) {
       File testFile = new File("fileSandbox/testFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
 
@@ -205,7 +205,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyNoPropertyViolation("+jpf-bfs.opened-rename = warning")) {
+    if (verifyNoPropertyViolation("+jpf-bfs.opened_rename = warning")) {
       File testFile = new File("fileSandbox/testFile");
       File newFile = new File("fileSandbox/newFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
@@ -235,7 +235,7 @@ public class FileDescriptorTest extends TestJPF {
     }
 
     if (verifyUnhandledException("java.io.IOException",
-                           "+jpf-bfs.opened-rename = error")) {
+                           "+jpf-bfs.opened_rename = error")) {
       File testFile = new File("fileSandbox/testFile");
       File newFile = new File("fileSandbox/newFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");
@@ -257,7 +257,7 @@ public class FileDescriptorTest extends TestJPF {
       raf.close();
     }
 
-    if (verifyNoPropertyViolation("+jpf-bfs.opened-rename = error")) {
+    if (verifyNoPropertyViolation("+jpf-bfs.opened_rename = error")) {
       File testFile = new File("fileSandbox/testFile");
       File newFile = new File("fileSandbox/newFile");
       RandomAccessFile raf = new RandomAccessFile(testFile, "rws");

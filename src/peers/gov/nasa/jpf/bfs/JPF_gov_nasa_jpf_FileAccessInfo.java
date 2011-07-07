@@ -34,7 +34,7 @@ public class JPF_gov_nasa_jpf_FileAccessInfo {
   public static final int BFS_IGNORE_WRITE = 3;
 
   public static final String BFS_EXCLUDE_KEY = "jpf-bfs.bfs.exclude";
-  public static final String BFS_IGNORE_WRITE_KEY = "jpf-bfs.bfs.ignore-write";
+  public static final String BFS_IGNORE_WRITE_KEY = "jpf-bfs.bfs.ignore_write";
 
   private static StringSetMatcher bfsExcludeMatcher;
   private static StringSetMatcher bfsIgnoreWriteMatcher;
@@ -44,10 +44,16 @@ public class JPF_gov_nasa_jpf_FileAccessInfo {
     String[] bfsIgnoreWrite = config.getStringArray(BFS_IGNORE_WRITE_KEY);
 
     if (bfsExclude != null) {
+      /** @jpfoption jpf-bfs.bfs.exclude : List<RegExp> - if file's canonical path matches 
+       * any of specified here regular expressions, all read/write operations with this file
+       * will be performed natively in unbacktrackable way. */
       bfsExcludeMatcher = new StringSetMatcher(bfsExclude);
     }
 
     if (bfsIgnoreWrite != null) {
+      /** @jpfoption jpf-bfs.bfs.ignore_write : List<RegExp> - if file's canonical path matches 
+       * any of specified here regular expressions, all write operations will be ignored. Result
+       * of read operations is specified by @jpfoption jpf-bfs.opened_delete */
       bfsIgnoreWriteMatcher = new StringSetMatcher(bfsIgnoreWrite);
     }
   }
