@@ -21,7 +21,6 @@ package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.util.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -108,6 +107,19 @@ public class JPF_gov_nasa_jpf_FileState {
     env.setReferenceField(thisPtr, "lastWriteChunk", newWCRef);
   }
 
+  
+  private static class ReadChunk {
+    // Offset from the start pos in the buffer, where data should be written
+    int offset;
+    // Length of the data that user requested to read
+    int length;
+    
+    public ReadChunk(int offset, int length) {
+      this.offset = offset;
+      this.length = length;
+    }
+  }
+  
   public static int read__J_3BII__I(MJIEnv env, int thisPtr, long startPos, int dataPtr, int offset, int length) throws Exception {
     byte[] data = env.getByteArrayObject(dataPtr);
 
@@ -140,10 +152,10 @@ public class JPF_gov_nasa_jpf_FileState {
     int writeChunk = env.getReferenceField(thisPtr, "lastWriteChunk");
 
     // This list stores arreas in the buffer that should be read. Initialy it contains
-    // one pair that shows that whole buffer should be filled with data, but during
+    // one read chunk that shows that whole buffer should be filled with data, but during
     // we will iterate through data chunks list some of buffer's parts will be filled
-    ArrayList<Pair<Integer, Integer>> readList = new ArrayList<Pair<Integer, Integer>>();
-    readList.add(new Pair<Integer, Integer>(0, readBytes));
+    ArrayList<ReadChunk> readList = new ArrayList<ReadChunk>();
+    readList.add(new ReadChunk(0, readBytes));
 
     // Iterate through data chunks list
     while (writeChunk != MJIEnv.NULL) {
@@ -152,11 +164,11 @@ public class JPF_gov_nasa_jpf_FileState {
       String cacheFileName = env.getStringField(writeChunk, "fileName");
       long delta = wcOffset - startPos;
 
-      ListIterator<Pair<Integer, Integer>> iter = readList.listIterator();
+      ListIterator<ReadChunk> iter = readList.listIterator();
       while (iter.hasNext()) {
-        Pair<Integer, Integer> readChunk = iter.next();
-        int rcOff = readChunk.a;
-        int rcLen = readChunk.b;
+        ReadChunk readChunk = iter.next();
+        int rcOff = readChunk.offset;
+        int rcLen = readChunk.length;
         final long writeChunkEnd = delta + wcLength;
         final int readChunkEnd = rcOff + rcLen;
 
@@ -205,9 +217,9 @@ public class JPF_gov_nasa_jpf_FileState {
     return readBytes;
   }
 
-  private static void addNewReadChunk(ListIterator<Pair<Integer, Integer>> iter, int rcOff, int rcLen) {
+  private static void addNewReadChunk(ListIterator<ReadChunk> iter, int rcOff, int rcLen) {
     if (rcLen > 0) {
-      Pair<Integer, Integer> rcChunk = new Pair<Integer, Integer>(rcOff, rcLen);
+      ReadChunk rcChunk = new ReadChunk(rcOff, rcLen);
       iter.add(rcChunk);
     }
   }
@@ -238,12 +250,12 @@ public class JPF_gov_nasa_jpf_FileState {
    * @param readList - list of data chunks to fill in a buffer
    * @throws Exception
    */
-  private static void readLeftChunksFromNativeFS(File nativeFile, long startPos, byte[] data, int bufferOffset, ArrayList<Pair<Integer, Integer>> readList) throws Exception {
+  private static void readLeftChunksFromNativeFS(File nativeFile, long startPos, byte[] data, int bufferOffset, ArrayList<ReadChunk> readList) throws Exception {
     RandomAccessFile raf = new RandomAccessFile(nativeFile, "r");
 
-    for (Pair<Integer, Integer> readPos : readList) {      
-      int rcOffset = readPos.a;
-      int rcLength = readPos.b;
+    for (ReadChunk readPos : readList) {      
+      int rcOffset = readPos.offset;
+      int rcLength = readPos.length;
       raf.seek(startPos + rcOffset);
 
       raf.read(data, bufferOffset + rcOffset, rcLength);
