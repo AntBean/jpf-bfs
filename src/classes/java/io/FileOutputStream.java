@@ -21,6 +21,11 @@ package java.io;
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
 
+/**
+ * Implementation of FileOuptutStream that can write data to a BFS.
+ * 
+ * @author Ivan Mushketik
+ */
 public class FileOutputStream extends OutputStream {  
 
   private FileDescriptor fd;

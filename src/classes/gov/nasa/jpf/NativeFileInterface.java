@@ -22,7 +22,9 @@ package gov.nasa.jpf;
 import java.io.IOException;
 
 /**
- * File interface that perform read/write operations with native file system
+ * File interface that perform read/write operations with native file system.
+ * This can be used to decrease BFS overhead, in cases when backtrackable operations
+ * isn't needed.
  * @author Ivan Mushketik
  */
 public class NativeFileInterface extends FileInterface {

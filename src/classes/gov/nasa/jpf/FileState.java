@@ -42,8 +42,14 @@ public class FileState {
   // Access mode to a file
   private int fileMode;
 
+  // Field that is read during each read operation with a file, and changed
+  // during each write operations. It's used to find races in file operations
+  // by PreciseRaceDetector.
   private int lastOperation;
 
+  // Last write chunk represents data that was written to this file. Also it's a
+  // start of a list of write chunks that were written from SuT start to a current 
+  // state
   private WriteChunk lastWriteChunk;
   
   private boolean isReadableForSUT;
@@ -91,6 +97,11 @@ public class FileState {
     return length;
   }
 
+  /**
+   * Set new file length
+   * 
+   * @param newLength - new length of a file
+   */
   public void setLength(long newLength) {
     length = newLength;
   }
@@ -276,13 +287,16 @@ public class FileState {
     lastModified = System.currentTimeMillis();
   }
 
+  /**
+   * Open a file with a mode specified in config for this file
+   * @return FileDescriptor that can be used to perform file operations with this 
+   * file.
+   */
   public synchronized FileDescriptor open() {
     if (exists() && !isDir()) {
       openCnt++;
 
       FileInterface fi;
-      // If file was created during SUT run it's imposible to return
-      // NativeFileInterface
       if (fileMode == FileAccessMode.BFS_FILE_ACCESS) {
         fi = new BFSFileInterface(this);
 

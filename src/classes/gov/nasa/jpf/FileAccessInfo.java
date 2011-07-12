@@ -28,6 +28,14 @@ package gov.nasa.jpf;
  */
 class FileAccessInfo {
 
-  static native int getFileAccessMode(String cannonicalPath);
-
+  /**
+   * Check config to find out what file access mode should be used to perform
+   * operations with a file with specified canonical path.
+   * 
+   * @param canonicalPath - canonical path of a file
+   * @return one of the constants from FileAccessMode
+   * 
+   * @see FileAccessMode
+   */
+  static native int getFileAccessMode(String canonicalPath);
 }

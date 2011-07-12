@@ -28,7 +28,9 @@ import java.net.URL;
 
 /**
  * MJI model class for backtrackable java.io.File.
- *
+ * File object has a reference to a FileInfo that stores file state of current file.
+ * While FileInfo object is unique for each unique canonical path in the system,
+ * several File objects can be created for a single file in BFS.
  * @author Ivan Mushketik
  */
 public class File
@@ -38,10 +40,11 @@ public class File
   public static final String pathSeparator = System.getProperty("path.separator");
   public static final char pathSeparatorChar = pathSeparator.charAt(0);
 
-  int id; // link to the real File object
+  // Filename that was specified by user during file creataion
   private String filename;
+  // Canonical path of a current file on a BFS
   private String canonicalPath;
-
+  // Reference to a FileInfo for this file 
   private FileInfo fileInfo;
 
   protected FileInfo getFileInfo() {

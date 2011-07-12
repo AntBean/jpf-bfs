@@ -23,7 +23,7 @@ import gov.nasa.jpf.FileState;
 
 /**
  * FileDescriptor - interface to a FileInterface instance that implements
- * methods to access files on a file system. *
+ * methods to access files on a file system.
  * 
  */
 public class FileDescriptor {

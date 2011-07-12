@@ -22,7 +22,10 @@ package gov.nasa.jpf;
 /**
  * Each object of this class represent one chunk of data that was written by a SUT
  * on a Backtrackable FileSystem.
- * Each chunk stores a reference of chunk that was written before it.
+ * Each chunk stores a reference of chunk that was written before it, so they form 
+ * a list of write chunks. Start of the list represents the most recent write operation 
+ * in this SuT state. Last element of the WriteChunks list represent first write operation
+ * that was performed during SuT execution path from initial state to a current state.
  * @author Ivan Mushketik
  */
 public class WriteChunk {
@@ -44,6 +47,7 @@ public class WriteChunk {
   }
 
   /**
+   * Get offset from the start of the file to the beginning of the write chunk data.
    * @return the offset
    */
   public long getOffset() {
@@ -51,6 +55,7 @@ public class WriteChunk {
   }
 
   /**
+   * Get the length of the data written.
    * @return the length
    */
   public int getLength() {
@@ -58,12 +63,20 @@ public class WriteChunk {
   }
 
   /**
+   * Get name of the file on the native file system that stores data, that was 
+   * written by this data chunk.
    * @return the fileName
    */
   public String getFileName() {
     return fileName;
   }
 
+  /**
+   * Get write chunk that was written before current one.
+   * 
+   * @return write chunk that was written before current one if any data was written
+   * before current write chunk, null otherwise.
+   */
   public WriteChunk getPrevChunk() {
     return prevChunk;
   }

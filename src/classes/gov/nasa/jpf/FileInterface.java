@@ -22,12 +22,15 @@ package gov.nasa.jpf;
 import java.io.IOException;
 
 /**
- * Interface to file that is independent from underlying file access implementation
+ * This class defines interface to possible file operations, so they can be performed
+ * by FileDescriptor in implementation independent way.
  * @author Ivan Mushketik
  */
 public abstract class FileInterface {
-
+  // File pointer position
   protected long filePos;
+  // FileState object that represents a file that is used to perform file operations
+  // by FileInterface implementations
   protected FileState fileState;
   
   /**

@@ -25,10 +25,10 @@ package gov.nasa.jpf;
  * @author Ivan Mushketik
  */
 public class FileAccessMode {
-  // Read/write operations made from BFS
+  // Read/write operations performed in backtrackable way on BFS
   public static final int BFS_FILE_ACCESS = 1;
-  // Read/write operations made from native FS
+  // Read/write operations performed on a native file system
   public static final int NATIVE_FILE_ACCESS = 2;
-  // Write operation ignored. Read operations made from native FS
+  // Write operation ignored. Read operations performed on a native FS
   public static final int BFS_IGNORE_WRITE = 3;
 }

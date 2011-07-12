@@ -22,7 +22,7 @@ package gov.nasa.jpf;
 import java.io.IOException;
 
 /**
- *
+ * This implementation of FileInterface performs all file operations in a backtrackable way.
  * @author Ivan Mushketik
  */
 public class BFSFileInterface extends FileInterface {

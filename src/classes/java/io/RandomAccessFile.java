@@ -22,7 +22,7 @@ import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
 
 /**
- * MJI model class for java.io.RandomAccessFile
+ * Implementation of RandomAccessFile that can read/write data from/to BFS.
  *
  * @author Ivan Mushketik
  */

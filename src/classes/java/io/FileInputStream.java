@@ -21,12 +21,11 @@ package java.io;
 
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- * a simple model to read data w/o dragging the file system content into
- * the JPF memory
+ * Implementation of FileInputStream that can read files from BFS.
+ * 
+ * @author Ivan Mushketik
  */
 public class FileInputStream extends InputStream implements Closeable {
   

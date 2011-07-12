@@ -19,17 +19,16 @@
 package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
-import gov.nasa.jpf.jvm.JVM;
 import java.io.File;
 
 /**
- *
+ * This class contains static methods that are used by several peer classes.
  * @author Ivan Mushketik
  */
 public class BFSUtils {
   
-  public static File getCacheDir(Config config) throws RuntimeException {
-    
+  // This method is used by FileInfo and FileState peers.
+  public static File getCacheDir(Config config) throws RuntimeException {    
     String fsCacheDirName = config.getString("jpf-bfs.writecache_dir");
     File fsCacheDir = new File(fsCacheDirName);
     // Create directory where data, that will be written on BFS during SUT run will be save

@@ -24,7 +24,8 @@ import java.util.Random;
 
 /**
  * FileInfo stores data about all created and deleted files in Backtrackable
- * FileSystem (BFS).
+ * FileSystem (BFS). Each FileInfo object is unique for every canonical path in 
+ * the BFS.
  * Real data about file state like last modified time, rights, lengths is stored in
  * a FileState class. This separation was made, because file can be renamed (moved)
  * and File class should "see" that old file was deleted, but such files like
@@ -35,11 +36,16 @@ import java.util.Random;
  */
 public class FileInfo {
 
+  // Initial size for an array of FileInfos
   private static final int INITIAL_FILE_INFOS_SIZE = 1;  
+  // Initial size for an array that stores children files of a file that 
+  // is represented by a current FileInfo
   private static final int INITIAL_CHILDREN_SIZE = 1;
   
   // This fields is used on the peer side
+  // FileInfos for all files that were used by SuT during it's run
   private static FileInfo[] fileInfos = new FileInfo[INITIAL_FILE_INFOS_SIZE];
+  // Number of FileInfo in fileInfos array
   private static int numberOfFileInfos;
   
   // Canonical path of a file
