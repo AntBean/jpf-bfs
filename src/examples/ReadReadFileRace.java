@@ -23,14 +23,13 @@ import java.io.FileOutputStream;
 //
 
 /**
- * 
+ * Simple example that show how jpf-bfs finds races when two FileInputStreams read
+ * from a single file.
  * @author Ivan Mushketik
  */
-public class ReadWriteFileRace {
+public class ReadReadFileRace {
 
-  /**
-   * @param args the command line arguments
-   */
+  
   public static void main(String[] args) throws Exception {
     final String fileName = "testFile";
     
@@ -45,7 +44,7 @@ public class ReadWriteFileRace {
     fos.close();
 
     final FileInputStream fis1 = new FileInputStream(fileName);
-    final FileOutputStream fos2 = new FileOutputStream(fis1.getFD());
+    final FileInputStream fis2 = new FileInputStream(fis1.getFD());
 
     Runnable r1 = new Runnable() {
 
@@ -62,7 +61,7 @@ public class ReadWriteFileRace {
 
       public void run() {
         try {
-          fos2.write(42);
+          fis2.read();
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         }
@@ -73,6 +72,6 @@ public class ReadWriteFileRace {
     Thread t2 = new Thread(r2);
 
     t1.start();
-    t2.start();  
+    t2.start();
   }
 }

@@ -1,0 +1,4 @@
+target = ReadReadFileRace
+
+listener+=;gov.nasa.jpf.listener.PreciseRaceDetector
+search.properties+=;gov.nasa.jpf.listener.PreciseRaceDetector
