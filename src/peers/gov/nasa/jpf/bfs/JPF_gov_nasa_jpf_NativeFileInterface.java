@@ -20,6 +20,8 @@ package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.annotation.JPFOption;
+import gov.nasa.jpf.annotation.JPFOptions;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.JPFLogger;
 
@@ -29,7 +31,11 @@ import java.util.HashMap;
 /**
  * @author Ivan Mushketik
  */
-
+@JPFOptions({
+  @JPFOption(type="String", key="jpf-bfs.ignore_write_file_read", defaultValue="nothing", 
+        comment="what to do if a file in 'ignore_write' mode is read. 'error' - throw an java.io.IOException; "
+        + "'warning' - log warning; 'nothing' - simply do nothing")
+})
 public class JPF_gov_nasa_jpf_NativeFileInterface {
   private static final String IGNORE_WRITE_MODE_FIELD = "ignoreWriteMode";
   private static final String FILEPOS_FIELD = "filePos";

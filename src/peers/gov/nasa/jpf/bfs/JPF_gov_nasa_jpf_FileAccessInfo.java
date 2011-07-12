@@ -19,6 +19,8 @@
 package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
+import gov.nasa.jpf.annotation.JPFOption;
+import gov.nasa.jpf.annotation.JPFOptions;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.StringSetMatcher;
@@ -27,6 +29,16 @@ import gov.nasa.jpf.util.StringSetMatcher;
  *
  * @author Ivan Mushketik
  */
+
+@JPFOptions({
+  @JPFOption(type = "StringArray", key = "jpf-bfs.bfs.ignore_write", defaultValue = "", comment="if file's canonical path matches "
+        + "any of specified here regular expressions, all read/write operations with this file "
+        + "will be performed natively in unbacktrackable way."),
+  
+  @JPFOption(type = "StringArray", key = "jpf-bfs.bfs.ignore_write", defaultValue = "", comment="if file's canonical path matches "
+        + "any of specified here regular expressions, all write operations will be ignored. Result "
+        + "of read operations is specified by @jpfoption jpf-bfs.opened_delete")
+})
 public class JPF_gov_nasa_jpf_FileAccessInfo {
 
   public static final int BFS_INCLUDE = 1;
@@ -44,16 +56,10 @@ public class JPF_gov_nasa_jpf_FileAccessInfo {
     String[] bfsIgnoreWrite = config.getStringArray(BFS_IGNORE_WRITE_KEY);
 
     if (bfsExclude != null) {
-      /** @jpfoption jpf-bfs.bfs.exclude : List<RegExp> - if file's canonical path matches 
-       * any of specified here regular expressions, all read/write operations with this file
-       * will be performed natively in unbacktrackable way. */
       bfsExcludeMatcher = new StringSetMatcher(bfsExclude);
     }
 
     if (bfsIgnoreWrite != null) {
-      /** @jpfoption jpf-bfs.bfs.ignore_write : List<RegExp> - if file's canonical path matches 
-       * any of specified here regular expressions, all write operations will be ignored. Result
-       * of read operations is specified by @jpfoption jpf-bfs.opened_delete */
       bfsIgnoreWriteMatcher = new StringSetMatcher(bfsIgnoreWrite);
     }
   }

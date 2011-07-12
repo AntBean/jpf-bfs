@@ -18,32 +18,15 @@
 //
 package gov.nasa.jpf.bfs;
 
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.ListenerAdapter;
-import gov.nasa.jpf.State;
 import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
-import gov.nasa.jpf.search.Search;
-import gov.nasa.jpf.search.SearchListener;
-import gov.nasa.jpf.search.SearchListenerAdapter;
-import gov.nasa.jpf.util.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- * intercept and forward some of the filesystem access methods. This is very
- * slow, if a program uses this heavily we should keep the forwarding File
- * object around and modify the model class accordingly
- */
+
 public class JPF_java_io_File {
 
   static File getFile(MJIEnv env, int objref) {

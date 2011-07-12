@@ -21,6 +21,8 @@ package gov.nasa.jpf.bfs;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.annotation.JPFOption;
+import gov.nasa.jpf.annotation.JPFOptions;
 import gov.nasa.jpf.jvm.Fields;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ReferenceArrayFields;
@@ -33,6 +35,14 @@ import java.util.HashSet;
  *
  * @author Ivan Mushketik
  */
+@JPFOptions({
+  @JPFOption(type = "String", key = "jpf-bfs.opened_delete", defaultValue = "nothing", 
+     comment="what to do if opened file is deleted. 'error' - throw java.io.IOException; "
+     + "'warning' - log warning; 'nothing' - just do nothing "),
+  @JPFOption(type = "String", key = "jpf-bfs.opened_rename", defaultValue = "nothing", 
+     comment="what to do if opened file is renamed. 'error' - throw java.io.IOException;"
+     + " 'warning' - log warning; 'nothing' - just do nothing ")        
+})
 public class JPF_gov_nasa_jpf_FileInfo {
 
   private static final JPFLogger logger = JPF.getLogger("gov.nasa.jpf.FileInfo");
@@ -46,13 +56,7 @@ public class JPF_gov_nasa_jpf_FileInfo {
   private static File cacheDir;
 
   public static void init(Config config) {
-    /** @jpfoption jpf-bfs.opened_delete : String {"error", "warning", "nothing"} - what to do if
-     * if opened file is deleted. "error" - throw java.io.IOException; "warning" - log warning; 
-     * "nothing" - just do nothing */
     onOpenedDelete = FSMode.parseOnOpened(config, OPENED_DELETE_KEY);
-    /** @jpfoption jpf-bfs.opened_rename : String {"error", "warning", "nothing"} - what to do if
-     * if opened file is renamed. "error" - throw java.io.IOException; "warning" - log warning; 
-     * "nothing" - just do nothing */
     onOpenedRename = FSMode.parseOnOpened(config, OPENED_RENAME_KEY);
 
     cacheDir = BFSUtils.getCacheDir(config);
