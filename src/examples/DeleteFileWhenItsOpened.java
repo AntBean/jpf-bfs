@@ -19,56 +19,24 @@
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 /**
- * 
+ *
  * @author Ivan Mushketik
  */
-public class ReadWriteFileRace {
+public class DeleteFileWhenItsOpened {
 
+  /**
+   * @param args the command line arguments
+   */
   public static void main(String[] args) throws Exception {
-    final String fileName = "testFile";
-    
-    File testFile = new File("testFile");
-    // Create a test file (it will be created in BFS, not on the native FS)
+    String fileName = "testFile";
+    File testFile = new File(fileName);
     testFile.createNewFile();
     
-    // Fill the file with data, so file pointer in FileDescriptor could move
-    // and that would create potentional race
-    FileOutputStream fos = new FileOutputStream(fileName);
-    fos.write(new byte[] {1, 2, 3, 4, 5});
-    fos.close();
-
-    final FileInputStream fis1 = new FileInputStream(fileName);
-    final FileOutputStream fos2 = new FileOutputStream(fis1.getFD());
-
-    Runnable r1 = new Runnable() {
-
-      public void run() {
-        try {
-          fis1.read();
-        } catch (Exception ex) {
-          throw new RuntimeException(ex);
-        }
-      }
-    };
-
-    Runnable r2 = new Runnable() {
-
-      public void run() {
-        try {
-          fos2.write(42);
-        } catch (Exception ex) {
-          throw new RuntimeException(ex);
-        }
-      }
-    };
-
-    Thread t1 = new Thread(r1);
-    Thread t2 = new Thread(r2);
-
-    t1.start();
-    t2.start();  
+    FileInputStream fis = new FileInputStream(testFile);
+    
+    testFile.delete();
+    
   }
 }

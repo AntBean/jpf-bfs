@@ -1,8 +1,3 @@
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
@@ -22,13 +17,16 @@ import java.io.FileOutputStream;
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 /**
  * Simple example that show how jpf-bfs finds races when two FileInputStreams read
  * from a single file.
  * @author Ivan Mushketik
  */
 public class ReadReadFileRace {
-
   
   public static void main(String[] args) throws Exception {
     final String fileName = "testFile";

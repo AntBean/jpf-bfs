@@ -1,0 +1,3 @@
+target = DeleteFileWhenItsOpened
+
+jpf-bfs.opened_delete = error
