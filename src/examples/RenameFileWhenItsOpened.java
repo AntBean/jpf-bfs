@@ -21,11 +21,11 @@ import java.io.File;
 import java.io.FileInputStream;
 
 /**
- * Simple example that shows how an error when opened file is deleted can be found.
+ * Simple example that shows how an error when opened file is renamed can be found.
  * 
  * @author Ivan Mushketik
  */
-public class DeleteFileWhenItsOpened {
+public class RenameFileWhenItsOpened {
 
   public static void main(String[] args) throws Exception {
     String fileName = "testFile";
@@ -34,9 +34,11 @@ public class DeleteFileWhenItsOpened {
     
     // Open file
     FileInputStream fis = new FileInputStream(testFile);
-    // Deleting file when it's opened can be treated as an error, or can produce
-    // warnings. Behaviour can be set with jpf-bfs.opened_delete config key
-    testFile.delete();
+   
+    File toRename = new File("toRename");
+    // Renaming file when it's opened can be treated as an error, or can produce
+    // warnings. Behaviour can be set with jpf-bfs.opened_rename config key
+    testFile.renameTo(toRename);
     
   }
 }
