@@ -53,7 +53,7 @@ public class RandomAccessFile implements DataInput, DataOutput {
       FileState fileState = file.getFileInfo().getFileState();
       checkFilePermissions(file, fileState);
       
-      fd = fileState.open();
+      fd = fileState.open(file.getCanonicalPath());
 
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());

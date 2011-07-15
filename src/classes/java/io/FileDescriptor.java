@@ -23,7 +23,8 @@ import gov.nasa.jpf.FileState;
 
 /**
  * FileDescriptor - interface to a FileInterface instance that implements
- * methods to access files on a file system.
+ * methods to access files on a file system. Implementation of all file operations 
+ * in FileXStream, RandomAccessFile is based on FileDescriptor.
  * 
  */
 public class FileDescriptor {
@@ -31,10 +32,16 @@ public class FileDescriptor {
   private FileInterface fileInterface;
   private FileState fileState;
   private boolean isOpened;
+  // This field isn't used in FileDescriptor. Because most of file operations 
+  // is implemented with help of FileDescripotor, this field is used in FileListener to
+  // save on what file file operation was performed.
+  private String canonicalPath;
   
-  public FileDescriptor(FileInterface fi, FileState fileState) {
+  public FileDescriptor(FileInterface fi, FileState fileState, String canonicalPath) {
     fileInterface = fi;
     this.fileState = fileState;
+    this.canonicalPath = canonicalPath;
+    
     isOpened = true;
   }
   

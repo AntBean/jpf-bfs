@@ -292,7 +292,7 @@ public class FileState {
    * @return FileDescriptor that can be used to perform file operations with this 
    * file.
    */
-  public synchronized FileDescriptor open() {
+  public synchronized FileDescriptor open(String canonicalPath) {
     if (exists() && !isDir()) {
       openCnt++;
 
@@ -310,7 +310,7 @@ public class FileState {
         throw new UnsupportedOperationException("Not supported file access mode " + fileMode);
       }
 
-      return new FileDescriptor(fi, this);
+      return new FileDescriptor(fi, this, canonicalPath);
     }
 
     return null;

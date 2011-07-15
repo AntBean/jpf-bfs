@@ -54,15 +54,14 @@ public class FileOutputStream extends OutputStream {
 
       FileState fileState = file.getFileInfo().getFileState();      
       checkPermissions(file, fileState);
-      fd = fileState.open();     
+      fd = fileState.open(file.getCanonicalPath());     
 
       if (append) {
         fd.seek(fd.length());
       } else {
         // If FileInputStream don't append it's output to a file it removes file's content
         fd.setLength(0);
-      }
-      
+      }     
 
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());

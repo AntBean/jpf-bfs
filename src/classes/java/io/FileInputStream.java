@@ -21,6 +21,8 @@ package java.io;
 
 import gov.nasa.jpf.FileState;
 import java.nio.channels.FileChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implementation of FileInputStream that can read files from BFS.
@@ -36,24 +38,25 @@ public class FileInputStream extends InputStream implements Closeable {
   }
   
   public FileInputStream (File file) throws FileNotFoundException {
-    if (!file.exists()) {
-      throw new FileNotFoundException(file.getPath() + "(No such file or directory)");
-    }
-
-    FileState fileState = file.getFileInfo().getFileState();
-    
-    checkPermissions(file, fileState);
-    
-    fd = fileState.open();
-  }
-  
-  private void checkPermissions(File file, FileState fileState) throws FileNotFoundException {
     try {
-      if (!fileState.isReadableForSUT()) {
-        throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
+      if (!file.exists()) {
+        throw new FileNotFoundException(file.getPath() + "(No such file or directory)");
       }
+
+      FileState fileState = file.getFileInfo().getFileState();
+      
+      checkPermissions(file, fileState);
+      
+      fd = fileState.open(file.getCanonicalPath());
+      
     } catch (IOException ex) {
       throw new FileNotFoundException(ex.getMessage());
+    }
+  }
+  
+  private void checkPermissions(File file, FileState fileState) throws IOException {
+    if (!fileState.isReadableForSUT()) {
+      throw new FileNotFoundException(file.getCanonicalPath() + " (Permission denied)");
     }
   }
   

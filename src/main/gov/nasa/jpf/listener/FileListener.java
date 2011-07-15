@@ -22,8 +22,11 @@ import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.ListenerAdapter;
 import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.jvm.ElementInfo;
+import gov.nasa.jpf.jvm.Heap;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MethodInfo;
+import gov.nasa.jpf.jvm.StackFrame;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
@@ -58,12 +61,48 @@ public class FileListener extends ListenerAdapter {
   static class FileOperation {
     MethodInfo mi;
     ThreadInfo ti;
+    String canonicalFilePath;
     
     FileOperation prevFileOp;
     
     public FileOperation(JVM vm) {      
       this.mi = vm.getLastMethodInfo();
       this.ti = vm.getCurrentThread();
+      
+      canonicalFilePath = getFilePath(vm);
+    }
+    
+    private String getFilePath(JVM vm) {
+      ThreadInfo ti = vm.getLastThreadInfo();
+      StackFrame frame = ti.getTopFrame();
+      
+      if (frame != null) {
+
+        MethodInfo mi = vm.getLastMethodInfo();
+        int ref = frame.getThis();
+        
+        if (ref > 0) {
+          Heap heap = vm.getHeap();
+          ElementInfo ei = heap.get(ref);
+          
+          String className = ei.getClassInfo().getName();
+          
+          // We log operations from File, FileXStream, RandomAccessFile. File
+          // has a "canonicalPath" field, other classes has fd (FileDescriptor)
+          // object reference that has "canonicalPath" field
+          if (!className.equals("java.io.File")) {
+            int fdRef = ei.getReferenceField("fd");
+            ei = heap.get(fdRef);
+          }
+          
+          if (ei != null) {
+            return ei.getStringField("canonicalPath");
+          }
+          
+        }
+      }
+      
+      return null;
     }
   }
   
@@ -73,7 +112,7 @@ public class FileListener extends ListenerAdapter {
   private void printRawReport(PrintWriter pw) {
     for (Transition transition = lastTransition; transition != null; transition = transition.prevTransition) {
       for (FileOperation fo = transition.lastFileOp; fo != null; fo = fo.prevFileOp) {
-        pw.println("State = " + transition.stateId + ";thread = " + fo.ti + ";method = " + fo.mi.getFullName());
+        pw.println(transition.stateId + "; " + fo.ti + "; " + fo.canonicalFilePath + "; " + fo.mi.getFullName());
       }
     }
   }
@@ -156,8 +195,6 @@ public class FileListener extends ListenerAdapter {
     PrintWriter pw = publisher.getOut();
     printRawReport(pw);
   }
-    
-  
   
   private void log(Object o) {
     System.out.println(o);
