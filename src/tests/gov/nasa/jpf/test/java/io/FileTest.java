@@ -56,6 +56,31 @@ public class FileTest extends TestJPF {
   }
 
   @Test
+  public void testParentChildCtor() {
+    if (verifyNoPropertyViolation()) {
+      File parentChild = new File("fileSandbox/parent", "child");
+      
+      Verify.getBoolean();
+      assertTrue(parentChild.exists());
+      assertTrue(parentChild.delete());
+      assertFalse(parentChild.exists());
+    }
+  }
+  
+  @Test
+  public void testParentSeparatorChildCtor() {
+    if (verifyNoPropertyViolation()) {
+      File parent = new File("fileSandbox/parent");
+      File parentChild = new File(parent, "child");
+
+      Verify.getBoolean();
+      assertTrue(parentChild.exists());
+      assertTrue(parentChild.delete());
+      assertFalse(parentChild.exists());
+    }
+  }
+  
+  @Test
   public void testBacktrackableRemove() {
     if (verifyNoPropertyViolation()) {
       File file = new File("fileSandbox/parent/child");

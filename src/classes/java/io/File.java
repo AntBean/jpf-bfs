@@ -64,15 +64,17 @@ public class File
 
   private static native String getCanonicalPath(String filename);
 
-  // <2do> implement this constructor
   public File (String parent, String child) {
   	filename = parent + separator + child;
     canonicalPath = getCanonicalPath(filename);
+    fileInfo = FileInfo.getFileInfo(canonicalPath);
   }
   
-  // <2do> implement this constructor
   public File (File parent, String child) {
-    canonicalPath = parent.canonicalPath + separator + child;
+    filename = parent.canonicalPath + separator + child;
+    canonicalPath = getCanonicalPath(filename);
+    
+    fileInfo = FileInfo.getFileInfo(canonicalPath);
   }
   
   public File(java.net.URI uri) { throw new UnsupportedOperationException(); }
