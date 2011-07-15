@@ -132,6 +132,8 @@ public class FileListener extends ListenerAdapter {
     
   }
   
+  HashMap<Integer, Transition> storedTransition = new HashMap<Integer,Transition>();
+  
   @Override
   public void stateStored (Search search) {
     storedTransition.put(search.getStateId(), lastTransition);
@@ -139,7 +141,12 @@ public class FileListener extends ListenerAdapter {
   
   @Override
   public void stateRestored(Search search) {
-    
+    int stateId = search.getStateId();
+    Transition transition = storedTransition.get(stateId);
+    if (transition != null) {
+      lastTransition = transition;
+      storedTransition.remove(stateId);  // not strictly required, but we don't come back
+    }  
   }
   
   @Override
@@ -150,7 +157,7 @@ public class FileListener extends ListenerAdapter {
     printRawReport(pw);
   }
     
-  HashMap<Integer, Transition> storedTransition = new HashMap<Integer,Transition>();
+  
   
   private void log(Object o) {
     System.out.println(o);
