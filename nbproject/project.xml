@@ -220,7 +220,7 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src/main</package-root>
-                <classpath mode="compile">build/main:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/annotations:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/classes:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/main:/home/proger/Documents/Programming/Java/JPF/jpf-core/build/peers</classpath>
+                 <classpath mode="compile">${jpf-core.native_classpath}</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
@@ -230,7 +230,7 @@
             </compilation-unit>
             <compilation-unit>
                 <package-root>src/classes</package-root>
-                <classpath mode="compile">build/classes</classpath>
+		<classpath mode="compile"></classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
