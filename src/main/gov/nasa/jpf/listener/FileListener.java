@@ -20,7 +20,10 @@ package gov.nasa.jpf.listener;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.JPFConfigException;
 import gov.nasa.jpf.ListenerAdapter;
+import gov.nasa.jpf.annotation.JPFOption;
+import gov.nasa.jpf.annotation.JPFOptions;
 import gov.nasa.jpf.jvm.ClassInfo;
 import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.Heap;
@@ -37,9 +40,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
+ * Listener that stored all methods relate to a file system operations, and output
+ * them in selected format in case of property violation.
  * @author Ivan Mushketik
  */
+@JPFOptions ({
+  @JPFOption(type="String", key="file-listener.output-format", defaultValue="table", 
+             comment="Format of the output of the file operations that lead to an"
+                   + "error; table = format file operations in table like format;"
+                   + "raw = raw output format"),
+  @JPFOption(type="boolean", key="file-listener.log-constructors", defaultValue="falsee",
+             comment="Define if calls to constructors methods should be saved and "
+                   + "outputed on property violation")
+})
 public class FileListener extends ListenerAdapter {
   private static final Set<String> classToLog = new HashSet<String>() {{ 
     add("java.io.File");
@@ -47,9 +60,30 @@ public class FileListener extends ListenerAdapter {
     add("java.io.FileInputStream");
     add("java.io.FileOutputStream");
   }};
+  
+  private static final String OUTPUT_FORMAT_KEY = "file-listener.output-format";
+  private static final String LOG_CONSTRUCTORS_KEY = "file-listener.log-constructors";
+  
+  private static final String TABLE_OUTPUT_FORMAT = "table";
+  private static final String RAW_OUTPUT_FORMAT = "raw";
+  
+  private static final Set<String> expectedOutputFormats = new HashSet<String>() {{
+    add(TABLE_OUTPUT_FORMAT);
+    add(RAW_OUTPUT_FORMAT);
+  }};
 
+  private String outputFormat;
+  private boolean logConstructors;
+  
   public FileListener(Config config, JPF jpf){
     jpf.addPublisherExtension(ConsolePublisher.class, this);
+    
+    logConstructors = config.getBoolean(LOG_CONSTRUCTORS_KEY, false);
+    outputFormat = config.getString(OUTPUT_FORMAT_KEY, TABLE_OUTPUT_FORMAT);
+    if (!expectedOutputFormats.contains(outputFormat)) {
+      throw new JPFConfigException("Unexpected output format '" + outputFormat + 
+                                   "' expected one of " + expectedOutputFormats);
+    }    
   }
   
   static class Transition {
@@ -109,6 +143,22 @@ public class FileListener extends ListenerAdapter {
   private Transition lastTransition = new Transition();
   private int currStateId;  
   
+  private void printTableHeader(PrintWriter pw) {
+    pw.format("%5s %10s %-70s %-50s\n", "state", "thread", "file", "method");
+    
+  }
+  
+  private void printTableReport(PrintWriter pw) {
+    printTableHeader(pw);
+    
+    for (Transition transition = lastTransition; transition != null; transition = transition.prevTransition) {
+      for (FileOperation fo = transition.lastFileOp; fo != null; fo = fo.prevFileOp) {
+        pw.format("%5d %10s %-70s %-50s\n", transition.stateId, fo.ti.getName(), fo.canonicalFilePath, fo.mi.getFullName());
+      }
+    }
+  }
+
+  
   private void printRawReport(PrintWriter pw) {
     for (Transition transition = lastTransition; transition != null; transition = transition.prevTransition) {
       for (FileOperation fo = transition.lastFileOp; fo != null; fo = fo.prevFileOp) {
@@ -133,7 +183,11 @@ public class FileListener extends ListenerAdapter {
   }
   
   private boolean shouldLogMethodClass(JVM vm) {
-    MethodInfo mi = vm.getLastMethodInfo(); 
+    MethodInfo mi = vm.getLastMethodInfo();     
+    if ((mi.isCtor() || mi.isClinit()) && !logConstructors) {
+      return false;
+    }
+    
     ClassInfo ci = mi.getClassInfo();
     
     return classToLog.contains(ci.getName());           
@@ -191,9 +245,14 @@ public class FileListener extends ListenerAdapter {
   @Override
   public void publishPropertyViolation (Publisher publisher) {
     saveLastTransition();
-    
     PrintWriter pw = publisher.getOut();
-    printRawReport(pw);
+    
+    if (outputFormat.equals(TABLE_OUTPUT_FORMAT)) {
+      printTableReport(pw);
+    }
+    else if (outputFormat.equals(RAW_OUTPUT_FORMAT)) {
+      printRawReport(pw);
+    }
   }
   
   private void log(Object o) {
