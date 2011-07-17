@@ -1,4 +1,8 @@
+# Name of the main class to run
 target = ReadWriteFileRace
 
+# Add listener that finds races
 listener+=;gov.nasa.jpf.listener.PreciseRaceDetector
+# Add PreciseRaceDetector to properties, to report property violation if a race 
+# was found
 search.properties+=;gov.nasa.jpf.listener.PreciseRaceDetector

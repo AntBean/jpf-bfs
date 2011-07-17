@@ -1,3 +1,7 @@
+# Name of the main class to run in JPF
 target = DeleteFileWhenItsOpened
 
+# Different file systems has different implementation of deleting an opened
+# file. With a following config key BFS behavior in case of deleting opened file can be set.
+# Possible values are error, warning and nothing.
 jpf-bfs.opened_delete = error

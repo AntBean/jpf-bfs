@@ -1,0 +1,16 @@
+# Name of the main class to run
+target = FileListenerExample
+
+# Add listener that finds races
+listener+=;gov.nasa.jpf.listener.PreciseRaceDetector
+# Add PreciseRaceDetector to properties, to report property violation if a race 
+# was found
+search.properties+=;gov.nasa.jpf.listener.PreciseRaceDetector
+
+# Add listener that logs all file system related method calls and report them
+# in case of property violation
+listener+=;gov.nasa.jpf.listener.FileListener
+# Set if constructors calls should be loged
+file-listener.log-constructors=false
+# Set format of the report output (table or raw)
+file-listener.output-format=table

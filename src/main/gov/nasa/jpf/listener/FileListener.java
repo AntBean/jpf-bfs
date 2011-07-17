@@ -170,7 +170,6 @@ public class FileListener extends ListenerAdapter {
   @Override
   public void methodEntered(JVM vm) {    
     if (shouldLogMethodClass(vm)) {
-      log(vm.getLastMethodInfo());
       addNewFileOperation(vm);
     }
   }
@@ -207,10 +206,7 @@ public class FileListener extends ListenerAdapter {
   @Override
   public void stateAdvanced(Search search) {
     currStateId = search.getStateId();
-    log("State advanced");
-    log(currStateId);
     if (search.isNewState()) {
-      log("NEW STATE");
       saveLastTransition();
     }
   }
@@ -253,9 +249,5 @@ public class FileListener extends ListenerAdapter {
     else if (outputFormat.equals(RAW_OUTPUT_FORMAT)) {
       printRawReport(pw);
     }
-  }
-  
-  private void log(Object o) {
-    System.out.println(o);
   }
 }
