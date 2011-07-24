@@ -31,7 +31,7 @@ import gov.nasa.jpf.util.StringSetMatcher;
  */
 
 @JPFOptions({
-  @JPFOption(type = "StringArray", key = "jpf-bfs.bfs.ignore_write", defaultValue = "", comment="if file's canonical path matches "
+  @JPFOption(type = "StringArray", key = "jpf-bfs.bfs.exclude", defaultValue = "", comment="if file's canonical path matches "
         + "any of specified here regular expressions, all read/write operations with this file "
         + "will be performed natively in unbacktrackable way."),
   
