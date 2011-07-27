@@ -50,14 +50,14 @@ public class JPF_gov_nasa_jpf_FileInfo {
   private static final String OPENED_DELETE_KEY = "jpf-bfs.opened_delete";
   private static final String OPENED_RENAME_KEY = "jpf-bfs.opened_rename";
 
-  private static int onOpenedDelete = FSMode.NOTHING;
-  private static int onOpenedRename = FSMode.NOTHING;
+  private static FSMode onOpenedDelete = FSMode.NOTHING;
+  private static FSMode onOpenedRename = FSMode.NOTHING;
 
   private static File cacheDir;
 
   public static void init(Config config) {
-    onOpenedDelete = FSMode.parseOnOpened(config, OPENED_DELETE_KEY);
-    onOpenedRename = FSMode.parseOnOpened(config, OPENED_RENAME_KEY);
+    onOpenedDelete = config.getEnum(OPENED_DELETE_KEY, FSMode.values(), FSMode.NOTHING);    
+    onOpenedRename = config.getEnum(OPENED_RENAME_KEY, FSMode.values(), FSMode.NOTHING);
 
     cacheDir = BFSUtils.getCacheDir(config);
   }

@@ -18,47 +18,12 @@
 //
 package gov.nasa.jpf.bfs;
 
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.JPFConfigException;
-import java.util.logging.Logger;
-
 /**
- *
+ * This modes are used by FileInfo and NativeFileInterface.
  * @author Ivan Mushketik
  */
-public class FSMode {
-
-  // Do nothing
-  public static final int NOTHING = 0;
-  // Report a warning
-  public static final int WARNING = 1;
-  // Report an error
-  public static final int ERROR = 2;
-
-  // Keys for different modes in config file
-  private static final String DO_NOTHING = "nothing";
-  private static final String REPORT_WARNING = "warning";
-  private static final String THROW_ERROR = "error";
-
-  /**
-   * Parse FSMode value from config
-   * @param config - config to read value from
-   * @param key - key to read string value
-   * @return
-   */
-  public static int parseOnOpened(Config config, String key) {
-    String value = config.getString(key);
-
-    if (value == null || value.equals(DO_NOTHING)) {
-      return NOTHING;
-    } else if (value.equals(REPORT_WARNING)) {
-      return WARNING;
-    } else if (value.equals(THROW_ERROR)) {
-      return ERROR;
-    } else {
-      throw new JPFConfigException("Unexpected value '" + value +
-                                   "' for key '" + key + "' in config.");
-    }
-  }
+public enum FSMode {
+  NOTHING,
+  WARNING,
+  ERROR
 }

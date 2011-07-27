@@ -64,26 +64,19 @@ public class FileListener extends ListenerAdapter {
   private static final String OUTPUT_FORMAT_KEY = "file-listener.output-format";
   private static final String LOG_CONSTRUCTORS_KEY = "file-listener.log-constructors";
   
-  private static final String TABLE_OUTPUT_FORMAT = "table";
-  private static final String RAW_OUTPUT_FORMAT = "raw";
-  
-  private static final Set<String> expectedOutputFormats = new HashSet<String>() {{
-    add(TABLE_OUTPUT_FORMAT);
-    add(RAW_OUTPUT_FORMAT);
-  }};
+  private static enum OutputFormat {
+    RAW,
+    TABLE
+  }
 
-  private String outputFormat;
+  private OutputFormat outputFormat;
   private boolean logConstructors;
   
   public FileListener(Config config, JPF jpf){
     jpf.addPublisherExtension(ConsolePublisher.class, this);
     
     logConstructors = config.getBoolean(LOG_CONSTRUCTORS_KEY, false);
-    outputFormat = config.getString(OUTPUT_FORMAT_KEY, TABLE_OUTPUT_FORMAT);
-    if (!expectedOutputFormats.contains(outputFormat)) {
-      throw new JPFConfigException("Unexpected output format '" + outputFormat + 
-                                   "' expected one of " + expectedOutputFormats);
-    }    
+    outputFormat = config.getEnum(OUTPUT_FORMAT_KEY, OutputFormat.values(), OutputFormat.TABLE);
   }
   
   static class Transition {
@@ -243,10 +236,10 @@ public class FileListener extends ListenerAdapter {
     saveLastTransition();
     PrintWriter pw = publisher.getOut();
     
-    if (outputFormat.equals(TABLE_OUTPUT_FORMAT)) {
+    if (outputFormat == OutputFormat.TABLE) {
       printTableReport(pw);
     }
-    else if (outputFormat.equals(RAW_OUTPUT_FORMAT)) {
+    else if (outputFormat == OutputFormat.RAW) {
       printRawReport(pw);
     }
   }
